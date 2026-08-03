@@ -3,7 +3,7 @@
 # Use this when SAPIEN and the Torch/StarWAM stack live in separate envs:
 #   1) In the Torch/StarWAM env, start the inference server:
 #        python -m examples.robotwin.policy_server \
-#          --config examples/robotwin/configs/recipes/starwam_robotwin_mot_wan22_5b.yaml \
+#          --config /path/to/recipe.yaml \
 #          --checkpoint /path/to/checkpoint-XXXX/pytorch_model \
 #          --override backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B \
 #                     data.action_stats_path=/path/to/action_stats.json \

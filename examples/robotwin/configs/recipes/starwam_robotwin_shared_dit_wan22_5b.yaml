@@ -1,0 +1,133 @@
+# ============================================================================
+# StarWAM RoboTwin 2.0 Shared-DiT: Wan2.2-TI2V-5B
+# ============================================================================
+#
+# Dual-arm (bimanual) RoboTwin 2.0 recipe for the Shared-DiT WAM family.
+# Mirrors the LIBERO Shared-DiT recipe, with RoboTwin-specific dims/cameras and
+# z-score normalization (Fast-WAM's RoboTwin convention).
+#
+# Shared-DiT puts clean video, noisy video, action tokens, and state tokens in a
+# single DiT token space (register tokens), with decoupled video/action denoising
+# schedules. Unlike MoT, it does NOT need a preprocessed ActionDiT init payload.
+#
+# No preset validator is registered for RoboTwin, so taxonomy.preset is null and
+# all framework fields are set explicitly.
+#
+# Data source
+# -----------
+# - LeRobot v2.1 dataset: `yuanty/robotwin2.0-fastwam` (Fast-WAM preprocessed).
+# - action/state = 14-D dual-arm qpos; cameras cam_high/cam_left_wrist/cam_right_wrist.
+#
+# Evaluation: checkpoint-45000, 100 episodes per task-setting, 50 tasks x
+# {demo_clean, demo_randomized}: 9257/10000 = 92.57% overall.
+# ============================================================================
+
+taxonomy:
+  package: starwam
+  model_family: shared_dit_wam
+  preset: null            # RoboTwin has no strict preset validator (allowed)
+  action_representation: token_action
+  conditioning: full_video
+
+backbone:
+  type: wan22_5b
+  pretrained_model_id: /path/to/Wan2.2-TI2V-5B
+  load_text_encoder: false
+  tokenizer_max_len: 128
+
+framework:
+  type: shared_dit
+  action_dim: 14          # dual-arm 14-D qpos
+  action_gripper_dim: -1
+  chunk_size: 32
+  proprio_dim: 14         # dual-arm 14-D state
+  max_state_dim: 14
+  num_frame_per_block: 2
+  num_action_per_block: 32
+  num_state_per_block: 1
+  shared_dit_clean_context: full_video
+  shared_dit_pin_first_latent_step: true
+  shared_dit_checkpoint_blocks: true
+
+  video_scheduler:
+    num_train_timesteps: 1000
+    train_shift: 5.0
+    infer_shift: 5.0
+  action_scheduler:
+    num_train_timesteps: 1000
+    train_shift: 5.0
+    infer_shift: 5.0
+
+  loss_lambda_video: 1.0
+  loss_lambda_action: 1.0
+
+training:
+  output_dir: /path/to/output/starwam_robotwin_shared_dit_wan22_5b
+  learning_rate: 1.0e-4
+  weight_decay: 1.0e-2
+  # Same Fast-WAM RoboTwin target as the MoT recipe: GLOBAL batch = 1024,
+  # lr = 1e-4. Set gradient_accumulation_steps so
+  #   per_device(8) x grad_accum x num_gpus == 1024:
+  #     8 GPUs  -> grad_accum 16  (default below)
+  #     16 GPUs -> grad_accum 8
+  # Shared-DiT converges slower than MoT (cf. LIBERO mot@20k vs shared_dit@50k),
+  # so use more epochs than the MoT recipe: 8 epochs ~= 47k steps @ global 1024.
+  batch_size: 8
+  gradient_accumulation_steps: 16
+  num_epochs: 8
+  max_steps: null
+  mixed_precision: bf16
+  max_grad_norm: 1.0
+  log_every: 10
+  save_every: 5000
+  eval_every: 5000
+  eval_num_inference_steps: 4
+  eval_action_num_inference_steps: 16
+  eval_max_samples: 4
+  eval_compute_video_psnr: false
+  seed: 42
+  lr_scheduler_type: cosine
+  warmup_steps: null      # null -> 5% of total steps (Fast-WAM convention)
+  min_lr: 0.0
+  num_workers: 8
+  strategy: full
+  save_total_limit: 3
+  wandb_enabled: true
+  wandb_project: starWAM
+  wandb_run_name: starwam_robotwin_shared_dit_wan22_5b
+
+data:
+  dataset_type: lerobot
+  dataset_dirs:
+    - /path/to/robotwin2.0
+  # Camera order MUST be [head, left_wrist, right_wrist] for the robotwin
+  # concat layout. Keys verified against meta/info.json.
+  video_key: observation.images.cam_high
+  video_keys:
+    - observation.images.cam_high
+    - observation.images.cam_left_wrist
+    - observation.images.cam_right_wrist
+  concat_multi_camera: robotwin   # head(256x320) over [left|right](128x160 each) -> 384x320
+  action_key: action
+  state_key: observation.state
+  num_frames: 33
+  video_size: [384, 320]          # robotwin concat already yields 384x320
+  text_len: 128
+  text_embedding_cache_dir: /path/to/output/starwam_robotwin_shared_dit_wan22_5b/text_embedding_cache
+  text_prompt_template: "A video recorded from a robot's point of view executing the following instruction: {task}"
+  text_cache_encoder_id: wan22ti2v5b
+  action_freq_ratio: 4            # 32 action steps, 9 sampled video frames
+  normalize_actions: true
+  action_norm_mode: zscore        # Fast-WAM uses z-score for RoboTwin
+  action_stats_path: /path/to/output/starwam_robotwin_shared_dit_wan22_5b/action_stats.json
+  normalize_states: true
+  state_norm_mode: zscore
+  state_stats_path: /path/to/output/starwam_robotwin_shared_dit_wan22_5b/action_stats.json
+  delta_action_dim_mask: null     # absolute qpos actions; no delta padding mask
+  val_split: 0.0
+  val_split_seed: 42
+
+inference:
+  num_inference_steps: 16
+  action_num_inference_steps: 16
+  seed: 42

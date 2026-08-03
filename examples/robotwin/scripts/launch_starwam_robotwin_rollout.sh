@@ -18,13 +18,16 @@
 #   PY=/path/to/robotwin-env/bin/python \
 #   VK_ICD_FILENAMES=/path/to/nvidia_icd.json \        # if SAPIEN needs it
 #   SERVER_HOST=<server ip> SERVER_PORT_BASE=8765 NSERVERS=8 \
-#   CLIENT_GPUS="0" NWORKER=8 CKPT_TAG=starwam \
-#   bash examples/robotwin/scripts/launch_starwam_robotwin_mot_rollout.sh
+#   CLIENT_GPUS="0" NWORKER=8 CKPT_TAG=checkpoint_tag \
+#   bash examples/robotwin/scripts/launch_starwam_robotwin_rollout.sh
+#
+# The client protocol is model-family agnostic; MoT vs Shared-DiT is selected by
+# the recipe/checkpoint used to start the inference servers.
 #
 # NOTE: There is NO wall-clock timeout around a task-setting. RoboTwin enforces
 # a per-episode step limit itself, so a group of 100 episodes terminates on its
 # own; wrapping it in `timeout` truncates episodes and biases the success rate.
-set -u
+set -euo pipefail
 
 ROBOTWIN="${ROBOTWIN:?set ROBOTWIN=/path/to/RoboTwin}"
 PY="${PY:-python}"
@@ -38,9 +41,14 @@ CLIENT_GPUS="${CLIENT_GPUS:-0 1 2 3 4 5 6 7}"   # sim GPUs, cycled across worker
 INSTRUCTION_TYPE="${INSTRUCTION_TYPE:-unseen}"
 SEED="${SEED:-0}"
 CKPT_TAG="${CKPT_TAG:-starwam}"
-LOGDIR="${LOGDIR:-$ROBOTWIN/rollout_logs}"
+LOGDIR="${LOGDIR:-$ROBOTWIN/rollout_logs/$CKPT_TAG}"
 mkdir -p "$LOGDIR"
 read -r -a GPU_ARR <<< "$CLIENT_GPUS"
+
+if (( NWORKER < 1 || NSERVERS < 1 || ${#GPU_ARR[@]} < 1 )); then
+  echo "NWORKER, NSERVERS, and CLIENT_GPUS must each specify at least one worker/server/GPU" >&2
+  exit 2
+fi
 
 # 50 tasks, order from Fast-WAM _eval_step_limit.yml
 TASKS=(adjust_bottle beat_block_hammer blocks_ranking_rgb blocks_ranking_size click_alarmclock click_bell dump_bin_bigbin grab_roller handover_block handover_mic lift_pot move_can_pot move_playingcard_away move_stapler_pad hanging_mug open_laptop open_microwave pick_diverse_bottles pick_dual_bottles place_a2b_left place_a2b_right place_bread_basket place_bread_skillet place_can_basket place_cans_plasticbox place_container_plate place_dual_shoes place_empty_cup place_fan place_burger_fries place_mouse_pad place_object_basket place_object_scale place_object_stand place_phone_stand move_pillbottle_pad place_shoe press_stapler put_bottles_dustbin put_object_cabinet rotate_qrcode scan_object shake_bottle shake_bottle_horizontally stack_blocks_three stack_blocks_two stack_bowls_three stack_bowls_two stamp_seal turn_switch)
@@ -77,8 +85,20 @@ run_worker() {
 }
 
 cd "$ROBOTWIN" || exit 1
+PIDS=()
 for (( w=0; w<NWORKER; w++ )); do
   run_worker "$w" > "$LOGDIR/worker_${w}.log" 2>&1 &
+  PIDS+=("$!")
 done
-wait
+
+failed=0
+for i in "${!PIDS[@]}"; do
+  if ! wait "${PIDS[$i]}"; then
+    echo "[rollout] worker $i failed; inspect $LOGDIR/worker_${i}.log" >&2
+    failed=1
+  fi
+done
+if (( failed )); then
+  exit 1
+fi
 echo "ALL ROLLOUTS DONE"

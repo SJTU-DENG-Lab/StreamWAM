@@ -6,7 +6,7 @@ StarWAM is a research codebase for building **World-Action Models (WAMs)**: robo
 
 ## News
 
-- **2026/07**: RoboTwin 2.0 integration — dual-arm MoT recipe, client/server rollout adapter for the official RoboTwin harness (89.5% avg over 50 tasks).
+- **2026/07**: RoboTwin 2.0 integration — dual-arm MoT and Shared-DiT recipes with a client/server adapter for the official harness (89.5% and 92.6% over 50 tasks).
 - **2026/07**: Initial StarWAM codebase prepared with Wan2.2 and Cosmos-Predict2 backbone adapters, LIBERO training/rollout recipes, MoT WAM, Shared-DiT WAM, and feature-conditioned WAM support.
 
 ## Highlights
@@ -73,6 +73,7 @@ LIBERO:
 RoboTwin 2.0:
 
 - `starwam-robotwin/mot/starwam_wan225b_robotwin_mot.pt` — Wan2.2-TI2V-5B dual-arm MoT WAM.
+- `starwam-robotwin/sharedit/starwam_wan225b_robotwin_sharedit.pt` — Wan2.2-TI2V-5B dual-arm Shared-DiT WAM.
 - `starwam-robotwin/action_stats.json` — z-score action/state normalization stats.
 
 Download:

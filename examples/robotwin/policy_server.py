@@ -10,7 +10,7 @@ grid, runs flow-matching inference, denormalizes, and returns the action chunk.
 
 Run from the StarWAM repo root, or with the repo root on PYTHONPATH:
     python -m examples.robotwin.policy_server \
-        --config examples/robotwin/configs/recipes/starwam_robotwin_mot_wan22_5b.yaml \
+        --config /path/to/recipe.yaml \
         --checkpoint /path/to/checkpoint-XXXX/pytorch_model \
         --override backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B \
                    data.action_stats_path=/path/to/action_stats.json \
@@ -101,8 +101,14 @@ def main() -> None:
     parser.add_argument(
         "--num-inference-steps",
         type=int,
-        default=4,
-        help="Flow-matching steps. Default 4 matches Fast-WAM RoboTwin eval.",
+        default=None,
+        help="Video/joint flow-matching steps (default: recipe inference.num_inference_steps).",
+    )
+    parser.add_argument(
+        "--action-num-inference-steps",
+        type=int,
+        default=None,
+        help="Shared-DiT action steps (default: recipe inference.action_num_inference_steps).",
     )
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--host", default="0.0.0.0")
@@ -115,6 +121,7 @@ def main() -> None:
         overrides=list(args.override) if args.override else None,
         device=args.device,
         num_inference_steps=args.num_inference_steps,
+        action_num_inference_steps=args.action_num_inference_steps,
         seed=args.seed,
     )
     print(f"[starwam_robotwin_server] model ready on {args.device}; listening on {args.host}:{args.port}", flush=True)

@@ -139,6 +139,7 @@ class StarwamPolicy:
         overrides: Optional[list[str]] = None,
         device: str = "cuda:0",
         num_inference_steps: Optional[int] = None,
+        action_num_inference_steps: Optional[int] = None,
         replan_steps: int = 8,
         seed: Optional[int] = None,
     ) -> None:
@@ -165,6 +166,11 @@ class StarwamPolicy:
             num_inference_steps
             if num_inference_steps is not None
             else getattr(config.inference, "num_inference_steps", 8)
+        )
+        self.action_num_inference_steps = int(
+            action_num_inference_steps
+            if action_num_inference_steps is not None
+            else getattr(config.inference, "action_num_inference_steps", self.num_inference_steps)
         )
         self.replan_steps = int(max(1, min(replan_steps, self.action_horizon)))
         self.seed = seed
@@ -251,6 +257,7 @@ class StarwamPolicy:
             context_mask=context_mask,
             action_horizon=self.action_horizon,
             num_inference_steps=self.num_inference_steps,
+            action_num_inference_steps=self.action_num_inference_steps,
             seed=self.seed,
             proprio=proprio,
             num_video_frames=self._sampled_video_frame_count(),

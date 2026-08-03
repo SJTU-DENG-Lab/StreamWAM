@@ -12,7 +12,8 @@
 #                 task_config demo_randomized instruction_type unseen \
 #                 ckpt_setting <tag> seed 0 \
 #                 checkpoint /path/to/output/.../checkpoint-XXXX/pytorch_model \
-#                 overrides "backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B data.action_stats_path=/path/to/action_stats.json data.state_stats_path=/path/to/action_stats.json data.text_embedding_cache_dir=/path/to/text_embedding_cache"
+#                 overrides "backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B data.action_stats_path=/path/to/action_stats.json data.state_stats_path=/path/to/action_stats.json data.text_embedding_cache_dir=/path/to/text_embedding_cache" \
+#                 num_inference_steps 4 action_num_inference_steps 4
 #
 # If SAPIEN and Torch/StarWAM are in separate envs, use deploy_policy_client.yml
 # with examples.robotwin.policy_server instead.
@@ -38,6 +39,8 @@ overrides: >-
   data.state_stats_path=/path/to/output/starwam_robotwin_mot_wan22_5b/action_stats.json
   data.text_embedding_cache_dir=/path/to/output/starwam_robotwin_mot_wan22_5b/text_embedding_cache
 device: cuda:0
-# Fast-WAM RoboTwin eval: 4 flow-matching steps, replan every 24 of 32 chunk steps.
+# MoT uses 4 flow-matching steps. Shared-DiT uses 16 video/action steps; override
+# config_path, checkpoint, and both values together when evaluating that recipe.
 num_inference_steps: 4
+action_num_inference_steps: 4
 replan_steps: 24

@@ -20,6 +20,9 @@
 # - num_frames=33, action_freq_ratio=4 -> 32 action steps, 9 video frames.
 # - NO temporal downsampling (Fast-WAM global_sample_stride=1); StarWAM samples
 #   consecutive frames at native 50 fps (~0.64s per 32-step chunk).
+#
+# Evaluation: checkpoint-27500, 100 episodes per task-setting, 50 tasks x
+# {demo_clean, demo_randomized}: 8948/10000 = 89.48% overall.
 # ============================================================================
 
 taxonomy:
@@ -130,8 +133,8 @@ data:
   val_split_seed: 42
 
 inference:
-  num_inference_steps: 8
-  # MoT uses a single denoising schedule, so rollout overrides this to
-  # num_inference_steps. Kept for schema consistency with Shared-DiT recipes.
-  action_num_inference_steps: 20
+  # Published RoboTwin evaluation uses 4 flow-matching steps for MoT.
+  num_inference_steps: 4
+  # MoT uses one denoising schedule; this is kept equal for schema consistency.
+  action_num_inference_steps: 4
   seed: 42

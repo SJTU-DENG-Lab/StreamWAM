@@ -103,12 +103,17 @@ def get_model(usr_args: Dict[str, Any]) -> RoboTwinStarwamModel:
     if config_path is None or checkpoint is None:
         raise ValueError("`config_path` and `checkpoint` are required in deploy_policy args.")
 
+    config_path = Path(str(config_path))
+    if not config_path.is_absolute() and not config_path.is_file():
+        config_path = _REPO_ROOT / config_path
+
     overrides = _get(usr_args, "overrides")
     if isinstance(overrides, str):
         overrides = overrides.split()
 
     device = str(_get(usr_args, "device", "cuda:0"))
     num_inference_steps = _get(usr_args, "num_inference_steps")
+    action_num_inference_steps = _get(usr_args, "action_num_inference_steps")
     replan_steps = int(_get(usr_args, "replan_steps", 8))
     seed = _get(usr_args, "seed")
 
@@ -118,6 +123,9 @@ def get_model(usr_args: Dict[str, Any]) -> RoboTwinStarwamModel:
         overrides=list(overrides) if overrides else None,
         device=device,
         num_inference_steps=int(num_inference_steps) if num_inference_steps is not None else None,
+        action_num_inference_steps=(
+            int(action_num_inference_steps) if action_num_inference_steps is not None else None
+        ),
         replan_steps=replan_steps,
         seed=int(seed) if seed is not None else None,
     )
