@@ -126,7 +126,7 @@ def _build_action_dit_from_config(
 ):
     from starwam.action_model import build_action_dit
     from starwam.config import load_config
-    from starwam.utils.checkpoint import infer_backbone_info
+    from starwam.checkpointing import infer_backbone_info
 
     cfg = load_config(config_path)
     if pretrained_model_id:
@@ -143,7 +143,7 @@ def _load_wan22_video_state(
 ) -> dict[str, torch.Tensor]:
     from starwam.config import load_config
     from starwam.backbone.wan22 import Wan22Dit
-    from starwam.utils.checkpoint import infer_backbone_info
+    from starwam.checkpointing import infer_backbone_info
 
     cfg = load_config(config_path)
     if pretrained_model_id:

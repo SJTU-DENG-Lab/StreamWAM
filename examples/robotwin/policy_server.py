@@ -92,10 +92,16 @@ def _build_robotwin_image(head, left, right, device, dtype) -> torch.Tensor:
     return frame.to(device=device, dtype=dtype)
 
 
-def main() -> None:
+def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="StarWAM RoboTwin policy inference server")
     parser.add_argument("--config", required=True)
     parser.add_argument("--checkpoint", required=True)
+    parser.add_argument(
+        "--checkpoint-format",
+        choices=("starwam", "fastwam"),
+        default="starwam",
+        help="Source checkpoint/stats format (default: starwam).",
+    )
     parser.add_argument("--override", nargs="*", default=[])
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument(
@@ -113,7 +119,11 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8765)
-    args = parser.parse_args()
+    return parser
+
+
+def main() -> None:
+    args = _build_arg_parser().parse_args()
 
     policy = StarwamPolicy(
         config_path=args.config,
@@ -123,6 +133,7 @@ def main() -> None:
         num_inference_steps=args.num_inference_steps,
         action_num_inference_steps=args.action_num_inference_steps,
         seed=args.seed,
+        checkpoint_format=args.checkpoint_format,
     )
     print(f"[starwam_robotwin_server] model ready on {args.device}; listening on {args.host}:{args.port}", flush=True)
 

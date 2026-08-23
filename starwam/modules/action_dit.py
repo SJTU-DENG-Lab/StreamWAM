@@ -138,12 +138,14 @@ class ActionDiT(nn.Module):
         timestep: Tensor,
         context: Tensor,
         context_mask: Optional[Tensor] = None,
+        projected_context: Optional[Tensor] = None,
     ) -> dict:
         """Encode inputs for MoT composition.
 
         Args:
             action_tokens: ``[B, T, action_dim]`` noisy action sequence.
-            timestep: ``[B]`` integer timestep indices.
+            timestep: ``[B]`` batch timesteps or ``[B, T]`` token-wise
+                timestep indices.
             context: ``[B, L, text_dim]`` text embeddings.
             context_mask: ``[B, L]`` boolean mask.
 
@@ -157,20 +159,54 @@ class ActionDiT(nn.Module):
         context = context.to(device=text_param.device, dtype=text_param.dtype)
 
         B, T, _ = action_tokens.shape
+        if timestep.ndim not in (1, 2):
+            raise ValueError(
+                "timestep must be [B]/[1] or [B, T]/[1, T], "
+                f"got shape {tuple(timestep.shape)}"
+            )
+        if timestep.shape[0] not in (1, B):
+            raise ValueError(
+                f"timestep batch must be 1 or action batch {B}, "
+                f"got {timestep.shape[0]}"
+            )
+        if timestep.ndim == 2 and timestep.shape[1] != T:
+            raise ValueError(
+                f"token-wise timestep must match action token length {T}, "
+                f"got shape {tuple(timestep.shape)}"
+            )
+        if timestep.shape[0] == 1 and B > 1:
+            timestep = timestep.expand(B, *timestep.shape[1:])
         if context_mask is not None:
             context_mask = context_mask.to(device=action_tokens.device)
 
         # Encode actions to hidden dim.
         tokens = self.action_encoder(action_tokens)  # [B, T, D]
 
-        # Timestep -> per-block modulation [B, 6, D].
+        # Timestep -> batch modulation [B, 6, D] or token-wise
+        # modulation [B, T, 6, D].
         t_input = timestep.reshape(-1).to(action_tokens.dtype if action_tokens.is_floating_point() else torch.float32)
         t_emb = sinusoidal_embedding_1d(self.freq_dim, t_input)
-        t = self.time_embedding(t_emb).reshape(B, self.hidden_dim)
-        t_mod = self.time_projection(t).reshape(B, 6, self.hidden_dim)
+        if timestep.ndim == 1:
+            t = self.time_embedding(t_emb).reshape(B, self.hidden_dim)
+            t_mod = self.time_projection(t).reshape(B, 6, self.hidden_dim)
+        else:
+            t = self.time_embedding(t_emb).reshape(B, T, self.hidden_dim)
+            t_mod = self.time_projection(t).reshape(B, T, 6, self.hidden_dim)
 
         # Text projection.
-        ctx = self.text_embedding(context)
+        ctx = (
+            self.text_embedding(context)
+            if projected_context is None
+            else projected_context.to(
+                device=action_tokens.device,
+                dtype=text_param.dtype,
+            )
+        )
+        if tuple(ctx.shape[:2]) != tuple(context.shape[:2]) or ctx.shape[-1] != self.hidden_dim:
+            raise ValueError(
+                "projected_context must have shape "
+                f"{(*context.shape[:2], self.hidden_dim)}, got {tuple(ctx.shape)}"
+            )
         if context_mask is not None and context_mask.dim() == 2:
             # Expand to [B, S, L] for SDPA cross-attention.
             context_mask = context_mask.unsqueeze(1).expand(B, T, -1)

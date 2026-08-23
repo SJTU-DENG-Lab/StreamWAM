@@ -27,73 +27,15 @@ from starwam.data.lerobot import (
     DEFAULT_TEXT_CACHE_ENCODER_ID,
     DEFAULT_TEXT_PROMPT,
     format_text_prompt,
-    load_lerobot_stats,
     load_text_cache,
     save_text_cache,
     text_cache_path,
 )
-
-
-# --------------------------------------------------------------------------- #
-# Checkpoint loading (generic; mirrors the loader used for LIBERO rollout).
-# --------------------------------------------------------------------------- #
-def _strip_known_prefixes(state_dict: dict[str, Any]) -> dict[str, Any]:
-    prefixes = ("module.", "model.", "_orig_mod.")
-    out: dict[str, Any] = {}
-    for key, value in state_dict.items():
-        new_key = key
-        changed = True
-        while changed:
-            changed = False
-            for prefix in prefixes:
-                if new_key.startswith(prefix):
-                    new_key = new_key[len(prefix):]
-                    changed = True
-        out[new_key] = value
-    return out
-
-
-def _extract_checkpoint_state(payload: Any) -> Any:
-    if not isinstance(payload, dict):
-        return payload
-    for key in ("model_state_dict", "module", "state_dict"):
-        state = payload.get(key)
-        if isinstance(state, dict):
-            return state
-    return payload
-
-
-def load_checkpoint_into(model: torch.nn.Module, checkpoint: str | Path) -> None:
-    """Load a checkpoint file or directory into ``model`` (non-strict)."""
-    checkpoint = Path(checkpoint)
-    if checkpoint.is_dir():
-        for name in ("model.pt", "pytorch_model.bin", "model.bin", "mp_rank_00_model_states.pt", "pytorch_model/mp_rank_00_model_states.pt"):
-            path = checkpoint / name
-            if path.is_file():
-                checkpoint = path
-                break
-        else:
-            safetensors_files = sorted(checkpoint.glob("*.safetensors"))
-            if not safetensors_files:
-                raise FileNotFoundError(
-                    f"Unsupported checkpoint directory {checkpoint}: expected model.pt, "
-                    "pytorch_model.bin, mp_rank_00_model_states.pt, or *.safetensors."
-                )
-            from safetensors.torch import load_file
-
-            state: dict[str, Any] = {}
-            for path in safetensors_files:
-                state.update(load_file(str(path), device="cpu"))
-            model.load_state_dict(_strip_known_prefixes(state), strict=False)
-            return
-
-    payload = torch.load(checkpoint, map_location="cpu", weights_only=False)
-    state = _strip_known_prefixes(_extract_checkpoint_state(payload))
-    result = model.load_state_dict(state, strict=False)
-    if result.missing_keys:
-        print(f"[StarwamPolicy] missing keys (first 20): {list(result.missing_keys)[:20]}")
-    if result.unexpected_keys:
-        print(f"[StarwamPolicy] unexpected keys (first 20): {list(result.unexpected_keys)[:20]}")
+from starwam.checkpointing import (
+    load_inference_checkpoint,
+    load_inference_stats,
+    prepare_inference_config,
+)
 
 
 # --------------------------------------------------------------------------- #
@@ -142,6 +84,7 @@ class StarwamPolicy:
         action_num_inference_steps: Optional[int] = None,
         replan_steps: int = 8,
         seed: Optional[int] = None,
+        checkpoint_format: str = "starwam",
     ) -> None:
         from starwam import build_framework
         from starwam.utils.config_cli import apply_overrides
@@ -149,7 +92,9 @@ class StarwamPolicy:
         config = load_config(config_path)
         if overrides:
             config = apply_overrides(config, overrides)
+        config = prepare_inference_config(config, checkpoint_format)
         self.config = config
+        self.checkpoint_format = checkpoint_format
 
         self.device = torch.device(device if torch.cuda.is_available() or not device.startswith("cuda") else "cpu")
         mp = (config.training.mixed_precision or "no").lower()
@@ -158,7 +103,8 @@ class StarwamPolicy:
             self.dtype = torch.float32
 
         self.model = build_framework(config, device=str(self.device), dtype=self.dtype).to(self.device)
-        load_checkpoint_into(self.model, checkpoint)
+        report = load_inference_checkpoint(self.model, checkpoint, checkpoint_format=checkpoint_format)
+        print(f"[StarwamPolicy] loaded checkpoint: {report}")
         self.model.eval()
 
         self.action_horizon = int(config.framework.chunk_size)
@@ -190,7 +136,7 @@ class StarwamPolicy:
         stats_path = getattr(self.config.data, path_attr, None) or getattr(self.config.data, "action_stats_path", None)
         if not stats_path:
             raise ValueError(f"{flag}=true requires data.{path_attr}")
-        stats = load_lerobot_stats(stats_path)
+        stats = load_inference_stats(stats_path, checkpoint_format=self.checkpoint_format)
         if key not in stats:
             raise KeyError(f"No {key} stats found in {stats_path}")
         return stats[key]

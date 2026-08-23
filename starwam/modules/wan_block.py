@@ -254,6 +254,91 @@ class DiTBlock(nn.Module):
         }
         return q, k, v
 
+    def get_qkv_functional(
+        self,
+        x: torch.Tensor,
+        t_mod: torch.Tensor,
+        freqs: torch.Tensor,
+    ) -> tuple[
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
+    ]:
+        """Return Q/K/V and explicit post-attention state without mutation."""
+
+        (
+            shift_msa,
+            scale_msa,
+            gate_msa,
+            shift_mlp,
+            scale_mlp,
+            gate_mlp,
+        ) = self._split_modulation(t_mod)
+        attn_input = modulate(self.norm1(x), shift_msa, scale_msa)
+        q, k, v = self.self_attn.project_qkv(attn_input, freqs)
+        return q, k, v, (x, gate_msa, shift_mlp, scale_mlp, gate_mlp)
+
+    def post_attention_with_kv(
+        self,
+        state: tuple[
+            torch.Tensor,
+            torch.Tensor,
+            torch.Tensor,
+            torch.Tensor,
+            torch.Tensor,
+        ],
+        attn_output: torch.Tensor,
+        cross_key: torch.Tensor,
+        cross_value: torch.Tensor,
+        context_mask: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        """Apply the eager post-attention formula with preprojected text K/V."""
+
+        x, gate_msa, shift_mlp, scale_mlp, gate_mlp = state
+        x = self.gate(x, gate_msa, self.self_attn.o(attn_output))
+        cross = self.cross_attn
+        query = cross.norm_q(cross.q(self.norm3(x)))
+        batch, query_len, _ = query.shape
+        key_len = cross_key.shape[1]
+        query = query.view(
+            batch,
+            query_len,
+            cross.num_heads,
+            cross.attn_head_dim,
+        ).transpose(1, 2)
+        key = cross_key.view(
+            batch,
+            key_len,
+            cross.num_heads,
+            cross.attn_head_dim,
+        ).transpose(1, 2)
+        value = cross_value.view(
+            batch,
+            key_len,
+            cross.num_heads,
+            cross.attn_head_dim,
+        ).transpose(1, 2)
+        if context_mask is not None and context_mask.dim() == 3:
+            context_mask = context_mask.unsqueeze(1)
+        cross_output = F.scaled_dot_product_attention(
+            query,
+            key,
+            value,
+            attn_mask=context_mask,
+        )
+        cross_output = cross_output.transpose(1, 2).reshape(
+            batch,
+            query_len,
+            cross.num_heads * cross.attn_head_dim,
+        )
+        x = x + cross.o(cross_output)
+        return self.gate(
+            x,
+            gate_mlp,
+            self.ffn(modulate(self.norm2(x), shift_mlp, scale_mlp)),
+        )
+
     def post_attention(
         self,
         x: torch.Tensor,

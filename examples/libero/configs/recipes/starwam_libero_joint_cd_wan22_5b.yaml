@@ -1,0 +1,75 @@
+# FastWAM Joint CD: direct synchronous one-step world+action inference.
+
+taxonomy:
+  package: starwam
+  model_family: mot_wam
+  preset: mot_libero_fastwam_joint_cd
+  action_representation: token_action
+  conditioning: full_video
+
+backbone:
+  type: wan22_5b
+  pretrained_model_id: /path/to/Wan2.2-TI2V-5B
+  load_text_encoder: false
+  tokenizer_max_len: 128
+
+framework:
+  type: mot
+  action_dim: 7
+  action_gripper_dim: -1
+  chunk_size: 32
+  proprio_dim: 8
+  action_video_conditioning: full_video
+  mot_checkpoint_mixed_attn: false
+  action_expert_hidden_dim: 1024
+  action_expert_init_from: null
+  action_expert_head_init: random
+  action_expert_use_gradient_checkpointing: false
+
+  video_scheduler:
+    num_train_timesteps: 1000
+    train_shift: 5.0
+    infer_shift: 5.0
+  action_scheduler:
+    num_train_timesteps: 1000
+    train_shift: 5.0
+    infer_shift: 5.0
+
+  loss_lambda_video: 1.0
+  loss_lambda_action: 1.0
+
+training:
+  output_dir: outputs/fastwam_joint_cd_libero_eval
+  mixed_precision: bf16
+
+data:
+  dataset_type: lerobot
+  dataset_dirs: []
+  video_key: observation.images.image
+  video_keys:
+    - observation.images.image
+    - observation.images.wrist_image
+  concat_multi_camera: horizontal
+  action_key: action
+  state_key: observation.state
+  num_frames: 33
+  video_size: [224, 224]
+  text_len: 128
+  text_embedding_cache_dir: outputs/fastwam_joint_cd_libero_eval/text_embedding_cache
+  text_prompt_template: "A video recorded from a robot's point of view executing the following instruction: {task}"
+  text_cache_encoder_id: wan22ti2v5b
+  action_freq_ratio: 4
+  normalize_actions: true
+  action_norm_mode: minmax
+  action_stats_path: /path/to/fastwam_joint_cd_dataset_stats.json
+  normalize_states: true
+  state_norm_mode: minmax
+  state_stats_path: /path/to/fastwam_joint_cd_dataset_stats.json
+  delta_action_dim_mask: [true, true, true, true, true, true, false]
+
+inference:
+  sampling_method: consistency
+  num_inference_steps: 1
+  action_num_inference_steps: 1
+  replan_steps: 16
+  seed: 42

@@ -356,9 +356,35 @@ Overall: **MoT 8948/10000 (89.48%)**; **Shared-DiT 9257/10000 (92.57%)**.
 | Turn Switch | 55% | 68% | 72% | 75% |
 | **Average** | **89.28%** | **89.68%** | **92.56%** | **92.58%** |
 
-## 10. Troubleshooting
+## 10. Original FastWAM RoboTwin checkpoint
+
+The inference server can load the original FastWAM RoboTwin release checkpoint
+and z-score statistics directly. No converted checkpoint is written:
+
+```bash
+REPO=/path/to/StarWAM \
+PY=/path/to/starwam-env/bin/python \
+RECIPE=examples/robotwin/configs/recipes/starwam_robotwin_mot_wan22_5b.yaml \
+CHECKPOINT_FORMAT=fastwam \
+CKPT=/path/to/StarWAM/checkpoints/fastwam_release/robotwin_uncond_3cam_384.pt \
+BACKBONE=/path/to/Wan2.2-TI2V-5B \
+ACTION_STATS=/path/to/StarWAM/checkpoints/fastwam_release/robotwin_uncond_3cam_384_dataset_stats.json \
+TEXTCACHE=/path/to/output/fastwam_robotwin_eval/text_embedding_cache \
+NUM_INFERENCE_STEPS=4 ACTION_NUM_INFERENCE_STEPS=4 \
+SERVER_BIND=0.0.0.0 SERVER_PORT_BASE=8765 NGPU=8 \
+bash examples/robotwin/scripts/launch_starwam_robotwin_policy_server.sh
+```
+
+Do not set `ACTION_INIT` for this format. The FastWAM checkpoint contains the
+complete video expert, action expert, and proprio encoder; all three are
+validated strictly before loading. The Wan2.2 base directory remains necessary
+for VAE and text-conditioning resources.
+
+## 11. Troubleshooting
 
 - SAPIEN `failed to find a rendering device`: NVIDIA Vulkan stack missing; check `vulkaninfo` lists the GPU or set `VK_ICD_FILENAMES`.
 - Client can't reach servers: verify `SERVER_HOST`/ports and that servers bound `--host 0.0.0.0`.
-- MoT missing ActionDiT init: run Section 6.1 and set `framework.action_expert_init_from`; Shared-DiT does not use it.
+- StarWAM MoT missing ActionDiT init: run Section 6.1 and set
+  `framework.action_expert_init_from`. Original FastWAM checkpoints selected
+  with `CHECKPOINT_FORMAT=fastwam` and Shared-DiT checkpoints do not use it.
 - curobo/mplib build errors on old glibc: use conda-forge or manylinux2014 wheels.

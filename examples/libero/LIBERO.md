@@ -430,31 +430,17 @@ python examples/libero/rollout.py \
 
 ### 8.5 Rollout launcher and outputs
 
-Use `examples/libero/scripts/launch_starwam_libero_mot_rollout.sh` to evaluate one recipe across multiple LIBERO suites. Set `CHECKPOINT` to either a checkpoint directory or a direct checkpoint file. Direct DeepSpeed `.pt` files are supported; the loader reads `model_state_dict`, `module`, or `state_dict` payloads.
+`examples/libero/scripts/launch_starwam_libero_mot_rollout.sh` is a readable
+single-task FastWAM smoke-test command. After placing the release checkpoint
+and stats under `checkpoints/fastwam_release/`, edit its explicit
+`--backbone-path` and `--libero-home` arguments, then run:
 
 ```bash
-cd /path/to/starWAM
-
-export CONDA_ENV=starwam-libero
-export REPO_DIR=/path/to/starWAM
-export RECIPE=examples/libero/configs/recipes/starwam_libero_mot_cosmos_predict2.yaml
-export CHECKPOINT=/path/to/output/starwam_libero_mot_cosmos_predict2/checkpoint-20000/pytorch_model/mp_rank_00_model_states.pt
-export LIBERO_HOME=/path/to/LIBERO
-export RUN_ALL_SUITES=1
-export PARALLEL_SUITES=1
-export NUM_TRIALS=50
-export NUM_STEPS_WAIT=30
-export REPLAN_STEPS=10
-export NUM_INFERENCE_STEPS=8
-export SUITE_GPUS="0 1 2 3"
-export ROLLOUT_OVERRIDES='data.dataset_dirs=["/path/to/libero_spatial_lerobot","/path/to/libero_object_lerobot","/path/to/libero_goal_lerobot","/path/to/libero_10_lerobot"] backbone.pretrained_model_id=/path/to/Cosmos-Predict2-2B-Video2World framework.action_expert_init_from=/path/to/preprocessed/starwam_action_dit_init_cosmos_predict2_notimeproj.pt training.output_dir=/path/to/output/starwam_libero_mot_cosmos_predict2 data.text_embedding_cache_dir=/path/to/output/starwam_libero_mot_cosmos_predict2/text_embedding_cache data.action_stats_path=/path/to/output/starwam_libero_mot_cosmos_predict2/action_stats.json data.state_stats_path=/path/to/output/starwam_libero_mot_cosmos_predict2/action_stats.json'
-
 bash examples/libero/scripts/launch_starwam_libero_mot_rollout.sh
 ```
 
-With `RUN_ALL_SUITES=1` the launcher runs all four suites and each writes its
-own `results.json`. Aggregate them into an overall success rate with
-`examples/libero/summarize_results.py` (Section 8.6).
+For larger evaluations, invoke `examples/libero/rollout.py` separately with
+the desired `--task-suite-name`, `--task-id`, and `--num-trials` values.
 
 Useful rollout options:
 
@@ -593,10 +579,128 @@ MoT WAM uses a single denoising schedule for action rollout. For MoT recipes, `e
 
 Shared-DiT uses decoupled step counts, so rollout passes `--action-num-inference-steps` separately.
 
-## 10. Troubleshooting
+## 10. Direct FastWAM release checkpoint inference
+
+StarWAM can load the original FastWAM release checkpoint and statistics at
+runtime without writing a converted checkpoint. Select the source format
+explicitly with `--checkpoint-format fastwam`:
+
+Before using the smoke-test launcher, place the two original FastWAM release
+artifacts at these fixed local paths (they are ignored by Git and are not part
+of a fresh clone):
+
+```text
+checkpoints/fastwam_release/libero_uncond_2cam224.pt
+checkpoints/fastwam_release/libero_uncond_2cam224_dataset_stats.json
+```
+
+After those files are present, only `--backbone-path` and `--libero-home` in
+the launcher are machine-specific.
+
+```bash
+python examples/libero/rollout.py \
+  --config examples/libero/configs/recipes/starwam_libero_mot_wan22_5b.yaml \
+  --checkpoint-format fastwam \
+  --checkpoint checkpoints/fastwam_release/libero_uncond_2cam224.pt \
+  --backbone-path /path/to/wan22_5b \
+  --stats-path checkpoints/fastwam_release/libero_uncond_2cam224_dataset_stats.json \
+  --libero-home /path/to/LIBERO \
+  --task-id 0 \
+  --num-trials 1 \
+  --num-steps-wait 30 \
+  --replan-steps 10 \
+  --num-inference-steps 10 \
+  --device cuda:0 \
+  --mujoco-gl osmesa \
+  --save-video
+```
+
+The Wan2.2 directory is still required for the VAE, T5 encoder/tokenizer, and
+architecture metadata. FastWAM loading automatically ignores the recipe's
+separate `framework.action_expert_init_from`, because the release checkpoint
+contains the complete action expert. Video expert, action expert, and proprio
+encoder keys and tensor shapes are validated before any weights are copied;
+incompatible or partial checkpoints fail immediately.
+
+The LIBERO launcher contains the same arguments directly. Edit its two
+machine-specific paths and run:
+
+```bash
+bash examples/libero/scripts/launch_starwam_libero_mot_rollout.sh
+```
+
+## 11. Balanced multi-GPU evaluation
+
+`multigpu_rollout.py` treats each `(suite, task_id, trial_id)` as one work
+unit. It assigns all units across the selected physical GPUs with a difference
+of at most one unit, then keeps one model process alive on each GPU. Worker
+logs, videos, manifests, and results are isolated below the manager output
+directory. The terminal receives only the merged success and timing summary.
+
+The ready-to-run Joint CD launcher evaluates all 40 tasks once on GPUs
+`0,1,2,3`:
+
+```bash
+bash examples/libero/scripts/launch_starwam_libero_joint_cd_4gpu.sh
+```
+
+Select different GPUs without editing Python:
+
+```bash
+GPU_IDS=2,3,6,7 bash examples/libero/scripts/launch_starwam_libero_joint_cd_4gpu.sh
+```
+
+RTC-AC has one launcher and one implementation. Run the eager third group
+without an extra option, or enable the fourth-group compiler/cache path by
+appending `--rtc-ac-accelerated`:
+
+```bash
+GPU_IDS=0,1,2,3 \
+  bash examples/libero/scripts/launch_starwam_libero_rtc_ac_4gpu.sh
+
+GPU_IDS=0,1,2,3 \
+  bash examples/libero/scripts/launch_starwam_libero_rtc_ac_4gpu.sh \
+  --rtc-ac-accelerated
+```
+
+The accelerated run uses strict full-graph/static `torch.compile` with
+Inductor CUDA Graph Trees, prompt cross-attention K/V caching, D0/D8 mask and
+schedule caching, and one D0 plus one D8 prewarm per worker. Compilation and
+prewarm are outside episode timing. A compilation or prewarm failure aborts
+the worker instead of silently falling back to eager execution. The merged
+`results.json` records the active acceleration backend and cache status.
+It also records Dynamo graph/recompile counts, Inductor CUDA Graph skips, the
+first background-thread D8 latency, and steady-state D8 mean/p50/p90 after
+excluding exactly one background-thread warmup sample per worker.
+
+For latency parity with the wyx reference, use its PyTorch 2.7.1 and Triton
+3.3.1 environment:
+
+```bash
+PYTHON_BIN=/inspire/qb-ilm/project/qproject-fundationmodel/yangyi-253108120173/wyx/FastWAM/.venv/bin/python \
+GPU_IDS=0 \
+  bash examples/libero/scripts/launch_starwam_libero_rtc_ac_4gpu.sh \
+  --rtc-ac-accelerated \
+  --suites libero_spatial
+```
+
+This short validation covers the ten `libero_spatial` tasks on one GPU. The
+acceptance target is steady-state D8 mean 40-45 ms, p50 at most 45 ms, and no
+unexpected CUDA Graph skips or recompiles. The raw average remains available
+and includes each worker's first background D8 call.
+
+To run 50 trials per task, change `--num-trials 1` to
+`--num-trials 50` in the launcher. That creates 2000 episode units: 500 per
+GPU with four GPUs, or 250 per GPU with eight GPUs. The complete assignment is
+saved as `assignments.json`, per-worker diagnostics are in
+`worker_gpu*/worker.log`, and the merged result is `results.json`.
+
+## 12. Troubleshooting
 
 - Placeholder paths: replace all `/path/to/...` values before running.
-- Missing ActionDiT init: run Section 5.1 and set `framework.action_expert_init_from`.
+- Missing ActionDiT init for StarWAM MoT checkpoints: run Section 5.1 and set
+  `framework.action_expert_init_from`. Original FastWAM checkpoints selected
+  with `--checkpoint-format fastwam` do not need this payload.
 - LIBERO import error: install LIBERO or pass `--libero-home /path/to/LIBERO`.
 - No checkpoint found: pass `--checkpoint` or check `training.output_dir`.
 - Wrong action scale: check action/state stats paths and normalization settings.

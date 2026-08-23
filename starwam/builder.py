@@ -47,9 +47,18 @@ def build_framework(config: Any, device: str = "cpu", dtype=None):
                 "StarWAM mot_wam currently trains only taxonomy.action_representation='token_action'."
             )
         from starwam.backbone import build_backbone
-        from starwam.wam import MoTWAM
+        from starwam.wam import MoTWAM, RTCACWAM
 
         backbone = build_backbone(config.backbone, device=device, dtype=dtype)
+        variant = str(getattr(config.framework, "variant", "standard")).strip().lower()
+        if variant == "rtc_ac":
+            LOGGER.info("Building StarWAM RTC-AC MoT WAM with backbone=%s", config.backbone.type)
+            return RTCACWAM(backbone, config.framework, device=device, dtype=dtype)
+        if variant != "standard":
+            raise ValueError(
+                f"Unsupported mot_wam framework.variant={variant!r}; "
+                "expected 'standard' or 'rtc_ac'"
+            )
         LOGGER.info("Building StarWAM MoT WAM with backbone=%s", config.backbone.type)
         return MoTWAM(backbone, config.framework, device=device, dtype=dtype)
 

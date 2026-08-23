@@ -40,7 +40,7 @@ from einops import rearrange
 
 from starwam.backbone.base import BaseBackbone, BackboneInfo
 from starwam.config import BackboneConfig
-from starwam.utils.checkpoint import infer_backbone_info
+from starwam.checkpointing import infer_backbone_info
 from starwam.modules.wan_block import (
     DiTBlock,
     sinusoidal_embedding_1d,
@@ -1412,6 +1412,7 @@ class WanVAE_(nn.Module):
                 out = torch.cat([out, out_], 2)
         mu, log_var = self.conv1(out).chunk(2, dim=1)
         if isinstance(scale[0], torch.Tensor):
+            scale = [s.to(dtype=mu.dtype, device=mu.device) for s in scale]
             mu = (mu - scale[0].view(1, self.z_dim, 1, 1, 1)) * scale[1].view(
                 1, self.z_dim, 1, 1, 1)
         else:
@@ -1422,6 +1423,7 @@ class WanVAE_(nn.Module):
     def decode(self, z, scale):
         self.clear_cache()
         if isinstance(scale[0], torch.Tensor):
+            scale = [s.to(dtype=z.dtype, device=z.device) for s in scale]
             z = z / scale[1].view(1, self.z_dim, 1, 1, 1) + scale[0].view(
                 1, self.z_dim, 1, 1, 1)
         else:
@@ -1562,7 +1564,7 @@ class Wan2_2_VAE:
                 -0.1681,
                 -0.0667,
             ],
-            dtype=dtype,
+            dtype=torch.float32,
             device=device,
         )
         std = torch.tensor(
@@ -1616,7 +1618,7 @@ class Wan2_2_VAE:
                 0.7468,
                 0.7744,
             ],
-            dtype=dtype,
+            dtype=torch.float32,
             device=device,
         )
         self.scale = [mean, 1.0 / std]
@@ -1629,7 +1631,7 @@ class Wan2_2_VAE:
                 dim=c_dim,
                 dim_mult=dim_mult,
                 temperal_downsample=temperal_downsample,
-            ).eval().requires_grad_(False).to(device))
+            ).eval().requires_grad_(False).to(device=device, dtype=dtype))
 
     def encode(self, videos):
         with torch.amp.autocast("cuda", dtype=self.dtype, enabled=str(self.device).startswith("cuda")):
@@ -1805,6 +1807,7 @@ class Wan22Dit(nn.Module):
         timestep: torch.Tensor,
         context: torch.Tensor,
         context_mask: Optional[torch.Tensor] = None,
+        projected_context: Optional[torch.Tensor] = None,
     ) -> dict:
         """Prepare video tokens for MoT joint attention.
 
@@ -1846,7 +1849,16 @@ class Wan22Dit(nn.Module):
         t_mod = self.time_projection(t).unflatten(2, (6, self.hidden_dim))
 
         # Context (text) projection.
-        ctx = self.text_embedding(context)
+        ctx = (
+            self.text_embedding(context)
+            if projected_context is None
+            else projected_context.to(device=device, dtype=text_param.dtype)
+        )
+        if tuple(ctx.shape[:2]) != tuple(context.shape[:2]) or ctx.shape[-1] != self.hidden_dim:
+            raise ValueError(
+                "projected_context must have shape "
+                f"{(*context.shape[:2], self.hidden_dim)}, got {tuple(ctx.shape)}"
+            )
         if context_mask is not None and context_mask.dim() == 2:
             # Expand to [B, S, L] for use by cross-attention SDPA path.
             context_mask = context_mask.unsqueeze(1).expand(B, seq_len, -1)
@@ -2082,7 +2094,7 @@ class Wan22Backbone(BaseBackbone):
             vae_pth = model_dir / "Wan2.2_VAE.pth"
             if vae_pth.exists():
                 self.vae = Wan22VAE(
-                    vae_pth=str(vae_pth), device=device, dtype=torch.float32,
+                    vae_pth=str(vae_pth), device=device, dtype=dtype,
                     in_channels=self._info.in_channels,
                 )
             else:

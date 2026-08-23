@@ -19,10 +19,108 @@ from starwam.training.flow import add_flow_noise, build_inference_schedule, vide
 from starwam.wam.base import WAMModel
 from starwam.backbone.base import BaseBackbone
 from starwam.config import FrameworkConfig
+from starwam.inference.consistency import (
+    action_consistency_boundary,
+    normalize_sampling_method,
+    sample_joint_consistency_noise,
+    video_consistency_boundary,
+)
 from starwam.modules.mot import MoT
 from starwam.modules.scheduler import FlowMatchScheduler
 from starwam.training.loss import flow_matching_loss
 from starwam.training.metrics import action_monitor_metrics
+
+
+def _validate_consistency_inference(
+    *,
+    num_inference_steps: int,
+    action_video_conditioning: str,
+    action_horizon: int,
+    configured_horizon: int,
+    num_video_frames: int,
+    temporal_compress: int,
+) -> None:
+    if int(num_inference_steps) != 1:
+        raise ValueError("Joint CD consistency sampling requires exactly one inference step")
+    if action_video_conditioning != "full_video":
+        raise ValueError("Joint CD consistency sampling requires full-video joint inference")
+    if int(configured_horizon) != 32:
+        raise ValueError(
+            f"Joint CD checkpoint requires configured chunk_size=32, got {configured_horizon}"
+        )
+    if int(action_horizon) != int(configured_horizon):
+        raise ValueError(
+            f"Joint CD model requires action_horizon={configured_horizon}, got {action_horizon}"
+        )
+    if int(num_video_frames) != 9:
+        raise ValueError(
+            f"Joint CD checkpoint requires num_video_frames=9, got {num_video_frames}"
+        )
+    if int(temporal_compress) != 4:
+        raise ValueError(
+            f"Joint CD checkpoint requires temporal_compress=4, got {temporal_compress}"
+        )
+    if temporal_compress <= 0 or (int(num_video_frames) - 1) % temporal_compress != 0:
+        raise ValueError(
+            "Joint CD video geometry requires (num_video_frames - 1) to be "
+            f"divisible by temporal_compress, got {num_video_frames} and {temporal_compress}"
+        )
+    latent_chunks = (int(num_video_frames) - 1) // temporal_compress
+    if latent_chunks != 2:
+        raise ValueError(
+            f"Joint CD checkpoint requires 2 future latent chunks, got {latent_chunks}"
+        )
+    if latent_chunks <= 0 or int(action_horizon) % latent_chunks != 0:
+        raise ValueError(
+            "Joint CD action horizon must divide evenly over future latent chunks; "
+            f"got action_horizon={action_horizon}, latent_chunks={latent_chunks}"
+        )
+
+
+def _sample_euler_noise(
+    shape: tuple[int, ...],
+    *,
+    seed: int | None,
+    rand_device: str | torch.device | None,
+    device: torch.device,
+    dtype: torch.dtype,
+) -> Tensor:
+    """Sample native or FastWAM-reference Euler noise without mixing contracts."""
+
+    if rand_device is None:
+        generator = (
+            None if seed is None else torch.Generator(device=device).manual_seed(seed)
+        )
+        return torch.randn(
+            shape,
+            generator=generator,
+            device=device,
+            dtype=dtype,
+        )
+    generator = (
+        None
+        if seed is None
+        else torch.Generator(device=rand_device).manual_seed(seed)
+    )
+    return torch.randn(
+        shape,
+        generator=generator,
+        device=rand_device,
+        dtype=torch.float32,
+    ).to(device=device, dtype=dtype)
+
+
+def _consistency_timesteps(
+    timestep_video: Tensor,
+    timestep_action: Tensor,
+    *,
+    latent_steps: int,
+    action_horizon: int,
+) -> tuple[Tensor, Tensor]:
+    video = timestep_video.reshape(1, 1).expand(1, latent_steps).clone()
+    video[:, 0] = 0
+    action = timestep_action.reshape(1, 1).expand(1, action_horizon).clone()
+    return video, action
 
 
 class MoTWAM(WAMModel):
@@ -173,72 +271,40 @@ class MoTWAM(WAMModel):
     ) -> Tensor:
         proprio = kwargs.get("proprio")
         num_video_frames = kwargs.get("num_video_frames")
-        device = input_image.device
-        dtype = input_image.dtype
-        context, context_mask = self._append_proprio_to_context(context, context_mask, proprio)
-        generator = torch.Generator(device=device).manual_seed(seed) if seed is not None else None
-
+        rand_device = kwargs.get("rand_device")
+        sampling_method = normalize_sampling_method(kwargs.get("sampling_method", "euler"))
+        if sampling_method == "consistency":
+            if num_video_frames is None:
+                raise ValueError("num_video_frames is required for Joint CD inference")
+            _validate_consistency_inference(
+                num_inference_steps=num_inference_steps,
+                action_video_conditioning=self.action_video_conditioning,
+                action_horizon=action_horizon,
+                configured_horizon=int(self.config.chunk_size),
+                num_video_frames=int(num_video_frames),
+                temporal_compress=int(self.backbone.get_vae().temporal_compress),
+            )
         if self.action_video_conditioning == "full_video":
             if num_video_frames is None:
                 raise ValueError("num_video_frames is required for full-video action inference")
-            video_single = input_image.unsqueeze(2)
-            first_frame_latents = self.backbone.encode_video(video_single)
-            _, channels, _, height_latent, width_latent = first_frame_latents.shape
-            vae = self.backbone.get_vae()
-            latent_steps = max(1, (int(num_video_frames) - 1) // vae.temporal_compress + 1)
-            video_latents = torch.randn(
-                1,
-                channels,
-                latent_steps,
-                height_latent,
-                width_latent,
-                device=device,
-                dtype=dtype,
-                generator=generator,
+            out = self.infer_joint(
+                input_image=input_image,
+                context=context,
+                context_mask=context_mask,
+                num_video_frames=int(num_video_frames),
+                action_horizon=action_horizon,
+                num_inference_steps=num_inference_steps,
+                seed=seed,
+                proprio=proprio,
+                rand_device=rand_device,
+                sampling_method=sampling_method,
+                decode_video=False,
             )
-            video_latents[:, :, 0:1] = first_frame_latents
-            action_latents = torch.randn(
-                1,
-                action_horizon,
-                self.config.action_dim,
-                device=device,
-                dtype=dtype,
-                generator=generator,
-            )
-            video_timesteps, video_deltas = build_inference_schedule(
-                self.config.video_scheduler,
-                num_inference_steps,
-                device,
-                dtype,
-            )
-            action_timesteps, action_deltas = build_inference_schedule(
-                self.config.action_scheduler,
-                num_inference_steps,
-                device,
-                dtype,
-            )
-            video_dit = self.backbone.get_dit()
-            for i in range(num_inference_steps):
-                video_state = video_dit.pre_dit(
-                    video_latents, video_timesteps[i].reshape(1), context, context_mask
-                )
-                action_state = self.action_expert.pre_dit(
-                    action_latents, action_timesteps[i].reshape(1), context, context_mask
-                )
-                attention_mask = self._build_mot_attention_mask(
-                    video_seq_len=video_state["tokens"].shape[1],
-                    action_seq_len=action_state["tokens"].shape[1],
-                    video_tokens_per_frame=self._compute_video_tokens_per_frame(video_state),
-                    device=device,
-                    action_video_conditioning="full_video",
-                )
-                output_tokens = self.mot({"video": video_state, "action": action_state}, attention_mask)
-                video_velocity = video_dit.post_dit(output_tokens["video"], video_state["meta"], video_state["t"])
-                action_velocity = self.action_expert.post_dit(output_tokens["action"])
-                video_latents = FlowMatchScheduler.step(video_velocity, video_deltas[i], video_latents)
-                action_latents = FlowMatchScheduler.step(action_velocity, action_deltas[i], action_latents)
-                video_latents[:, :, 0:1] = first_frame_latents
-            return action_latents
+            return out["action"]
+
+        device = input_image.device
+        dtype = input_image.dtype
+        context, context_mask = self._append_proprio_to_context(context, context_mask, proprio)
 
         video_single = input_image.unsqueeze(2)
         video_latents = self.backbone.encode_video(video_single)
@@ -247,13 +313,12 @@ class MoTWAM(WAMModel):
         video_state = video_dit.pre_dit(video_latents, t_zero, context, context_mask)
         video_kv_cache = self.mot.prefill_video_cache(video_state)
 
-        action_latents = torch.randn(
-            1,
-            action_horizon,
-            self.config.action_dim,
+        action_latents = _sample_euler_noise(
+            (1, action_horizon, self.config.action_dim),
+            seed=seed,
+            rand_device=rand_device,
             device=device,
             dtype=dtype,
-            generator=generator,
         )
         timesteps, deltas = build_inference_schedule(
             self.config.action_scheduler,
@@ -283,8 +348,18 @@ class MoTWAM(WAMModel):
         device = input_image.device
         dtype = input_image.dtype
         seed = kwargs.get("seed")
+        rand_device = kwargs.get("rand_device")
+        sampling_method = normalize_sampling_method(kwargs.get("sampling_method", "euler"))
+        if sampling_method == "consistency":
+            _validate_consistency_inference(
+                num_inference_steps=num_inference_steps,
+                action_video_conditioning=self.action_video_conditioning,
+                action_horizon=action_horizon,
+                configured_horizon=int(self.config.chunk_size),
+                num_video_frames=int(num_video_frames),
+                temporal_compress=int(self.backbone.get_vae().temporal_compress),
+            )
         context, context_mask = self._append_proprio_to_context(context, context_mask, kwargs.get("proprio"))
-        generator = torch.Generator(device=device).manual_seed(seed) if seed is not None else None
 
         video_single = input_image.unsqueeze(2)
         first_frame_latents = self.backbone.encode_video(video_single)
@@ -292,25 +367,50 @@ class MoTWAM(WAMModel):
         vae = self.backbone.get_vae()
         latent_steps = max(1, (int(num_video_frames) - 1) // vae.temporal_compress + 1)
 
-        video_latents = torch.randn(
-            1,
-            channels,
-            latent_steps,
-            height_latent,
-            width_latent,
-            device=device,
-            dtype=dtype,
-            generator=generator,
-        )
+        video_shape = (1, channels, latent_steps, height_latent, width_latent)
+        action_shape = (1, action_horizon, self.config.action_dim)
+        if sampling_method == "consistency":
+            video_latents, action_latents = sample_joint_consistency_noise(
+                video_shape,
+                action_shape,
+                seed=seed,
+                device=device,
+                dtype=dtype,
+            )
+        elif rand_device is not None:
+            video_latents = _sample_euler_noise(
+                video_shape,
+                seed=seed,
+                rand_device=rand_device,
+                device=device,
+                dtype=dtype,
+            )
+            action_latents = _sample_euler_noise(
+                action_shape,
+                seed=seed,
+                rand_device=rand_device,
+                device=device,
+                dtype=dtype,
+            )
+        else:
+            generator = (
+                torch.Generator(device=device).manual_seed(seed)
+                if seed is not None
+                else None
+            )
+            video_latents = torch.randn(
+                video_shape,
+                device=device,
+                dtype=dtype,
+                generator=generator,
+            )
+            action_latents = torch.randn(
+                action_shape,
+                device=device,
+                dtype=dtype,
+                generator=generator,
+            )
         video_latents[:, :, 0:1] = first_frame_latents
-        action_latents = torch.randn(
-            1,
-            action_horizon,
-            self.config.action_dim,
-            device=device,
-            dtype=dtype,
-            generator=generator,
-        )
 
         video_timesteps, video_deltas = build_inference_schedule(
             self.config.video_scheduler,
@@ -328,7 +428,16 @@ class MoTWAM(WAMModel):
 
         for i in range(num_inference_steps):
             t_video = video_timesteps[i].reshape(1)
-            t_action = action_timesteps[i].reshape(1)
+            video_token_timesteps = None
+            if sampling_method == "consistency":
+                video_token_timesteps, t_action = _consistency_timesteps(
+                    video_timesteps[i],
+                    action_timesteps[i],
+                    latent_steps=latent_steps,
+                    action_horizon=action_horizon,
+                )
+            else:
+                t_action = action_timesteps[i].reshape(1)
             video_state = video_dit.pre_dit(video_latents, t_video, context, context_mask)
             action_state = self.action_expert.pre_dit(action_latents, t_action, context, context_mask)
             attention_mask = self._build_mot_attention_mask(
@@ -341,12 +450,25 @@ class MoTWAM(WAMModel):
             output_tokens = self.mot({"video": video_state, "action": action_state}, attention_mask)
             video_velocity = video_dit.post_dit(output_tokens["video"], video_state["meta"], video_state["t"])
             action_velocity = self.action_expert.post_dit(output_tokens["action"])
-            video_latents = FlowMatchScheduler.step(video_velocity, video_deltas[i], video_latents)
-            action_latents = FlowMatchScheduler.step(action_velocity, action_deltas[i], action_latents)
+            if sampling_method == "euler":
+                video_latents = FlowMatchScheduler.step(video_velocity, video_deltas[i], video_latents)
+                action_latents = FlowMatchScheduler.step(action_velocity, action_deltas[i], action_latents)
+            else:
+                assert video_token_timesteps is not None
+                sigma_video = video_token_timesteps / float(self.video_scheduler.num_train_timesteps)
+                sigma_action = t_action / float(self.action_scheduler.num_train_timesteps)
+                video_latents = video_consistency_boundary(
+                    video_latents, video_velocity, sigma_video
+                )
+                action_latents = action_consistency_boundary(
+                    action_latents, action_velocity, sigma_action
+                )
             video_latents[:, :, 0:1] = first_frame_latents
 
-        decoded_video = self.backbone.decode_latents(video_latents)
-        return {"video": decoded_video, "action": action_latents}
+        out: dict[str, Any] = {"action": action_latents}
+        if bool(kwargs.get("decode_video", True)):
+            out["video"] = self.backbone.decode_latents(video_latents)
+        return out
 
     def _append_proprio_from_sample(
         self,

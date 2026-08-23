@@ -100,6 +100,7 @@ def _get(usr_args: Dict[str, Any], key: str, default: Any = None) -> Any:
 def get_model(usr_args: Dict[str, Any]) -> RoboTwinStarwamModel:
     config_path = _get(usr_args, "config_path") or _get(usr_args, "config")
     checkpoint = _get(usr_args, "checkpoint") or _get(usr_args, "ckpt_setting")
+    checkpoint_format = _get(usr_args, "checkpoint_format", "starwam")
     if config_path is None or checkpoint is None:
         raise ValueError("`config_path` and `checkpoint` are required in deploy_policy args.")
 
@@ -120,6 +121,7 @@ def get_model(usr_args: Dict[str, Any]) -> RoboTwinStarwamModel:
     policy = StarwamPolicy(
         config_path=str(config_path),
         checkpoint=str(checkpoint),
+        checkpoint_format=str(checkpoint_format),
         overrides=list(overrides) if overrides else None,
         device=device,
         num_inference_steps=int(num_inference_steps) if num_inference_steps is not None else None,

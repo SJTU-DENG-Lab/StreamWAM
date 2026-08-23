@@ -19,6 +19,7 @@
 #   ACTION_STATS=/path/to/output/robotwin_run/action_stats.json \
 #   TEXTCACHE=/path/to/output/robotwin_run/eval_text_cache \
 #   ACTION_INIT=/path/to/preprocessed/starwam_action_dit_init_wan22.pt \
+#   CHECKPOINT_FORMAT=starwam \
 #   SERVER_BIND=0.0.0.0 SERVER_PORT_BASE=8765 NGPU=8 \
 #   bash examples/robotwin/scripts/launch_starwam_robotwin_policy_server.sh
 set -euo pipefail
@@ -30,6 +31,7 @@ BACKBONE="${BACKBONE:?set BACKBONE=/path/to/Wan2.2-TI2V-5B}"
 ACTION_STATS="${ACTION_STATS:?set ACTION_STATS=/path/to/action_stats.json}"
 STATE_STATS="${STATE_STATS:-$ACTION_STATS}"
 TEXTCACHE="${TEXTCACHE:?set TEXTCACHE=/path/to/eval_text_cache}"
+CHECKPOINT_FORMAT="${CHECKPOINT_FORMAT:-starwam}"
 # Only MoT recipes need an ActionDiT init payload; Shared-DiT leaves it unset.
 ACTION_INIT="${ACTION_INIT:-}"
 RECIPE="${RECIPE:-examples/robotwin/configs/recipes/starwam_robotwin_mot_wan22_5b.yaml}"
@@ -78,6 +80,7 @@ for (( g=0; g<NGPU; g++ )); do
   CUDA_VISIBLE_DEVICES=$g PYTHONDONTWRITEBYTECODE=1 "$PY" -m examples.robotwin.policy_server \
     --config "$RECIPE" \
     --checkpoint "$CKPT" \
+    --checkpoint-format "$CHECKPOINT_FORMAT" \
     --override "${OVERRIDES[@]}" \
     "${INFERENCE_ARGS[@]}" \
     --host "$SERVER_BIND" --port "$port" \

@@ -63,7 +63,7 @@ def load_action_dit_init(
 
     if not init_from:
         return
-    from starwam.utils.checkpoint import load_action_dit_backbone_init
+    from starwam.checkpointing import load_action_dit_backbone_init
 
     info = load_action_dit_backbone_init(action_dit, init_from, head_init=head_init)
     print(
