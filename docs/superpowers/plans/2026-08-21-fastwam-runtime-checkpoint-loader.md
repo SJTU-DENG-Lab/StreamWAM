@@ -3,21 +3,21 @@
 > **Superseded placement:** This plan records the initial implementation. The
 > completed follow-up structure is defined in
 > `docs/superpowers/plans/2026-08-21-checkpointing-package-refactor.md`, which
-> replaces `starwam/utils/checkpoint.py` with `starwam/checkpointing/`.
+> replaces `streamwam/utils/checkpoint.py` with `streamwam/checkpointing/`.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Load original FastWAM LIBERO and RoboTwin release checkpoints and dataset statistics directly at StarWAM inference time via `--checkpoint-format fastwam`, without writing converted copies.
+**Goal:** Load original FastWAM LIBERO and RoboTwin release checkpoints and dataset statistics directly at StreamWAM inference time via `--checkpoint-format fastwam`, without writing converted copies.
 
-**Architecture:** Extend the existing `starwam/utils/checkpoint.py` as the single inference checkpoint-format dispatcher. The FastWAM branch memory-maps the payload, validates exact expert/proprio keys and shapes before mutation, and strictly loads the three shared submodules; both inference frontends reuse the same model and stats functions.
+**Architecture:** Extend the existing `streamwam/utils/checkpoint.py` as the single inference checkpoint-format dispatcher. The FastWAM branch memory-maps the payload, validates exact expert/proprio keys and shapes before mutation, and strictly loads the three shared submodules; both inference frontends reuse the same model and stats functions.
 
-**Tech Stack:** Python 3.10+, PyTorch, pytest, argparse, JSON, existing StarWAM dataclass recipes.
+**Tech Stack:** Python 3.10+, PyTorch, pytest, argparse, JSON, existing StreamWAM dataclass recipes.
 
 ## Global Constraints
 
-- Do not create a `starwam/checkpointing/` package.
+- Do not create a `streamwam/checkpointing/` package.
 - Do not write or retain a converted checkpoint.
-- `checkpoint_format="starwam"` remains the default and preserves existing inference behavior.
+- `checkpoint_format="streamwam"` remains the default and preserves existing inference behavior.
 - FastWAM loading is explicit through `checkpoint_format="fastwam"`; do not auto-detect.
 - FastWAM video, action, and proprio state must validate exactly before any target parameter is mutated.
 - FastWAM stats conversion occurs only in memory.
@@ -28,13 +28,13 @@
 ### Task 1: Shared inference checkpoint and stats loaders
 
 **Files:**
-- Modify: `starwam/utils/checkpoint.py`
-- Modify: `starwam/utils/__init__.py`
+- Modify: `streamwam/utils/checkpoint.py`
+- Modify: `streamwam/utils/__init__.py`
 - Create: `tests/test_checkpoint_formats.py`
 
 **Interfaces:**
-- Produces: `load_inference_checkpoint(model, path, checkpoint_format="starwam") -> dict`
-- Produces: `load_inference_stats(path, checkpoint_format="starwam") -> dict[str, dict[str, torch.Tensor]]`
+- Produces: `load_inference_checkpoint(model, path, checkpoint_format="streamwam") -> dict`
+- Produces: `load_inference_stats(path, checkpoint_format="streamwam") -> dict[str, dict[str, torch.Tensor]]`
 - Consumes: a `mot_wam` model exposing `mot.experts["video"]`, `mot.experts["action"]`, and `proprio_encoder`.
 
 - [ ] **Step 1: Write failing tests for FastWAM exact loading**
@@ -61,7 +61,7 @@ Add standard-file/directory loading equivalent to the current inference loaders.
 
 - [ ] **Step 6: Implement FastWAM stats canonicalization**
 
-Map each `default` group from `global_min/max/mean/std` to `min/max/mean/std` tensors. Keep the StarWAM branch delegated to `load_lerobot_stats` via a local import to avoid import cycles.
+Map each `default` group from `global_min/max/mean/std` to `min/max/mean/std` tensors. Keep the StreamWAM branch delegated to `load_lerobot_stats` via a local import to avoid import cycles.
 
 - [ ] **Step 7: Run focused tests**
 
@@ -75,18 +75,18 @@ Expected: all tests pass.
 
 **Files:**
 - Modify: `examples/libero/rollout.py`
-- Modify: `examples/libero/scripts/launch_starwam_libero_mot_rollout.sh`
+- Modify: `examples/libero/scripts/launch_streamwam_libero_mot_rollout.sh`
 - Modify: `examples/libero/LIBERO.md`
 - Create: `tests/test_libero_checkpoint_format.py`
 
 **Interfaces:**
 - Consumes: Task 1 `load_inference_checkpoint` and `load_inference_stats`.
-- Produces: LIBERO CLI flag `--checkpoint-format {starwam,fastwam}`.
-- Produces: launcher environment variable `CHECKPOINT_FORMAT`, default `starwam`.
+- Produces: LIBERO CLI flag `--checkpoint-format {streamwam,fastwam}`.
+- Produces: launcher environment variable `CHECKPOINT_FORMAT`, default `streamwam`.
 
 - [ ] **Step 1: Write failing source-level CLI and wiring tests**
 
-Assert the LIBERO parser exposes `--checkpoint-format`, defaults to `starwam`, and passes the selected value to both shared checkpoint and stats loaders. Assert FastWAM selection clears `framework.action_expert_init_from` before `build_framework`.
+Assert the LIBERO parser exposes `--checkpoint-format`, defaults to `streamwam`, and passes the selected value to both shared checkpoint and stats loaders. Assert FastWAM selection clears `framework.action_expert_init_from` before `build_framework`.
 
 - [ ] **Step 2: Run the focused test and verify failure**
 
@@ -113,20 +113,20 @@ Expected: all tests pass.
 ### Task 3: Shared policy and RoboTwin integration
 
 **Files:**
-- Modify: `starwam/eval/policy.py`
+- Modify: `streamwam/eval/policy.py`
 - Modify: `examples/robotwin/policy_server.py`
-- Modify: `examples/robotwin/scripts/launch_starwam_robotwin_policy_server.sh`
+- Modify: `examples/robotwin/scripts/launch_streamwam_robotwin_policy_server.sh`
 - Modify: `examples/robotwin/RoboTwin.md`
 - Create: `tests/test_policy_checkpoint_format.py`
 
 **Interfaces:**
 - Consumes: Task 1 shared checkpoint/stats functions.
-- Produces: `StarwamPolicy(..., checkpoint_format="starwam")`.
-- Produces: RoboTwin server flag `--checkpoint-format {starwam,fastwam}` and launcher `CHECKPOINT_FORMAT` environment variable.
+- Produces: `StreamWAMPolicy(..., checkpoint_format="streamwam")`.
+- Produces: RoboTwin server flag `--checkpoint-format {streamwam,fastwam}` and launcher `CHECKPOINT_FORMAT` environment variable.
 
 - [ ] **Step 1: Write failing policy-format wiring tests**
 
-Assert `StarwamPolicy` accepts the format parameter, clears ActionDiT init for FastWAM before model construction, and passes the format to model/stats loading. Assert the RoboTwin server forwards its CLI value.
+Assert `StreamWAMPolicy` accepts the format parameter, clears ActionDiT init for FastWAM before model construction, and passes the format to model/stats loading. Assert the RoboTwin server forwards its CLI value.
 
 - [ ] **Step 2: Run the focused test and verify failure**
 
@@ -136,11 +136,11 @@ Expected: failures because the policy and server do not accept the new format.
 
 - [ ] **Step 3: Centralize policy loading**
 
-Remove duplicate checkpoint parsing from `starwam/eval/policy.py`, use the Task 1 loader, add `checkpoint_format`, and load both action/state stats through the shared stats function.
+Remove duplicate checkpoint parsing from `streamwam/eval/policy.py`, use the Task 1 loader, add `checkpoint_format`, and load both action/state stats through the shared stats function.
 
 - [ ] **Step 4: Wire RoboTwin CLI and launcher**
 
-Add the server flag, pass it into `StarwamPolicy`, add `CHECKPOINT_FORMAT` to the launcher, and document direct use of `robotwin_uncond_3cam_384.pt` and its z-score stats.
+Add the server flag, pass it into `StreamWAMPolicy`, add `CHECKPOINT_FORMAT` to the launcher, and document direct use of `robotwin_uncond_3cam_384.pt` and its z-score stats.
 
 - [ ] **Step 5: Run focused tests**
 
@@ -167,7 +167,7 @@ Expected: all tests pass.
 
 - [ ] **Step 2: Run static verification**
 
-Run: `python -m compileall -q starwam examples tests`
+Run: `python -m compileall -q streamwam examples tests`
 
 Expected: exit code 0.
 

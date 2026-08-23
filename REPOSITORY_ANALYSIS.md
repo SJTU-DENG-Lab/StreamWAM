@@ -1,8 +1,8 @@
-# StarWAM 仓库结构分析
+# StreamWAM 仓库结构分析
 
 ## 1. 项目定位
 
-StarWAM 是一个面向机器人 World-Action Model（WAM）的研究代码库。它将预训练视频生成/世界模型与动作预测模块组合起来，用于同时建模未来视觉变化和机器人动作。
+StreamWAM 是一个面向机器人 World-Action Model（WAM）的研究代码库。它将预训练视频生成/世界模型与动作预测模块组合起来，用于同时建模未来视觉变化和机器人动作。
 
 仓库当前主要支持：
 
@@ -16,8 +16,8 @@ StarWAM 是一个面向机器人 World-Action Model（WAM）的研究代码库�
 ## 2. 目录结构
 
 ```text
-StarWAM/
-├── starwam/                     # 核心 Python 包
+StreamWAM/
+├── streamwam/                     # 核心 Python 包
 │   ├── backbone/                # Wan2.2、Cosmos-Predict2 骨干适配
 │   ├── wam/                     # 三类 World-Action Model 实现
 │   ├── action_model/            # ActionDiT 动作专家构建和初始化
@@ -61,35 +61,35 @@ build_dataset()
     ├── LeRobotDataset
     └── LeRobotSyntheticDataset
     ↓
-StarWAMTrainer
+StreamWAMTrainer
     ↓
 Accelerate / DeepSpeed / WandB
     ↓
 Checkpoint
     ↓
-StarwamPolicy
+StreamWAMPolicy
     ↓
 Action Chunk + Replan Queue
 ```
 
 主要入口如下：
 
-- 配置加载：[`starwam/config.py`](starwam/config.py)
-- 模型和数据构建：[`starwam/builder.py`](starwam/builder.py)
-- 训练入口：[`starwam/training/train.py`](starwam/training/train.py)
-- 通用推理策略：[`starwam/eval/policy.py`](starwam/eval/policy.py)
+- 配置加载：[`streamwam/config.py`](streamwam/config.py)
+- 模型和数据构建：[`streamwam/builder.py`](streamwam/builder.py)
+- 训练入口：[`streamwam/training/train.py`](streamwam/training/train.py)
+- 通用推理策略：[`streamwam/eval/policy.py`](streamwam/eval/policy.py)
 
 典型训练命令：
 
 ```bash
-python -m starwam.training.train \
-  --config examples/libero/configs/recipes/starwam_libero_mot_wan22_5b.yaml \
+python -m streamwam.training.train \
+  --config examples/libero/configs/recipes/streamwam_libero_mot_wan22_5b.yaml \
   --override backbone.pretrained_model_id=/path/to/model
 ```
 
 ## 4. 配置系统
 
-配置系统位于 [`starwam/config.py`](starwam/config.py)，采用 dataclass + YAML，没有依赖 Hydra。
+配置系统位于 [`streamwam/config.py`](streamwam/config.py)，采用 dataclass + YAML，没有依赖 Hydra。
 
 顶层配置分为：
 
@@ -119,7 +119,7 @@ python -m starwam.training.train \
 
 ### 5.1 MoT WAM
 
-实现位于 [`starwam/wam/mot_wam.py`](starwam/wam/mot_wam.py)。
+实现位于 [`streamwam/wam/mot_wam.py`](streamwam/wam/mot_wam.py)。
 
 训练过程：
 
@@ -134,7 +134,7 @@ MoT 支持 `first_frame` 和 `full_video` 两种动作对视频的条件方式�
 
 ### 5.2 Shared-DiT WAM
 
-实现位于 [`starwam/wam/shared_dit_wam.py`](starwam/wam/shared_dit_wam.py)。
+实现位于 [`streamwam/wam/shared_dit_wam.py`](streamwam/wam/shared_dit_wam.py)。
 
 Shared-DiT 将以下信息放进统一 token 空间：
 
@@ -148,13 +148,13 @@ Shared-DiT 将以下信息放进统一 token 空间：
 
 ### 5.3 Feature-Conditioned Action Model
 
-实现位于 [`starwam/wam/feature_conditioned_action_model.py`](starwam/wam/feature_conditioned_action_model.py)。
+实现位于 [`streamwam/wam/feature_conditioned_action_model.py`](streamwam/wam/feature_conditioned_action_model.py)。
 
 视频骨干负责从 observation、ground-truth video 或 generated video 中提取特征，ActionDiT 根据这些特征预测动作。该路线只计算动作损失，联合世界建模程度低于 MoT 和 Shared-DiT，但结构更直接。
 
 ## 6. Backbone 设计
 
-统一骨干接口位于 [`starwam/backbone/base.py`](starwam/backbone/base.py)，主要包括：
+统一骨干接口位于 [`streamwam/backbone/base.py`](streamwam/backbone/base.py)，主要包括：
 
 - `encode_video()`：视频编码为 VAE latent；
 - `decode_latents()`：latent 解码回视频；
@@ -169,11 +169,11 @@ Shared-DiT 将以下信息放进统一 token 空间：
 - Wan2.2 14B；
 - Cosmos-Predict2-2B-Video2World。
 
-其中 [`starwam/backbone/wan22.py`](starwam/backbone/wan22.py) 超过 2200 行，将 T5、VAE、DiT、checkpoint 加载和适配放在同一个文件中，是仓库当前最大的维护热点。
+其中 [`streamwam/backbone/wan22.py`](streamwam/backbone/wan22.py) 超过 2200 行，将 T5、VAE、DiT、checkpoint 加载和适配放在同一个文件中，是仓库当前最大的维护热点。
 
 ## 7. 数据层
 
-数据层集中在 [`starwam/data/lerobot.py`](starwam/data/lerobot.py)，使用 LeRobot episode 格式，支持：
+数据层集中在 [`streamwam/data/lerobot.py`](streamwam/data/lerobot.py)，使用 LeRobot episode 格式，支持：
 
 - 单相机和多相机输入；
 - 水平、垂直相机拼接；
@@ -202,7 +202,7 @@ Shared-DiT 将以下信息放进统一 token 空间：
 
 ## 8. 训练系统
 
-训练器位于 [`starwam/training/trainer.py`](starwam/training/trainer.py)，支持：
+训练器位于 [`streamwam/training/trainer.py`](streamwam/training/trainer.py)，支持：
 
 - Hugging Face Accelerate；
 - DeepSpeed ZeRO-2；
@@ -220,7 +220,7 @@ Shared-DiT 将以下信息放进统一 token 空间：
 
 ## 9. 推理与部署
 
-通用推理封装在 [`starwam/eval/policy.py`](starwam/eval/policy.py) 的 `StarwamPolicy` 中，负责：
+通用推理封装在 [`streamwam/eval/policy.py`](streamwam/eval/policy.py) 的 `StreamWAMPolicy` 中，负责：
 
 1. 加载 recipe 和 checkpoint；
 2. 编码语言 instruction；
@@ -233,7 +233,7 @@ LIBERO 的完整 rollout 位于 [`examples/libero/rollout.py`](examples/libero/r
 
 RoboTwin 支持两种部署方式：
 
-- Local：SAPIEN 和 StarWAM 在同一个环境中执行；
+- Local：SAPIEN 和 StreamWAM 在同一个环境中执行；
 - Client/Server：渲染环境通过 socket 请求独立 GPU 推理服务器。
 
 Client/Server 模式适合 SAPIEN/Vulkan 环境与 PyTorch/CUDA 推理环境无法共存的情况。
@@ -299,7 +299,7 @@ taxonomy 层接受 `action_head`、`token_action`、`latent_action` 等动作表
 
 #### 11.4 Backbone 文件过大
 
-`wan22.py` 同时承担上游模型实现和 StarWAM adapter 职责。后续升级 Wan 版本或增加单元测试时，拆分成本较高。
+`wan22.py` 同时承担上游模型实现和 StreamWAM adapter 职责。后续升级 Wan 版本或增加单元测试时，拆分成本较高。
 
 #### 11.5 Cosmos 支持仍有边界
 
@@ -321,13 +321,13 @@ taxonomy 层接受 `action_head`、`token_action`、`latent_action` 等动作表
 如果要快速理解或二次开发，建议按以下顺序阅读：
 
 1. [`README.md`](README.md)：了解项目定位；
-2. [`starwam/config.py`](starwam/config.py)：掌握完整配置面；
-3. [`starwam/taxonomy.py`](starwam/taxonomy.py)：理解模型家族；
-4. [`starwam/builder.py`](starwam/builder.py)：理解对象构建链路；
-5. [`starwam/wam/mot_wam.py`](starwam/wam/mot_wam.py) 或 [`starwam/wam/shared_dit_wam.py`](starwam/wam/shared_dit_wam.py)：阅读模型主路径；
-6. [`starwam/data/lerobot.py`](starwam/data/lerobot.py)：了解数据 sample；
-7. [`starwam/training/trainer.py`](starwam/training/trainer.py)：了解训练和分布式行为；
-8. [`starwam/eval/policy.py`](starwam/eval/policy.py)：了解部署推理接口；
+2. [`streamwam/config.py`](streamwam/config.py)：掌握完整配置面；
+3. [`streamwam/taxonomy.py`](streamwam/taxonomy.py)：理解模型家族；
+4. [`streamwam/builder.py`](streamwam/builder.py)：理解对象构建链路；
+5. [`streamwam/wam/mot_wam.py`](streamwam/wam/mot_wam.py) 或 [`streamwam/wam/shared_dit_wam.py`](streamwam/wam/shared_dit_wam.py)：阅读模型主路径；
+6. [`streamwam/data/lerobot.py`](streamwam/data/lerobot.py)：了解数据 sample；
+7. [`streamwam/training/trainer.py`](streamwam/training/trainer.py)：了解训练和分布式行为；
+8. [`streamwam/eval/policy.py`](streamwam/eval/policy.py)：了解部署推理接口；
 9. 对应 benchmark 的 YAML recipe 和说明文档。
 
 ## 13. 后续改进建议
@@ -355,6 +355,6 @@ taxonomy 层接受 `action_head`、`token_action`、`latent_action` 等动作表
 
 ## 15. 总结
 
-StarWAM 的核心价值在于：用统一配置、数据和训练系统组织多种 World-Action Model，并让相同模型家族能够复用不同视频世界模型骨干。
+StreamWAM 的核心价值在于：用统一配置、数据和训练系统组织多种 World-Action Model，并让相同模型家族能够复用不同视频世界模型骨干。
 
 从研究使用角度看，仓库的 MoT 和 Shared-DiT 路线、LIBERO/RoboTwin recipe、分布式训练和闭环评测链路已经较完整；从长期工程维护角度看，当前最需要补充的是自动化测试、完整依赖声明、骨干模块拆分以及 taxonomy/实现能力的一致性。

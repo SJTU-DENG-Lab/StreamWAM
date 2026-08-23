@@ -1,6 +1,6 @@
-# Reference pip requirements for StarWAM LIBERO experiments.
+# Reference pip requirements for StreamWAM LIBERO experiments.
 #
-# This file is a curated reference for the starwam-libero environment instead of
+# This file is a curated reference for the streamwam-libero environment instead of
 # a raw `pip freeze`. Install PyTorch first with the wheel/index matching
 # your CUDA runtime, then install this file.
 

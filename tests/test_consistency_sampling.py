@@ -3,13 +3,13 @@ import math
 import pytest
 import torch
 
-from starwam.inference.consistency import (
+from streamwam.inference.consistency import (
     sample_joint_consistency_noise,
     action_consistency_boundary,
     normalize_sampling_method,
     video_consistency_boundary,
 )
-from starwam.wam.mot_wam import (
+from streamwam.wam.mot_wam import (
     _sample_euler_noise,
     _validate_consistency_inference,
 )

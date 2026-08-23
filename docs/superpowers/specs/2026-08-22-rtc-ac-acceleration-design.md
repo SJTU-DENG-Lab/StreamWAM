@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add an opt-in accelerated backend to the existing StarWAM RTC-AC inference
+Add an opt-in accelerated backend to the existing StreamWAM RTC-AC inference
 path. A single `--rtc-ac-accelerated` flag enables the wyx Stage-2 z1
 acceleration contract without creating another inference module or changing
 the checkpoint, RTC mathematics, D0/D8 scheduling, action normalization, or
@@ -44,11 +44,11 @@ same launcher supports both modes:
 ```bash
 # Group 3: eager RTC-AC
 GPU_IDS=0,1,2,3 \
-  bash examples/libero/scripts/launch_starwam_libero_rtc_ac_4gpu.sh
+  bash examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh
 
 # Group 4: accelerated RTC-AC
 GPU_IDS=0,1,2,3 \
-  bash examples/libero/scripts/launch_starwam_libero_rtc_ac_4gpu.sh \
+  bash examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh \
   --rtc-ac-accelerated
 ```
 
@@ -58,7 +58,7 @@ before evaluation begins.
 
 ## Architecture
 
-### `starwam/inference/rtc_ac.py`
+### `streamwam/inference/rtc_ac.py`
 
 This remains the only RTC-AC inference runtime module. Add a focused
 `RTCACAccelerationRuntime` that owns:
@@ -80,7 +80,7 @@ controller.
 The runtime is absent/disabled on the eager path. It must not mutate global
 PyTorch compiler settings.
 
-### `starwam/modules/wan_block.py`
+### `streamwam/modules/wan_block.py`
 
 Expose a functional block path that returns the AdaLN/residual state explicitly
 instead of writing `block._cache`. Add a matching post-attention operation that
@@ -90,7 +90,7 @@ accepts already-projected cross-attention K/V. Existing `get_qkv` and
 This removes Python mutation from the compiled graph while sharing the same
 parameters, modulation, attention, residual, and FFN formulas as eager.
 
-### `starwam/modules/rtc_ac.py`
+### `streamwam/modules/rtc_ac.py`
 
 Keep `RTCACMoT` as the only RTC MoT class. Add one compile-friendly accelerated
 forward method in the same class. It consumes fixed-shape expert states,
@@ -100,7 +100,7 @@ condition streams.
 
 The existing `forward_rtc_ac` remains the eager reference implementation.
 
-### `starwam/wam/rtc_ac_wam.py`
+### `streamwam/wam/rtc_ac_wam.py`
 
 `RTCACWAM` owns an optional `RTCACAccelerationRuntime`. Its public
 `enable_rtc_ac_acceleration()` method is called after checkpoint loading and
@@ -184,7 +184,7 @@ action output within BF16 tolerance for a fixed input, and no eager fallback.
 
 ## Scope constraints
 
-- Do not add another file under `starwam/inference/`.
+- Do not add another file under `streamwam/inference/`.
 - Do not create a separate accelerated WAM or MoT model variant.
 - Do not modify checkpoint weights or create converted checkpoint files.
 - Do not change eager RTC, Joint CD, or standard FastWAM behavior.

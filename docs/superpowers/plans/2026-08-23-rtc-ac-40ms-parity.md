@@ -2,7 +2,7 @@
 
 > **For agentic workers:** Execute this plan task-by-task with red-green-refactor. This repository must remain uncommitted for user review.
 
-**Goal:** Align StarWAM's opt-in accelerated RTC-AC compiled core with the wyx Stage-2 selfatt-z1 reference and expose enough evidence to validate 40-45 ms steady-state D8 latency.
+**Goal:** Align StreamWAM's opt-in accelerated RTC-AC compiled core with the wyx Stage-2 selfatt-z1 reference and expose enough evidence to validate 40-45 ms steady-state D8 latency.
 
 **Architecture:** Preserve the existing eager `RTCACMoT.forward_rtc_ac` path. Replace only the accelerated payload/core with the reference-shaped three-stream interface, keep compilation and caches in `RTCACAccelerationRuntime`, and add final-only compiler and steady-state latency diagnostics.
 
@@ -22,8 +22,8 @@
 
 **Files:**
 - Modify: `tests/test_rtc_ac_acceleration.py`
-- Modify: `starwam/modules/rtc_ac.py`
-- Modify: `starwam/wam/rtc_ac_wam.py`
+- Modify: `streamwam/modules/rtc_ac.py`
+- Modify: `streamwam/wam/rtc_ac_wam.py`
 
 **Interfaces:**
 - Consumes: existing eager expert states from video/action `pre_dit` and cached K/V from `RTCACAccelerationRuntime`.
@@ -40,8 +40,8 @@
 **Files:**
 - Modify: `tests/test_rtc_ac_acceleration.py`
 - Modify: `tests/test_rtc_ac.py`
-- Modify: `starwam/wam/rtc_ac_wam.py`
-- Modify: `starwam/inference/rtc_ac.py`
+- Modify: `streamwam/wam/rtc_ac_wam.py`
+- Modify: `streamwam/inference/rtc_ac.py`
 
 **Interfaces:**
 - Produces: `validate_rtc_ac_accelerated_contract(...) -> None`, called before context preparation, VAE encode, or compilation.
@@ -56,7 +56,7 @@
 
 **Files:**
 - Modify: `tests/test_rtc_ac_acceleration.py`
-- Modify: `starwam/inference/rtc_ac.py`
+- Modify: `streamwam/inference/rtc_ac.py`
 - Modify: `examples/libero/multigpu_rollout.py`
 
 **Interfaces:**

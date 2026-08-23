@@ -4,7 +4,7 @@
 
 **Goal:** Add strict opt-in wyx-equivalent compilation, CUDA Graph Tree, context/KV/mask/schedule caching, and unmeasured D0/D8 prewarm to the existing RTC-AC path.
 
-**Architecture:** Keep one `RTCACWAM`, one `RTCACMoT`, and the existing `starwam/inference/rtc_ac.py`. Add a small acceleration runtime there, a functional compile-safe Wan block API, an accelerated method on the existing MoT, and CLI/prewarm wiring in the existing LIBERO frontend.
+**Architecture:** Keep one `RTCACWAM`, one `RTCACMoT`, and the existing `streamwam/inference/rtc_ac.py`. Add a small acceleration runtime there, a functional compile-safe Wan block API, an accelerated method on the existing MoT, and CLI/prewarm wiring in the existing LIBERO frontend.
 
 **Tech Stack:** Python 3.10, PyTorch 2.9, TorchInductor/Triton, CUDA, pytest, Bash
 
@@ -14,7 +14,7 @@
 - Acceleration requires CUDA and strict `torch.compile(mode="reduce-overhead", fullgraph=True, dynamic=False)` success.
 - D0 and D8 prewarm occur before episode timing and are never included in chunk/overlap/workload metrics.
 - Absence of the flag preserves eager RTC behavior.
-- Do not add another file under `starwam/inference/` or another WAM/MoT variant.
+- Do not add another file under `streamwam/inference/` or another WAM/MoT variant.
 - Do not create Git commits.
 
 ---
@@ -24,8 +24,8 @@
 **Files:**
 - Modify: `examples/libero/rollout.py`
 - Modify: `examples/libero/multigpu_rollout.py`
-- Modify: `examples/libero/scripts/launch_starwam_libero_rtc_ac_rollout.sh`
-- Modify: `examples/libero/scripts/launch_starwam_libero_rtc_ac_4gpu.sh`
+- Modify: `examples/libero/scripts/launch_streamwam_libero_rtc_ac_rollout.sh`
+- Modify: `examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh`
 - Test: `tests/test_inference_checkpoint_cli.py`
 - Test: `tests/test_libero_multigpu_manager.py`
 
@@ -41,7 +41,7 @@
 ### Task 2: Compile-safe Wan block operations
 
 **Files:**
-- Modify: `starwam/modules/wan_block.py`
+- Modify: `streamwam/modules/wan_block.py`
 - Test: `tests/test_rtc_ac_acceleration.py`
 
 **Interfaces:**
@@ -55,7 +55,7 @@
 ### Task 3: Existing RTC MoT accelerated core
 
 **Files:**
-- Modify: `starwam/modules/rtc_ac.py`
+- Modify: `streamwam/modules/rtc_ac.py`
 - Test: `tests/test_rtc_ac_acceleration.py`
 
 **Interfaces:**
@@ -69,10 +69,10 @@
 ### Task 4: Acceleration runtime and RTCACWAM integration
 
 **Files:**
-- Modify: `starwam/inference/rtc_ac.py`
-- Modify: `starwam/backbone/wan22.py`
-- Modify: `starwam/modules/action_dit.py`
-- Modify: `starwam/wam/rtc_ac_wam.py`
+- Modify: `streamwam/inference/rtc_ac.py`
+- Modify: `streamwam/backbone/wan22.py`
+- Modify: `streamwam/modules/action_dit.py`
+- Modify: `streamwam/wam/rtc_ac_wam.py`
 - Test: `tests/test_rtc_ac_acceleration.py`
 
 **Interfaces:**

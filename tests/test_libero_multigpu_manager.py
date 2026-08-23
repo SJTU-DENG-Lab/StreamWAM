@@ -78,7 +78,7 @@ def test_fastwam_official_launcher_emits_baseline_protocol(tmp_path) -> None:
             "bash",
             str(
                 REPO_ROOT
-                / "examples/libero/scripts/launch_starwam_libero_fastwam_4gpu.sh"
+                / "examples/libero/scripts/launch_streamwam_libero_fastwam_4gpu.sh"
             ),
         ],
         cwd=REPO_ROOT,
@@ -93,7 +93,7 @@ def test_fastwam_official_launcher_emits_baseline_protocol(tmp_path) -> None:
         "--gpus": "2,4,6,7",
         "--suites": "libero_spatial,libero_object,libero_goal,libero_10",
         "--num-trials": "1",
-        "--config": "examples/libero/configs/recipes/starwam_libero_mot_wan22_5b.yaml",
+        "--config": "examples/libero/configs/recipes/streamwam_libero_mot_wan22_5b.yaml",
         "--checkpoint-format": "fastwam",
         "--checkpoint": "checkpoints/fastwam_release/libero_uncond_2cam224.pt",
         "--backbone-path": "/models/test-wan22",
@@ -213,7 +213,7 @@ def test_rtc_ac_launcher_forwards_acceleration_flag(tmp_path) -> None:
             "bash",
             str(
                 REPO_ROOT
-                / "examples/libero/scripts/launch_starwam_libero_rtc_ac_4gpu.sh"
+                / "examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh"
             ),
             "--rtc-ac-accelerated",
         ],
@@ -252,7 +252,7 @@ def test_rtc_ac_launcher_uses_explicit_python_bin(tmp_path) -> None:
             "bash",
             str(
                 REPO_ROOT
-                / "examples/libero/scripts/launch_starwam_libero_rtc_ac_4gpu.sh"
+                / "examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh"
             ),
             "--help",
         ],

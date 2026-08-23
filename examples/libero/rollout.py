@@ -1,4 +1,4 @@
-"""LIBERO environment rollout for StarWAM policies."""
+"""LIBERO environment rollout for StreamWAM policies."""
 
 from __future__ import annotations
 
@@ -19,8 +19,8 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from starwam.config import load_config  # noqa: E402
-from starwam.data.lerobot import (  # noqa: E402
+from streamwam.config import load_config  # noqa: E402
+from streamwam.data.lerobot import (  # noqa: E402
     DEFAULT_TEXT_CACHE_ENCODER_ID,
     DEFAULT_TEXT_PROMPT,
     format_text_prompt,
@@ -29,8 +29,8 @@ from starwam.data.lerobot import (  # noqa: E402
     save_text_cache,
     text_cache_path,
 )
-from starwam.utils.config_cli import apply_overrides  # noqa: E402
-from starwam.inference import (  # noqa: E402
+from streamwam.utils.config_cli import apply_overrides  # noqa: E402
+from streamwam.inference import (  # noqa: E402
     RTCACController,
     RTCACPrediction,
     normalize_sampling_method,
@@ -38,7 +38,7 @@ from starwam.inference import (  # noqa: E402
 )
 from examples.libero.timing import GlobalTimingSummary  # noqa: E402
 from examples.libero.workload import load_worker_manifest  # noqa: E402
-from starwam.checkpointing import (  # noqa: E402
+from streamwam.checkpointing import (  # noqa: E402
     load_inference_checkpoint,
     load_inference_stats,
     prepare_inference_config,
@@ -50,7 +50,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-logger = logging.getLogger("starwam.rollout_libero")
+logger = logging.getLogger("streamwam.rollout_libero")
 
 LIBERO_DUMMY_ACTION = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0]
 LIBERO_ENV_RESOLUTION = 256
@@ -119,14 +119,14 @@ def _latest_checkpoint(output_dir: str | Path) -> Path:
 
 def _patch_torch_load_for_libero_init_states() -> None:
     original_load = torch.load
-    if getattr(original_load, "_starwam_libero_compat", False):
+    if getattr(original_load, "_streamwam_libero_compat", False):
         return
 
     def load_with_legacy_default(*args: Any, **kwargs: Any):
         kwargs.setdefault("weights_only", False)
         return original_load(*args, **kwargs)
 
-    load_with_legacy_default._starwam_libero_compat = True  # type: ignore[attr-defined]
+    load_with_legacy_default._streamwam_libero_compat = True  # type: ignore[attr-defined]
     torch.load = load_with_legacy_default  # type: ignore[assignment]
 
 
@@ -136,7 +136,7 @@ def _add_libero_to_path(libero_home: str | None) -> None:
     path = Path(libero_home).expanduser().resolve()
     if path.is_dir() and str(path) not in sys.path:
         sys.path.insert(0, str(path))
-    default_config_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "starwam" / "libero_config"
+    default_config_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "streamwam" / "libero_config"
     config_dir = Path(os.environ.get("LIBERO_CONFIG_PATH", str(default_config_dir)))
     config_dir.mkdir(parents=True, exist_ok=True)
     os.environ["LIBERO_CONFIG_PATH"] = str(config_dir)
@@ -206,7 +206,7 @@ def _obs_to_images(obs: dict[str, Any], config: Any) -> dict[str, np.ndarray]:
 def _obs_to_image(
     obs: dict[str, Any],
     config: Any,
-    checkpoint_format: str = "starwam",
+    checkpoint_format: str = "streamwam",
     device: torch.device | None = None,
     dtype: torch.dtype | None = None,
 ) -> tuple[torch.Tensor, dict[str, np.ndarray]]:
@@ -222,7 +222,7 @@ def _obs_to_image(
         )
         tensor = tensor * (2.0 / 255.0) - 1.0
     else:
-        # Preserve StarWAM's original float32 preprocessing behavior.
+        # Preserve StreamWAM's original float32 preprocessing behavior.
         tensor = tensor.to(dtype=torch.float32)
         tensor = tensor * (2.0 / 255.0) - 1.0
         if device is not None or dtype is not None:
@@ -230,7 +230,7 @@ def _obs_to_image(
     return tensor, images
 
 
-def _load_action_stats(config: Any, checkpoint_format: str = "starwam") -> dict[str, torch.Tensor] | None:
+def _load_action_stats(config: Any, checkpoint_format: str = "streamwam") -> dict[str, torch.Tensor] | None:
     if not getattr(config.data, "normalize_actions", False):
         return None
     stats_path = getattr(config.data, "action_stats_path", None)
@@ -242,7 +242,7 @@ def _load_action_stats(config: Any, checkpoint_format: str = "starwam") -> dict[
     return stats["action"]
 
 
-def _load_state_stats(config: Any, checkpoint_format: str = "starwam") -> dict[str, torch.Tensor] | None:
+def _load_state_stats(config: Any, checkpoint_format: str = "streamwam") -> dict[str, torch.Tensor] | None:
     if not getattr(config.data, "normalize_states", False):
         return None
     stats_path = getattr(config.data, "state_stats_path", None) or getattr(config.data, "action_stats_path", None)
@@ -282,7 +282,7 @@ def _denormalize_action(
     action: torch.Tensor,
     config: Any,
     stats: dict[str, torch.Tensor] | None,
-    checkpoint_format: str = "starwam",
+    checkpoint_format: str = "streamwam",
 ) -> np.ndarray:
     action = action.detach().float().cpu()
     if stats is None:
@@ -349,7 +349,7 @@ def _load_context(
     model: torch.nn.Module,
     device: torch.device,
     dtype: torch.dtype,
-    checkpoint_format: str = "starwam",
+    checkpoint_format: str = "streamwam",
     memory_cache: dict[
         tuple[str, str, str, str],
         tuple[torch.Tensor, torch.Tensor],
@@ -388,7 +388,7 @@ def _load_context(
 
     if not cache_dir:
         raise KeyError("data.text_embedding_cache_dir must be set for rollout text conditioning")
-    from starwam.backbone.wan22 import Wan22TextEncoder
+    from streamwam.backbone.wan22 import Wan22TextEncoder
 
     model_dir = Path(config.backbone.pretrained_model_id)
     encoder = Wan22TextEncoder(
@@ -919,14 +919,14 @@ def _rollout_rtc_ac_episode(
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run StarWAM policy rollout in LIBERO environments")
+    parser = argparse.ArgumentParser(description="Run StreamWAM policy rollout in LIBERO environments")
     parser.add_argument("--config", required=True)
     parser.add_argument("--checkpoint", default=None)
     parser.add_argument(
         "--checkpoint-format",
-        choices=("starwam", "fastwam"),
-        default="starwam",
-        help="Source checkpoint/stats format (default: starwam).",
+        choices=("streamwam", "fastwam"),
+        default="streamwam",
+        help="Source checkpoint/stats format (default: streamwam).",
     )
     parser.add_argument("--backbone-path", default=None, help="Local Wan2.2 backbone directory.")
     parser.add_argument(
@@ -1047,7 +1047,7 @@ def main() -> None:
         _sampled_video_frame_count(config),
     )
 
-    from starwam import build_framework
+    from streamwam import build_framework
 
     model = build_framework(config, device=str(device), dtype=dtype).to(device)
     meta = load_inference_checkpoint(model, checkpoint, checkpoint_format=args.checkpoint_format)

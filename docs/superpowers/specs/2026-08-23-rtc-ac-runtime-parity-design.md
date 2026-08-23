@@ -2,7 +2,7 @@
 
 ## Goal
 
-Run StarWAM accelerated RTC-AC with the same Python acceleration stack used by
+Run StreamWAM accelerated RTC-AC with the same Python acceleration stack used by
 the wyx reference evaluation, without modifying the user's current `libero`
 environment or changing RTC inference semantics.
 
@@ -26,7 +26,7 @@ observable rather than inferred from the activated shell.
 
 Before launching a costly evaluation, the shell launcher runs a lightweight
 import/version preflight with the selected executable. A missing executable or
-incompatible StarWAM import fails before model loading.
+incompatible StreamWAM import fails before model loading.
 
 ## Compatibility
 
@@ -45,7 +45,7 @@ The existing accelerated/eager numerical equivalence tests remain required.
 
 The real GPU validation uses one GPU and one trial over all 40 LIBERO tasks.
 The primary comparison is accelerated model inference per chunk against the
-previous StarWAM result (`127.86 ms`) and the wyx runtime result (about
+previous StreamWAM result (`127.86 ms`) and the wyx runtime result (about
 `40.16 ms` on its recorded benchmark). Exact latency is hardware/load dependent;
 runtime and backend identity must match before interpreting the number.
 

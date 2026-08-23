@@ -25,7 +25,7 @@ def test_fastwam_action_denormalization_does_not_clip_model_output() -> None:
     assert actual[0, 0] == 15.0
 
 
-def test_starwam_action_denormalization_preserves_boundary_clipping() -> None:
+def test_streamwam_action_denormalization_preserves_boundary_clipping() -> None:
     action = torch.tensor([[[2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]])
     stats = {
         "min": torch.zeros(7),
@@ -39,7 +39,7 @@ def test_starwam_action_denormalization_preserves_boundary_clipping() -> None:
         action,
         config,
         stats,
-        checkpoint_format="starwam",
+        checkpoint_format="streamwam",
     )
 
     assert actual[0, 0] == 10.0

@@ -2,11 +2,11 @@
 
 > **For agentic workers:** implement this plan inline with test-driven development. Do not create Git commits; the repository owner will inspect and commit manually.
 
-**Goal:** Add the original FastWAM Stage-2 selfatt-z1 step-5500 D0/D8 asynchronous RTC inference path to StarWAM under the single public name `rtc_ac`, first with an eager backend.
+**Goal:** Add the original FastWAM Stage-2 selfatt-z1 step-5500 D0/D8 asynchronous RTC inference path to StreamWAM under the single public name `rtc_ac`, first with an eager backend.
 
-**Architecture:** Keep standard `MoTWAM` and synchronous `consistency` unchanged. Add the checkpoint-specific three-stream model as `RTCACMoT`/`RTCACWAM`, place all D0/D8 sampling and asynchronous chunk scheduling in one `starwam/inference/rtc_ac.py`, and let LIBERO select the path through `sampling_method=rtc_ac`.
+**Architecture:** Keep standard `MoTWAM` and synchronous `consistency` unchanged. Add the checkpoint-specific three-stream model as `RTCACMoT`/`RTCACWAM`, place all D0/D8 sampling and asynchronous chunk scheduling in one `streamwam/inference/rtc_ac.py`, and let LIBERO select the path through `sampling_method=rtc_ac`.
 
-**Tech Stack:** Python 3.10+, PyTorch, `ThreadPoolExecutor`, StarWAM MoT/Wan2.2, pytest, LIBERO.
+**Tech Stack:** Python 3.10+, PyTorch, `ThreadPoolExecutor`, StreamWAM MoT/Wan2.2, pytest, LIBERO.
 
 ## Global Constraints
 
@@ -23,10 +23,10 @@
 ### Task 1: RTC-AC configuration and public mode
 
 **Files:**
-- Modify: `starwam/config.py`
-- Modify: `starwam/inference/consistency.py`
-- Create: `starwam/inference/rtc_ac.py`
-- Modify: `starwam/inference/__init__.py`
+- Modify: `streamwam/config.py`
+- Modify: `streamwam/inference/consistency.py`
+- Create: `streamwam/inference/rtc_ac.py`
+- Modify: `streamwam/inference/__init__.py`
 - Test: `tests/test_rtc_ac.py`
 
 **Interfaces:**
@@ -40,11 +40,11 @@
 ### Task 2: RTC-AC checkpoint-specific model structure
 
 **Files:**
-- Create: `starwam/modules/rtc_ac.py`
-- Modify: `starwam/modules/__init__.py`
-- Create: `starwam/wam/rtc_ac_wam.py`
-- Modify: `starwam/wam/__init__.py`
-- Modify: `starwam/builder.py`
+- Create: `streamwam/modules/rtc_ac.py`
+- Modify: `streamwam/modules/__init__.py`
+- Create: `streamwam/wam/rtc_ac_wam.py`
+- Modify: `streamwam/wam/__init__.py`
+- Modify: `streamwam/builder.py`
 - Test: `tests/test_rtc_ac.py`
 
 **Interfaces:**
@@ -60,7 +60,7 @@
 ### Task 3: Strict Stage-2 FastWAM checkpoint loading
 
 **Files:**
-- Modify: `starwam/checkpointing/fastwam_format.py`
+- Modify: `streamwam/checkpointing/fastwam_format.py`
 - Test: `tests/test_checkpoint_formats.py`
 
 **Interfaces:**
@@ -74,7 +74,7 @@
 ### Task 4: D0/D8 asynchronous controller
 
 **Files:**
-- Modify: `starwam/inference/rtc_ac.py`
+- Modify: `streamwam/inference/rtc_ac.py`
 - Test: `tests/test_rtc_ac.py`
 
 **Interfaces:**
@@ -91,8 +91,8 @@
 
 **Files:**
 - Modify: `examples/libero/rollout.py`
-- Create: `examples/libero/configs/recipes/starwam_libero_rtc_ac_wan22_5b.yaml`
-- Create: `examples/libero/scripts/launch_starwam_libero_rtc_ac_rollout.sh`
+- Create: `examples/libero/configs/recipes/streamwam_libero_rtc_ac_wan22_5b.yaml`
+- Create: `examples/libero/scripts/launch_streamwam_libero_rtc_ac_rollout.sh`
 - Test: `tests/test_rtc_ac.py`
 - Test: `tests/test_inference_checkpoint_cli.py`
 

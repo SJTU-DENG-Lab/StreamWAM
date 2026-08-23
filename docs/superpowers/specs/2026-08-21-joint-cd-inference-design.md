@@ -18,7 +18,7 @@ The supported Joint CD geometry is:
 
 ## Architecture
 
-Pure consistency-boundary math lives in `starwam/inference/consistency.py`. `MoTWAM` selects either the existing Euler update or the new consistency update without duplicating its inference loop. `ActionDiT.pre_dit` accepts both batch-level `[B]` and token-wise `[B,H]` timesteps, matching the original FastWAM model contract while preserving existing `[B]` behavior.
+Pure consistency-boundary math lives in `streamwam/inference/consistency.py`. `MoTWAM` selects either the existing Euler update or the new consistency update without duplicating its inference loop. `ActionDiT.pre_dit` accepts both batch-level `[B]` and token-wise `[B,H]` timesteps, matching the original FastWAM model contract while preserving existing `[B]` behavior.
 
 The existing FastWAM checkpoint loader remains unchanged because the checkpoint contains the already-supported `mot`, `proprio_encoder`, `step`, and `torch_dtype` fields.
 
@@ -26,7 +26,7 @@ The existing FastWAM checkpoint loader remains unchanged because the checkpoint 
 
 A dedicated LIBERO recipe selects `full_video`, horizon 32, one inference step, and consistency sampling. The rollout CLI exposes `--sampling-method {euler,consistency}` and forwards it to the model. A separate flat Bash launcher supplies the Joint CD checkpoint, statistics, backbone, LIBERO path, one-step sampling, and replanning interval.
 
-The source checkpoint is exposed under StarWAM's `checkpoints/` directory with a symbolic link; checkpoint contents are not copied or converted.
+The source checkpoint is exposed under StreamWAM's `checkpoints/` directory with a symbolic link; checkpoint contents are not copied or converted.
 
 ## Validation
 

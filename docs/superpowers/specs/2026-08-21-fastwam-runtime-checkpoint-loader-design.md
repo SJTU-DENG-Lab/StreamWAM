@@ -1,19 +1,19 @@
 # FastWAM Runtime Checkpoint Loader Design
 
 > **Architecture update:** The loader behavior in this document is unchanged,
-> but its implementation has moved into `starwam/checkpointing/`. See
+> but its implementation has moved into `streamwam/checkpointing/`. See
 > `docs/superpowers/plans/2026-08-21-checkpointing-package-refactor.md`; the
-> earlier `starwam/utils/checkpoint.py` placement described below is superseded.
+> earlier `streamwam/utils/checkpoint.py` placement described below is superseded.
 
 ## Goal
 
-Allow StarWAM inference entrypoints to load original FastWAM release checkpoints directly at runtime with:
+Allow StreamWAM inference entrypoints to load original FastWAM release checkpoints directly at runtime with:
 
 ```bash
 --checkpoint-format fastwam
 ```
 
-The loader must not write a converted checkpoint or require a second on-disk copy. Existing StarWAM checkpoint behavior remains the default.
+The loader must not write a converted checkpoint or require a second on-disk copy. Existing StreamWAM checkpoint behavior remains the default.
 
 ## Scope
 
@@ -26,35 +26,35 @@ It also reads their accompanying FastWAM `dataset_stats.json` files in memory. T
 
 ## Architecture
 
-Checkpoint responsibilities live in the focused `starwam/checkpointing/`
+Checkpoint responsibilities live in the focused `streamwam/checkpointing/`
 package:
 
 - `core.py` contains generic training checkpoint, backbone inference, and
   ActionDiT initialization helpers.
-- `starwam_format.py` contains native StarWAM inference loading.
+- `streamwam_format.py` contains native StreamWAM inference loading.
 - `fastwam_format.py` contains FastWAM checkpoint, statistics, and config
   adaptation.
 - `loader.py` performs explicit source-format dispatch.
 - `__init__.py` is the only public checkpoint API.
 
-The former `starwam/utils/checkpoint.py` module is deleted without a
+The former `streamwam/utils/checkpoint.py` module is deleted without a
 compatibility shim.
 
 The package exposes three inference-oriented functions:
 
 ```python
-load_inference_checkpoint(model, path, checkpoint_format="starwam") -> dict
-load_inference_stats(path, checkpoint_format="starwam") -> dict
-prepare_inference_config(config, checkpoint_format="starwam") -> config
+load_inference_checkpoint(model, path, checkpoint_format="streamwam") -> dict
+load_inference_stats(path, checkpoint_format="streamwam") -> dict
+prepare_inference_config(config, checkpoint_format="streamwam") -> config
 ```
 
-Format dispatch is explicit. Supported values initially are `starwam` and `fastwam`. Unknown formats fail immediately.
+Format dispatch is explicit. Supported values initially are `streamwam` and `fastwam`. Unknown formats fail immediately.
 
-Both LIBERO rollout and the benchmark-neutral `StarwamPolicy` call these functions, preventing duplicate format logic.
+Both LIBERO rollout and the benchmark-neutral `StreamWAMPolicy` call these functions, preventing duplicate format logic.
 
-## Standard StarWAM Loading
+## Standard StreamWAM Loading
 
-The `starwam` branch preserves current behavior:
+The `streamwam` branch preserves current behavior:
 
 - accept direct files and supported checkpoint directories;
 - extract `model_state_dict`, `module`, or `state_dict` payloads;
@@ -110,7 +110,7 @@ Any incompatibility raises a descriptive exception. FastWAM loading never contin
 
 FastWAM stats are converted only in memory. No output JSON is written.
 
-For each of `action.default` and `state.default`, the canonical StarWAM view is:
+For each of `action.default` and `state.default`, the canonical StreamWAM view is:
 
 ```text
 global_min  -> min
@@ -121,7 +121,7 @@ global_std  -> std
 
 This supports LIBERO global min/max normalization and RoboTwin global z-score normalization. Missing groups or fields fail immediately.
 
-The standard `starwam` branch continues using the existing `load_lerobot_stats()` format.
+The standard `streamwam` branch continues using the existing `load_lerobot_stats()` format.
 
 ## Model Construction
 
@@ -131,17 +131,17 @@ The Wan2.2 base directory is still required for architecture inference, VAE weig
 
 ## CLI Changes
 
-The following entrypoints gain `--checkpoint-format`, defaulting to `starwam`:
+The following entrypoints gain `--checkpoint-format`, defaulting to `streamwam`:
 
 - `examples/libero/rollout.py`
 - `examples/robotwin/policy_server.py`
 
-`StarwamPolicy.__init__` gains `checkpoint_format="starwam"`.
+`StreamWAMPolicy.__init__` gains `checkpoint_format="streamwam"`.
 
 Launch scripts pass `CHECKPOINT_FORMAT` when set:
 
-- `examples/libero/scripts/launch_starwam_libero_mot_rollout.sh`
-- `examples/robotwin/scripts/launch_starwam_robotwin_policy_server.sh`
+- `examples/libero/scripts/launch_streamwam_libero_mot_rollout.sh`
+- `examples/robotwin/scripts/launch_streamwam_robotwin_policy_server.sh`
 
 The selected format controls both checkpoint and stats loading.
 
@@ -151,7 +151,7 @@ With `--checkpoint-format fastwam`, LIBERO inference performs:
 
 1. Load recipe and overrides.
 2. Select the FastWAM format and disable ActionDiT init payload loading.
-3. Build the StarWAM Wan2.2 MoT structure, VAE, and text-conditioning resources.
+3. Build the StreamWAM Wan2.2 MoT structure, VAE, and text-conditioning resources.
 4. Memory-map the original FastWAM checkpoint.
 5. Validate all video, action, and proprio keys and shapes.
 6. Strictly load the three submodules.
@@ -165,14 +165,14 @@ Tests use small fake MoT modules rather than the 12 GB release checkpoint.
 
 Required coverage:
 
-- standard StarWAM format behavior remains compatible;
+- standard StreamWAM format behavior remains compatible;
 - FastWAM video/action/proprio loading succeeds with exact keys and shapes;
 - missing payload groups fail;
 - unknown `mixtures.*` branches fail;
 - missing, unexpected, and shape-mismatched tensors fail before mutation;
 - FastWAM LIBERO stats map global min/max correctly;
 - FastWAM RoboTwin stats map global mean/std correctly;
-- CLI defaults remain `starwam`;
+- CLI defaults remain `streamwam`;
 - CLI `fastwam` selection reaches the shared loader.
 
 A final integration check should load the real LIBERO release checkpoint on a machine with the Wan2.2 base model and sufficient RAM/VRAM, then verify the reported tensor counts and run one LIBERO task trial.

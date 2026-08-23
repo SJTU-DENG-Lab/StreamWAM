@@ -1,17 +1,27 @@
-# StarWAM: A Generalizable Codebase for World-Action Models
+# StreamWAM: Streaming World-Action Models for Robot Control
 
-StarWAM is a research codebase for building **World-Action Models (WAMs)**: robot policies that combine generative video/world models with action prediction modules. It is designed for modular experimentation with world-model backbones, action representations, and training recipes.
+StreamWAM is a research framework for **World-Action Models (WAMs)** with
+synchronous and asynchronous robot-policy inference. It combines generative
+video/world models with action prediction and includes action-conditioned
+RTC-AC execution that overlaps action-chunk inference with environment steps.
+
+The framework is designed for modular experimentation with world-model
+backbones, action representations, consistency-distilled policies, and
+streaming control schedules.
 
 > This repository is an early research release. More WAM variants, benchmarks, model checkpoints, and technical details will be added.
 
 ## News
 
+- **2026/08**: Added one-step Joint-CD inference and asynchronous RTC-AC action-chunk execution, including overlap timing and accelerated fixed-geometry runtime support.
 - **2026/07**: RoboTwin 2.0 integration — dual-arm MoT and Shared-DiT recipes with a client/server adapter for the official harness (89.5% and 92.6% over 50 tasks).
-- **2026/07**: Initial StarWAM codebase prepared with Wan2.2 and Cosmos-Predict2 backbone adapters, LIBERO training/rollout recipes, MoT WAM, Shared-DiT WAM, and feature-conditioned WAM support.
+- **2026/07**: Initial StreamWAM codebase prepared with Wan2.2 and Cosmos-Predict2 backbone adapters, LIBERO training/rollout recipes, MoT WAM, Shared-DiT WAM, and feature-conditioned WAM support.
 
 ## Highlights
 
 - **World-model backbones**: reuse pretrained video generation models as robot world models, e.g., Wan2.2 and Cosmos-Predict2.
+- **Streaming control**: run action-conditioned RTC-AC inference asynchronously while the robot executes the current action chunk.
+- **Consistency inference**: evaluate one-step Joint-CD policies alongside RTC-AC checkpoints with comparable timing instrumentation.
 - **Multiple WAM families**:
   - `mot_wam`: multi-stream video/action experts with mixed attention, e.g., Motus / FastWAM-style world-action modeling.
   - `shared_dit_wam`: shared-DiT/register-token video-action prediction, e.g., DreamZero / LingBot-VA-style shared-token formulations.
@@ -22,12 +32,14 @@ StarWAM is a research codebase for building **World-Action Models (WAMs)**: robo
 ## Repository Layout
 
 ```text
-starwam/                     # Core Python package
+streamwam/                     # Core Python package
   backbone/                  # Wan2.2 / Cosmos-Predict2 backbone adapters
   wam/                       # WAM wrappers and taxonomy-level model families
   modules/                   # DiT blocks, MoT, scheduler, shared-DiT modules
   action_model/              # Action expert builders
   data/                      # LeRobot dataset and text-cache utilities
+  checkpointing/             # Native and FastWAM checkpoint adapters
+  inference/                 # Consistency sampling and RTC-AC controller
   training/                  # Trainer, losses, flow utilities, entrypoint
   tools/                     # Preprocessing utilities
   utils/                     # Checkpoint and config helpers
@@ -38,7 +50,7 @@ pyproject.toml               # Python package metadata
 
 ## Model Families
 
-StarWAM organizes WAM methods by taxonomy-level model families. The taxonomy is separated from the video/world-model backbone, so the same WAM family can be instantiated with different backbones.
+StreamWAM organizes WAM methods by taxonomy-level model families. The taxonomy is separated from the video/world-model backbone, so the same WAM family can be instantiated with different backbones.
 
 ### `mot_wam`
 
@@ -61,8 +73,11 @@ Benchmark-specific setup, training, and evaluation instructions are maintained u
 
 ## Model Zoo
 
-Pretrained checkpoints are released on ModelScope:
+Pretrained checkpoints were released before the project rename and remain in
+the legacy external ModelScope namespace
 [**panshaohua/starwam**](https://www.modelscope.cn/models/panshaohua/starwam).
+These external asset names are unchanged so existing downloads continue to
+work; the installed Python package is `streamwam`.
 
 LIBERO:
 
@@ -80,7 +95,7 @@ Download:
 
 ```bash
 pip install modelscope
-modelscope download --model panshaohua/starwam --local_dir /path/to/starwam_ckpts
+modelscope download --model panshaohua/starwam --local_dir /path/to/streamwam_ckpts
 ```
 
 See [LIBERO examples](examples/libero/LIBERO.md) and [RoboTwin 2.0 examples](examples/robotwin/RoboTwin.md) for rollout commands that use these checkpoints.
@@ -98,13 +113,13 @@ See [LIBERO examples](examples/libero/LIBERO.md) and [RoboTwin 2.0 examples](exa
 
 ## Citation
 
-If you find StarWAM useful in your research, please consider citing it. A formal BibTeX entry will be added once the technical report is released.
+If you find StreamWAM useful in your research, please consider citing it. A formal BibTeX entry will be added once the technical report is released.
 
 ## Acknowledgements
 
 This project draws inspiration and references from several notable open-source initiatives, including:
 
-- [StarVLA](https://github.com/starVLA/starVLA) — a primary reference for this project; its VLA/WM4A designs and training recipes directly informed StarWAM's action modeling.
+- [StarVLA](https://github.com/starVLA/starVLA) — a primary reference for this project; its VLA/WM4A designs and training recipes directly informed StreamWAM's action modeling.
 - [DreamZero](https://github.com/dreamzero0/dreamzero)
 - [LingBot-VA](https://github.com/robbyant/lingbot-va)
 - [FastWAM](https://github.com/yuantianyuan01/FastWAM)

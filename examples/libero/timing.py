@@ -20,7 +20,7 @@ from typing import Any
 
 import numpy as np
 
-from starwam.inference.rtc_ac import RTCACOverlapRecord
+from streamwam.inference.rtc_ac import RTCACOverlapRecord
 
 
 @dataclass

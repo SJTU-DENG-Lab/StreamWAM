@@ -22,7 +22,7 @@
 ### Task 1: Official FastWAM four-GPU launcher
 
 **Files:**
-- Create: `examples/libero/scripts/launch_starwam_libero_fastwam_4gpu.sh`
+- Create: `examples/libero/scripts/launch_streamwam_libero_fastwam_4gpu.sh`
 - Modify: `tests/test_libero_multigpu_manager.py`
 
 **Interfaces:**
@@ -45,7 +45,7 @@ pytest -q tests/test_libero_multigpu_manager.py::test_fastwam_official_launcher_
 ```
 
 Expected: failure because
-`examples/libero/scripts/launch_starwam_libero_fastwam_4gpu.sh` does not exist.
+`examples/libero/scripts/launch_streamwam_libero_fastwam_4gpu.sh` does not exist.
 
 - [ ] **Step 3: Add the minimal launcher**
 
@@ -58,7 +58,7 @@ python examples/libero/multigpu_rollout.py \
   --gpus "$GPU_IDS" \
   --suites libero_spatial,libero_object,libero_goal,libero_10 \
   --num-trials 1 \
-  --config examples/libero/configs/recipes/starwam_libero_mot_wan22_5b.yaml \
+  --config examples/libero/configs/recipes/streamwam_libero_mot_wan22_5b.yaml \
   --checkpoint-format fastwam \
   --checkpoint checkpoints/fastwam_release/libero_uncond_2cam224.pt \
   --backbone-path "$BACKBONE_PATH" \
@@ -79,7 +79,7 @@ Run:
 
 ```bash
 pytest -q tests/test_libero_multigpu_manager.py::test_fastwam_official_launcher_emits_baseline_protocol
-bash -n examples/libero/scripts/launch_starwam_libero_fastwam_4gpu.sh
+bash -n examples/libero/scripts/launch_streamwam_libero_fastwam_4gpu.sh
 ```
 
 Expected: both commands succeed.

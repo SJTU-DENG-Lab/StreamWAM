@@ -21,7 +21,7 @@ definitions as the existing Joint CD and RTC-AC four-GPU launchers.
 
 ## Architecture
 
-Create only `examples/libero/scripts/launch_starwam_libero_fastwam_4gpu.sh`.
+Create only `examples/libero/scripts/launch_streamwam_libero_fastwam_4gpu.sh`.
 The launcher delegates workload balancing, persistent workers, result merging,
 and timing to the existing `examples/libero/multigpu_rollout.py`. Backbone and
 LIBERO paths remain environment-overridable, matching the CD and RTC launchers.

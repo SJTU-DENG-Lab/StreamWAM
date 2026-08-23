@@ -4,8 +4,8 @@ from unittest.mock import patch
 import torch
 import torch.nn as nn
 
-from starwam.backbone.wan22 import Wan2_2_VAE, Wan22Backbone
-from starwam.config import BackboneConfig
+from streamwam.backbone.wan22 import Wan2_2_VAE, Wan22Backbone
+from streamwam.config import BackboneConfig
 
 
 class _DummyDit(nn.Module):
@@ -22,9 +22,9 @@ def test_wan22_backbone_builds_vae_in_model_compute_dtype(tmp_path) -> None:
     )
 
     with (
-        patch("starwam.backbone.wan22.Wan22Dit", _DummyDit),
+        patch("streamwam.backbone.wan22.Wan22Dit", _DummyDit),
         patch(
-            "starwam.backbone.wan22._load_wan22_vae",
+            "streamwam.backbone.wan22._load_wan22_vae",
             return_value=SimpleNamespace(),
         ),
     ):
@@ -42,7 +42,7 @@ def test_wan22_backbone_builds_vae_in_model_compute_dtype(tmp_path) -> None:
 
 def test_wan22_vae_weights_use_requested_compute_dtype() -> None:
     with patch(
-        "starwam.backbone.wan22._video_vae",
+        "streamwam.backbone.wan22._video_vae",
         return_value=nn.Linear(1, 1),
     ):
         vae = Wan2_2_VAE(
@@ -56,7 +56,7 @@ def test_wan22_vae_weights_use_requested_compute_dtype() -> None:
 
 def test_wan22_vae_scale_matches_fastwam_float32_construction() -> None:
     with patch(
-        "starwam.backbone.wan22._video_vae",
+        "streamwam.backbone.wan22._video_vae",
         return_value=nn.Linear(1, 1),
     ):
         vae = Wan2_2_VAE(

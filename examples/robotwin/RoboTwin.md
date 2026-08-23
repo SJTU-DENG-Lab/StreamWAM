@@ -1,10 +1,10 @@
 # RoboTwin 2.0 Examples
 
-RoboTwin 2.0 workflow for StarWAM: setup, training, and rollout against the official RoboTwin harness. See root [README.md](../../README.md) and [../libero/LIBERO.md](../libero/LIBERO.md).
+RoboTwin 2.0 workflow for StreamWAM: setup, training, and rollout against the official RoboTwin harness. See root [README.md](../../README.md) and [../libero/LIBERO.md](../libero/LIBERO.md).
 
-SAPIEN needs an NVIDIA Vulkan stack; StarWAM inference needs Torch/CUDA. Pick one of two modes depending on your environment:
+SAPIEN needs an NVIDIA Vulkan stack; StreamWAM inference needs Torch/CUDA. Pick one of two modes depending on your environment:
 
-- **local** (`local_policy.py`, `policy_mode: local`): when the Vulkan stack and Torch/StarWAM are available in the **same env** — inference runs in-process, simplest.
+- **local** (`local_policy.py`, `policy_mode: local`): when the Vulkan stack and Torch/StreamWAM are available in the **same env** — inference runs in-process, simplest.
 - **client/server** (`client_policy.py` + `policy_server.py`, `policy_mode: client`): when the two stacks **can't coexist** (e.g. the inference box has no Vulkan, or the render box has no suitable Torch) — the server runs inference in the Torch env, the client renders in the SAPIEN env, communicating over a socket.
 
 ## 1. Layout
@@ -12,9 +12,9 @@ SAPIEN needs an NVIDIA Vulkan stack; StarWAM inference needs Torch/CUDA. Pick on
 ```text
 examples/robotwin/
   deploy_policy.py          # RoboTwin entry point; dispatches by policy_mode (local|client)
-  local_policy.py           # in-process adapter (SAPIEN + Torch/StarWAM in one env)
+  local_policy.py           # in-process adapter (SAPIEN + Torch/StreamWAM in one env)
   client_policy.py          # socket client adapter (SAPIEN-only env)
-  policy_server.py          # StarWAM inference server (Torch/StarWAM env)
+  policy_server.py          # StreamWAM inference server (Torch/StreamWAM env)
   deploy_policy.yml         # config for local mode
   deploy_policy_client.yml  # config for client mode
   configs/recipes/          # training recipes
@@ -25,18 +25,18 @@ RoboTwin imports a policy by symlinking this directory into its `policy/` tree:
 
 ```bash
 # local (single env):
-ln -s /ABS/PATH/starWAM/examples/robotwin  RoboTwin/policy/starwam_policy
+ln -s /ABS/PATH/StreamWAM/examples/robotwin  RoboTwin/policy/streamwam_policy
 # client (split env):
-ln -s /ABS/PATH/starWAM/examples/robotwin  RoboTwin/policy/starwam_client
+ln -s /ABS/PATH/StreamWAM/examples/robotwin  RoboTwin/policy/streamwam_client
 ```
 
 ## 2. Environment
 
-### 2.1 Training / server (Torch/StarWAM)
+### 2.1 Training / server (Torch/StreamWAM)
 
 ```bash
-conda create -n starwam python=3.11 -y
-conda activate starwam
+conda create -n streamwam python=3.11 -y
+conda activate streamwam
 pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
   --index-url https://download.pytorch.org/whl/cu124
 pip install -e .
@@ -45,7 +45,7 @@ pip install -e .
 ### 2.2 Client (RoboTwin / SAPIEN)
 
 Follow the official RoboTwin 2.0 install (SAPIEN, curobo, mplib, assets). The
-StarWAM client adapter itself needs only `numpy` + the standard library. On
+StreamWAM client adapter itself needs only `numpy` + the standard library. On
 headless servers SAPIEN needs a valid NVIDIA Vulkan ICD; if `vulkaninfo` does
 not list the GPU, point SAPIEN at one before running:
 
@@ -57,8 +57,8 @@ export VK_ICD_FILENAMES=/path/to/nvidia_icd.json
 
 | Recipe | Model family | Backbone | Initialization |
 | --- | --- | --- | --- |
-| `starwam_robotwin_mot_wan22_5b.yaml` | `mot_wam` | Wan2.2-TI2V-5B | Preprocessed ActionDiT payload required. |
-| `starwam_robotwin_shared_dit_wan22_5b.yaml` | `shared_dit_wam` | Wan2.2-TI2V-5B | Backbone initialization only; no ActionDiT payload. |
+| `streamwam_robotwin_mot_wan22_5b.yaml` | `mot_wam` | Wan2.2-TI2V-5B | Preprocessed ActionDiT payload required. |
+| `streamwam_robotwin_shared_dit_wan22_5b.yaml` | `shared_dit_wam` | Wan2.2-TI2V-5B | Backbone initialization only; no ActionDiT payload. |
 
 Both results use 100 episodes per task-setting over all 50 tasks with
 `instruction_type=unseen` and `replan_steps=24` (10,000 episodes per model).
@@ -109,11 +109,11 @@ cd RoboTwin && bash script/_download_assets.sh
 ### 6.1 ActionDiT initialization
 
 ```bash
-python -m starwam.tools.preprocess_action_dit_init \
-  --config examples/robotwin/configs/recipes/starwam_robotwin_mot_wan22_5b.yaml \
+python -m streamwam.tools.preprocess_action_dit_init \
+  --config examples/robotwin/configs/recipes/streamwam_robotwin_mot_wan22_5b.yaml \
   --source-backbone wan22 \
   --pretrained-model-id /path/to/Wan2.2-TI2V-5B \
-  --output /path/to/preprocessed/starwam_action_dit_init_wan22.pt \
+  --output /path/to/preprocessed/streamwam_action_dit_init_wan22.pt \
   --device cuda:0 --dtype bfloat16
 ```
 
@@ -125,7 +125,7 @@ RoboTwin has ~921k unique frame-level instructions; precompute the T5 cache
 across GPUs so training/eval don't re-encode on the fly:
 
 ```bash
-RECIPE=examples/robotwin/configs/recipes/starwam_robotwin_mot_wan22_5b.yaml \
+RECIPE=examples/robotwin/configs/recipes/streamwam_robotwin_mot_wan22_5b.yaml \
 BACKBONE=/path/to/Wan2.2-TI2V-5B \
 OUTPUT_DIR=/path/to/output/robotwin_run/text_embedding_cache \
 bash examples/robotwin/scripts/precompute_text_cache.sh
@@ -140,13 +140,13 @@ Shared-DiT trains for 8 epochs (~47k steps). Run Section 6.1 only for MoT.
 ### 7.1 MoT, single node (8 GPUs)
 
 ```bash
-cd /path/to/starWAM
-export REPO_DIR=/path/to/starWAM
-export CONDA_ENV=starwam
-export RECIPE=examples/robotwin/configs/recipes/starwam_robotwin_mot_wan22_5b.yaml
-export TRAIN_OVERRIDES='data.dataset_dirs=["/path/to/robotwin2.0"] backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B framework.action_expert_init_from=/path/to/preprocessed/starwam_action_dit_init_wan22.pt training.output_dir=/path/to/output/starwam_robotwin_mot_wan22_5b data.text_embedding_cache_dir=/path/to/output/starwam_robotwin_mot_wan22_5b/text_embedding_cache data.action_stats_path=/path/to/output/starwam_robotwin_mot_wan22_5b/action_stats.json data.state_stats_path=/path/to/output/starwam_robotwin_mot_wan22_5b/action_stats.json'
+cd /path/to/StreamWAM
+export REPO_DIR=/path/to/StreamWAM
+export CONDA_ENV=streamwam
+export RECIPE=examples/robotwin/configs/recipes/streamwam_robotwin_mot_wan22_5b.yaml
+export TRAIN_OVERRIDES='data.dataset_dirs=["/path/to/robotwin2.0"] backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B framework.action_expert_init_from=/path/to/preprocessed/streamwam_action_dit_init_wan22.pt training.output_dir=/path/to/output/streamwam_robotwin_mot_wan22_5b data.text_embedding_cache_dir=/path/to/output/streamwam_robotwin_mot_wan22_5b/text_embedding_cache data.action_stats_path=/path/to/output/streamwam_robotwin_mot_wan22_5b/action_stats.json data.state_stats_path=/path/to/output/streamwam_robotwin_mot_wan22_5b/action_stats.json'
 
-bash examples/robotwin/scripts/launch_starwam_robotwin_train.sh
+bash examples/robotwin/scripts/launch_streamwam_robotwin_train.sh
 ```
 
 The recipe defaults to `batch_size=8`, `gradient_accumulation_steps=16`, which
@@ -158,16 +158,16 @@ Run the following on both nodes, changing only `MACHINE_RANK` to `0` or `1`.
 `MAIN_PROCESS_IP` must be the rank-0 address reachable from rank 1.
 
 ```bash
-cd /path/to/starWAM
-export REPO_DIR=/path/to/starWAM
-export CONDA_ENV=starwam
-export RECIPE=examples/robotwin/configs/recipes/starwam_robotwin_shared_dit_wan22_5b.yaml
+cd /path/to/StreamWAM
+export REPO_DIR=/path/to/StreamWAM
+export CONDA_ENV=streamwam
+export RECIPE=examples/robotwin/configs/recipes/streamwam_robotwin_shared_dit_wan22_5b.yaml
 export ACCELERATE_CONFIG=configs/accelerate/deepspeed_zero2_multinode.yaml
 export NUM_MACHINES=2 NUM_PROCESSES=16 MACHINE_RANK=0  # use 1 on rank 1
 export MAIN_PROCESS_IP=10.0.0.1 MAIN_PROCESS_PORT=29617
-export TRAIN_OVERRIDES='data.dataset_dirs=["/path/to/robotwin2.0"] backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B training.output_dir=/path/to/output/starwam_robotwin_shared_dit_wan22_5b data.text_embedding_cache_dir=/path/to/output/starwam_robotwin_shared_dit_wan22_5b/text_embedding_cache data.action_stats_path=/path/to/output/starwam_robotwin_shared_dit_wan22_5b/action_stats.json data.state_stats_path=/path/to/output/starwam_robotwin_shared_dit_wan22_5b/action_stats.json training.batch_size=16 training.gradient_accumulation_steps=4 training.num_workers=12'
+export TRAIN_OVERRIDES='data.dataset_dirs=["/path/to/robotwin2.0"] backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B training.output_dir=/path/to/output/streamwam_robotwin_shared_dit_wan22_5b data.text_embedding_cache_dir=/path/to/output/streamwam_robotwin_shared_dit_wan22_5b/text_embedding_cache data.action_stats_path=/path/to/output/streamwam_robotwin_shared_dit_wan22_5b/action_stats.json data.state_stats_path=/path/to/output/streamwam_robotwin_shared_dit_wan22_5b/action_stats.json training.batch_size=16 training.gradient_accumulation_steps=4 training.num_workers=12'
 
-bash examples/robotwin/scripts/launch_starwam_robotwin_train.sh
+bash examples/robotwin/scripts/launch_streamwam_robotwin_train.sh
 ```
 
 This uses `16 per device x 4 accumulation x 16 GPUs = 1024` global batch and
@@ -186,55 +186,55 @@ timeout truncates episodes and biases the success rate.
 
 ### 8.1 Split env (recommended): servers + client
 
-Step 1: start one inference server per GPU in the Torch/StarWAM env. The recipe
+Step 1: start one inference server per GPU in the Torch/StreamWAM env. The recipe
 provides the default inference steps; the explicit values below document the
 reported settings.
 
 MoT (4 steps):
 
 ```bash
-REPO=/path/to/starWAM \
-PY=/path/to/starwam-env/bin/python \
-RECIPE=examples/robotwin/configs/recipes/starwam_robotwin_mot_wan22_5b.yaml \
-CKPT=/path/to/output/starwam_robotwin_mot_wan22_5b/checkpoint-27500/pytorch_model \
+REPO=/path/to/StreamWAM \
+PY=/path/to/streamwam-env/bin/python \
+RECIPE=examples/robotwin/configs/recipes/streamwam_robotwin_mot_wan22_5b.yaml \
+CKPT=/path/to/output/streamwam_robotwin_mot_wan22_5b/checkpoint-27500/pytorch_model \
 BACKBONE=/path/to/Wan2.2-TI2V-5B \
-ACTION_STATS=/path/to/output/starwam_robotwin_mot_wan22_5b/action_stats.json \
-TEXTCACHE=/path/to/output/starwam_robotwin_mot_wan22_5b/eval_text_cache \
-ACTION_INIT=/path/to/preprocessed/starwam_action_dit_init_wan22.pt \
+ACTION_STATS=/path/to/output/streamwam_robotwin_mot_wan22_5b/action_stats.json \
+TEXTCACHE=/path/to/output/streamwam_robotwin_mot_wan22_5b/eval_text_cache \
+ACTION_INIT=/path/to/preprocessed/streamwam_action_dit_init_wan22.pt \
 NUM_INFERENCE_STEPS=4 ACTION_NUM_INFERENCE_STEPS=4 \
 SERVER_BIND=0.0.0.0 SERVER_PORT_BASE=8765 NGPU=8 \
-bash examples/robotwin/scripts/launch_starwam_robotwin_policy_server.sh
+bash examples/robotwin/scripts/launch_streamwam_robotwin_policy_server.sh
 ```
 
 Shared-DiT (16 video / 16 action steps, no `ACTION_INIT`):
 
 ```bash
-REPO=/path/to/starWAM \
-PY=/path/to/starwam-env/bin/python \
-RECIPE=examples/robotwin/configs/recipes/starwam_robotwin_shared_dit_wan22_5b.yaml \
-CKPT=/path/to/output/starwam_robotwin_shared_dit_wan22_5b/checkpoint-45000/pytorch_model \
+REPO=/path/to/StreamWAM \
+PY=/path/to/streamwam-env/bin/python \
+RECIPE=examples/robotwin/configs/recipes/streamwam_robotwin_shared_dit_wan22_5b.yaml \
+CKPT=/path/to/output/streamwam_robotwin_shared_dit_wan22_5b/checkpoint-45000/pytorch_model \
 BACKBONE=/path/to/Wan2.2-TI2V-5B \
-ACTION_STATS=/path/to/output/starwam_robotwin_shared_dit_wan22_5b/action_stats.json \
-TEXTCACHE=/path/to/output/starwam_robotwin_shared_dit_wan22_5b/eval_text_cache \
+ACTION_STATS=/path/to/output/streamwam_robotwin_shared_dit_wan22_5b/action_stats.json \
+TEXTCACHE=/path/to/output/streamwam_robotwin_shared_dit_wan22_5b/eval_text_cache \
 NUM_INFERENCE_STEPS=16 ACTION_NUM_INFERENCE_STEPS=16 \
 SERVER_BIND=0.0.0.0 SERVER_PORT_BASE=8765 NGPU=8 \
-bash examples/robotwin/scripts/launch_starwam_robotwin_policy_server.sh
+bash examples/robotwin/scripts/launch_streamwam_robotwin_policy_server.sh
 ```
 
 Wait until each `robotwin_server_logs/server_*.log` prints `model ready ... listening on`.
 
 Step 2: symlink the model-family-agnostic client adapter and run all 100
-task-settings in the RoboTwin env. Set `CKPT_TAG=starwam27500` for MoT or
+task-settings in the RoboTwin env. Set `CKPT_TAG=streamwam27500` for MoT or
 `CKPT_TAG=sharedit45000` for Shared-DiT.
 
 ```bash
-ln -s /path/to/starWAM/examples/robotwin RoboTwin/policy/starwam_client
+ln -s /path/to/StreamWAM/examples/robotwin RoboTwin/policy/streamwam_client
 cd RoboTwin
 
 export VK_ICD_FILENAMES=/path/to/nvidia_icd.json   # if SAPIEN needs it
 SERVER_HOST=10.0.0.1 SERVER_PORT_BASE=8765 NSERVERS=8 \
 CLIENT_GPUS="0" NWORKER=8 CKPT_TAG=sharedit45000 \
-bash /path/to/starWAM/examples/robotwin/scripts/launch_starwam_robotwin_rollout.sh
+bash /path/to/StreamWAM/examples/robotwin/scripts/launch_streamwam_robotwin_rollout.sh
 ```
 
 - A **single-GPU client** can drive all 8 servers: keep `CLIENT_GPUS="0"` and
@@ -243,19 +243,19 @@ bash /path/to/starWAM/examples/robotwin/scripts/launch_starwam_robotwin_rollout.
 
 ### 8.2 Single command (single env)
 
-If SAPIEN and Torch/StarWAM share one env, run the harness directly with
+If SAPIEN and Torch/StreamWAM share one env, run the harness directly with
 `policy_mode local` (no server needed):
 
 ```bash
-ln -s /path/to/starWAM/examples/robotwin  RoboTwin/policy/starwam_policy
+ln -s /path/to/StreamWAM/examples/robotwin  RoboTwin/policy/streamwam_policy
 cd RoboTwin
 python script/eval_policy.py \
-  --config policy/starwam_policy/deploy_policy.yml \
-  --overrides policy_name starwam_policy task_name adjust_bottle \
-    task_config demo_clean instruction_type unseen ckpt_setting starwam27500 seed 0 \
+  --config policy/streamwam_policy/deploy_policy.yml \
+  --overrides policy_name streamwam_policy task_name adjust_bottle \
+    task_config demo_clean instruction_type unseen ckpt_setting streamwam27500 seed 0 \
     policy_mode local num_inference_steps 4 action_num_inference_steps 4 \
-    checkpoint /path/to/output/starwam_robotwin_mot_wan22_5b/checkpoint-27500/pytorch_model \
-    overrides "backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B data.action_stats_path=/path/to/output/starwam_robotwin_mot_wan22_5b/action_stats.json data.state_stats_path=/path/to/output/starwam_robotwin_mot_wan22_5b/action_stats.json data.text_embedding_cache_dir=/path/to/output/starwam_robotwin_mot_wan22_5b/text_embedding_cache"
+    checkpoint /path/to/output/streamwam_robotwin_mot_wan22_5b/checkpoint-27500/pytorch_model \
+    overrides "backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B data.action_stats_path=/path/to/output/streamwam_robotwin_mot_wan22_5b/action_stats.json data.state_stats_path=/path/to/output/streamwam_robotwin_mot_wan22_5b/action_stats.json data.text_embedding_cache_dir=/path/to/output/streamwam_robotwin_mot_wan22_5b/text_embedding_cache"
 ```
 
 For Shared-DiT, also override `config_path` to the Shared-DiT recipe, use
@@ -271,7 +271,8 @@ task-settings for the overall micro-average.
 
 ### 8.4 Released ModelScope checkpoint
 
-The trained MoT and Shared-DiT checkpoints are released at
+The trained MoT and Shared-DiT checkpoints remain in the pre-rename external
+ModelScope namespace
 [`panshaohua/starwam`](https://www.modelscope.cn/models/panshaohua/starwam):
 
 ```text
@@ -286,10 +287,10 @@ Wan2.2 backbone locally:
 
 ```bash
 pip install modelscope
-modelscope download --model panshaohua/starwam --local_dir /path/to/starwam_ckpts
-# MoT: CKPT=/path/to/starwam_ckpts/starwam-robotwin/mot/starwam_wan225b_robotwin_mot.pt
-# Shared-DiT: CKPT=/path/to/starwam_ckpts/starwam-robotwin/sharedit/starwam_wan225b_robotwin_sharedit.pt
-# ACTION_STATS=/path/to/starwam_ckpts/starwam-robotwin/action_stats.json
+modelscope download --model panshaohua/starwam --local_dir /path/to/streamwam_ckpts
+# MoT: CKPT=/path/to/streamwam_ckpts/starwam-robotwin/mot/starwam_wan225b_robotwin_mot.pt
+# Shared-DiT: CKPT=/path/to/streamwam_ckpts/starwam-robotwin/sharedit/starwam_wan225b_robotwin_sharedit.pt
+# ACTION_STATS=/path/to/streamwam_ckpts/starwam-robotwin/action_stats.json
 ```
 
 The released `.pt` is a plain model `state_dict`, so pass the file path directly
@@ -362,17 +363,17 @@ The inference server can load the original FastWAM RoboTwin release checkpoint
 and z-score statistics directly. No converted checkpoint is written:
 
 ```bash
-REPO=/path/to/StarWAM \
-PY=/path/to/starwam-env/bin/python \
-RECIPE=examples/robotwin/configs/recipes/starwam_robotwin_mot_wan22_5b.yaml \
+REPO=/path/to/StreamWAM \
+PY=/path/to/streamwam-env/bin/python \
+RECIPE=examples/robotwin/configs/recipes/streamwam_robotwin_mot_wan22_5b.yaml \
 CHECKPOINT_FORMAT=fastwam \
-CKPT=/path/to/StarWAM/checkpoints/fastwam_release/robotwin_uncond_3cam_384.pt \
+CKPT=/path/to/StreamWAM/checkpoints/fastwam_release/robotwin_uncond_3cam_384.pt \
 BACKBONE=/path/to/Wan2.2-TI2V-5B \
-ACTION_STATS=/path/to/StarWAM/checkpoints/fastwam_release/robotwin_uncond_3cam_384_dataset_stats.json \
+ACTION_STATS=/path/to/StreamWAM/checkpoints/fastwam_release/robotwin_uncond_3cam_384_dataset_stats.json \
 TEXTCACHE=/path/to/output/fastwam_robotwin_eval/text_embedding_cache \
 NUM_INFERENCE_STEPS=4 ACTION_NUM_INFERENCE_STEPS=4 \
 SERVER_BIND=0.0.0.0 SERVER_PORT_BASE=8765 NGPU=8 \
-bash examples/robotwin/scripts/launch_starwam_robotwin_policy_server.sh
+bash examples/robotwin/scripts/launch_streamwam_robotwin_policy_server.sh
 ```
 
 Do not set `ACTION_INIT` for this format. The FastWAM checkpoint contains the
@@ -384,7 +385,7 @@ for VAE and text-conditioning resources.
 
 - SAPIEN `failed to find a rendering device`: NVIDIA Vulkan stack missing; check `vulkaninfo` lists the GPU or set `VK_ICD_FILENAMES`.
 - Client can't reach servers: verify `SERVER_HOST`/ports and that servers bound `--host 0.0.0.0`.
-- StarWAM MoT missing ActionDiT init: run Section 6.1 and set
+- StreamWAM MoT missing ActionDiT init: run Section 6.1 and set
   `framework.action_expert_init_from`. Original FastWAM checkpoints selected
   with `CHECKPOINT_FORMAT=fastwam` and Shared-DiT checkpoints do not use it.
 - curobo/mplib build errors on old glibc: use conda-forge or manylinux2014 wheels.

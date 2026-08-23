@@ -16,12 +16,12 @@ from examples.libero.rollout import (
     _resolve_inference_args,
 )
 from examples.robotwin.policy_server import _build_arg_parser as build_robotwin_server_parser
-from starwam.config import StarWAMConfig
-from starwam.checkpointing import prepare_inference_config
+from streamwam.config import StreamWAMConfig
+from streamwam.checkpointing import prepare_inference_config
 
 
 def test_fastwam_config_skips_separate_action_init() -> None:
-    config = StarWAMConfig()
+    config = StreamWAMConfig()
     config.framework.action_expert_init_from = "/unused/action-init.pt"
 
     prepared = prepare_inference_config(config, checkpoint_format="fastwam")
@@ -30,24 +30,24 @@ def test_fastwam_config_skips_separate_action_init() -> None:
     assert prepared.framework.action_expert_init_from is None
 
 
-def test_starwam_config_keeps_action_init() -> None:
-    config = StarWAMConfig()
+def test_streamwam_config_keeps_action_init() -> None:
+    config = StreamWAMConfig()
     config.framework.action_expert_init_from = "/needed/action-init.pt"
 
-    prepare_inference_config(config, checkpoint_format="starwam")
+    prepare_inference_config(config, checkpoint_format="streamwam")
 
     assert config.framework.action_expert_init_from == "/needed/action-init.pt"
 
 
 def test_prepare_config_rejects_unknown_format() -> None:
     with pytest.raises(ValueError, match="Unsupported checkpoint format"):
-        prepare_inference_config(StarWAMConfig(), checkpoint_format="unknown")
+        prepare_inference_config(StreamWAMConfig(), checkpoint_format="unknown")
 
 
-def test_libero_checkpoint_format_defaults_to_starwam() -> None:
+def test_libero_checkpoint_format_defaults_to_streamwam() -> None:
     args = build_libero_parser().parse_args(["--config", "recipe.yaml"])
 
-    assert args.checkpoint_format == "starwam"
+    assert args.checkpoint_format == "streamwam"
 
 
 def test_libero_checkpoint_format_accepts_fastwam() -> None:
@@ -83,7 +83,7 @@ def test_libero_parser_accepts_rtc_ac_acceleration() -> None:
 
 
 def test_rtc_ac_acceleration_rejects_non_rtc_sampling() -> None:
-    config = StarWAMConfig()
+    config = StreamWAMConfig()
     config.inference.sampling_method = "euler"
     args = build_libero_parser().parse_args(
         ["--config", "recipe.yaml", "--rtc-ac-accelerated"]
@@ -94,7 +94,7 @@ def test_rtc_ac_acceleration_rejects_non_rtc_sampling() -> None:
 
 
 def test_rtc_ac_acceleration_requires_cuda_device() -> None:
-    config = StarWAMConfig()
+    config = StreamWAMConfig()
     config.framework.variant = "rtc_ac"
     config.framework.chunk_size = 32
     config.data.num_frames = 33
@@ -117,7 +117,7 @@ def test_rtc_ac_acceleration_requires_cuda_device() -> None:
 
 
 def test_rtc_ac_recipe_resolves_eager_h32_s16_d8() -> None:
-    config = StarWAMConfig()
+    config = StreamWAMConfig()
     config.framework.variant = "rtc_ac"
     config.framework.chunk_size = 32
     config.data.num_frames = 33
@@ -135,7 +135,7 @@ def test_rtc_ac_recipe_resolves_eager_h32_s16_d8() -> None:
 
 
 def test_joint_cd_recipe_resolves_replan_16() -> None:
-    config = StarWAMConfig()
+    config = StreamWAMConfig()
     config.inference.sampling_method = "consistency"
     config.inference.num_inference_steps = 1
     config.inference.replan_steps = 16
@@ -149,7 +149,7 @@ def test_joint_cd_recipe_resolves_replan_16() -> None:
 
 
 def test_joint_cd_rejects_replan_other_than_16() -> None:
-    config = StarWAMConfig()
+    config = StreamWAMConfig()
     config.inference.sampling_method = "consistency"
     args = build_libero_parser().parse_args(
         ["--config", "recipe.yaml", "--replan-steps", "5"]
@@ -161,7 +161,7 @@ def test_joint_cd_rejects_replan_other_than_16() -> None:
 
 @pytest.mark.parametrize("alias", ["cd", "lcm", "Consistency"])
 def test_joint_cd_aliases_still_require_replan_16(alias: str) -> None:
-    config = StarWAMConfig()
+    config = StreamWAMConfig()
     config.inference.sampling_method = alias
     config.inference.replan_steps = 5
     args = build_libero_parser().parse_args(["--config", "recipe.yaml"])
@@ -190,9 +190,9 @@ def test_libero_parser_accepts_explicit_runtime_paths_and_renderer() -> None:
 
 
 def test_libero_runtime_paths_replace_recipe_placeholders() -> None:
-    config = StarWAMConfig()
-    config.training.output_dir = "/path/to/output/starwam_libero"
-    config.data.text_embedding_cache_dir = "/path/to/output/starwam_libero/text_embedding_cache"
+    config = StreamWAMConfig()
+    config.training.output_dir = "/path/to/output/streamwam_libero"
+    config.data.text_embedding_cache_dir = "/path/to/output/streamwam_libero/text_embedding_cache"
     config.data.dataset_dirs = ["/path/to/libero_spatial_lerobot"]
     args = build_libero_parser().parse_args(
         [
@@ -269,12 +269,12 @@ def test_explicit_libero_home_refreshes_cached_config(tmp_path, monkeypatch) -> 
     assert config["datasets"] == str(second_home / "libero" / "datasets")
 
 
-def test_robotwin_server_checkpoint_format_defaults_to_starwam() -> None:
+def test_robotwin_server_checkpoint_format_defaults_to_streamwam() -> None:
     args = build_robotwin_server_parser().parse_args(
         ["--config", "recipe.yaml", "--checkpoint", "model.pt"]
     )
 
-    assert args.checkpoint_format == "starwam"
+    assert args.checkpoint_format == "streamwam"
 
 
 def test_robotwin_server_checkpoint_format_accepts_fastwam() -> None:

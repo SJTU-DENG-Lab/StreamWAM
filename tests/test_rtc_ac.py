@@ -7,8 +7,8 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from starwam.inference import normalize_sampling_method
-from starwam.inference.rtc_ac import (
+from streamwam.inference import normalize_sampling_method
+from streamwam.inference.rtc_ac import (
     RTCACController,
     RTCACOverlapRecord,
     RTCACPrediction,
@@ -17,8 +17,8 @@ from starwam.inference.rtc_ac import (
     build_rtc_ac_prev_action_target,
     validate_rtc_ac_geometry,
 )
-from starwam.modules.rtc_ac import RTCACSlotEncoder
-from starwam.modules.rtc_ac import (
+from streamwam.modules.rtc_ac import RTCACSlotEncoder
+from streamwam.modules.rtc_ac import (
     RTCACMoT,
     build_rtc_ac_condition_mask,
     build_rtc_ac_policy_mask,
@@ -157,10 +157,10 @@ def test_rtc_ac_condition_mask_injects_slots_only_into_z1() -> None:
 
 
 def test_builder_selects_rtc_ac_wam_variant(monkeypatch: pytest.MonkeyPatch) -> None:
-    import starwam.backbone
-    import starwam.wam
-    from starwam.builder import build_framework
-    from starwam.config import StarWAMConfig
+    import streamwam.backbone
+    import streamwam.wam
+    from streamwam.builder import build_framework
+    from streamwam.config import StreamWAMConfig
 
     marker = object()
 
@@ -172,10 +172,10 @@ def test_builder_selects_rtc_ac_wam_variant(monkeypatch: pytest.MonkeyPatch) -> 
         def __new__(cls, *args, **kwargs):
             return object()
 
-    monkeypatch.setattr(starwam.backbone, "build_backbone", lambda *args, **kwargs: object())
-    monkeypatch.setattr(starwam.wam, "RTCACWAM", FakeRTCACWAM, raising=False)
-    monkeypatch.setattr(starwam.wam, "MoTWAM", FakeStandardWAM)
-    config = StarWAMConfig()
+    monkeypatch.setattr(streamwam.backbone, "build_backbone", lambda *args, **kwargs: object())
+    monkeypatch.setattr(streamwam.wam, "RTCACWAM", FakeRTCACWAM, raising=False)
+    monkeypatch.setattr(streamwam.wam, "MoTWAM", FakeStandardWAM)
+    config = StreamWAMConfig()
     config.framework.variant = "rtc_ac"
 
     assert build_framework(config) is marker
@@ -252,8 +252,8 @@ def test_rtc_ac_three_stream_residual_changes_only_z1_video_tokens() -> None:
 
 
 def test_rtc_ac_wam_d8_returns_exact_clean_prefix() -> None:
-    from starwam.config import SchedulerConfig
-    from starwam.wam.rtc_ac_wam import RTCACWAM, RTC_AC_SLOT_ENCODER_NAME
+    from streamwam.config import SchedulerConfig
+    from streamwam.wam.rtc_ac_wam import RTCACWAM, RTC_AC_SLOT_ENCODER_NAME
 
     class FakeVAE:
         temporal_compress = 4

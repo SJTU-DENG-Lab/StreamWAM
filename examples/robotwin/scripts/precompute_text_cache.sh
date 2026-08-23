@@ -11,7 +11,7 @@ REPO_DIR=${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}
 CONDA_SH=${CONDA_SH:-$HOME/anaconda3/etc/profile.d/conda.sh}
 CONDA_ENV=${CONDA_ENV:-}
 PY=${PY:-python}
-RECIPE=${RECIPE:-examples/robotwin/configs/recipes/starwam_robotwin_mot_wan22_5b.yaml}
+RECIPE=${RECIPE:-examples/robotwin/configs/recipes/streamwam_robotwin_mot_wan22_5b.yaml}
 BACKBONE=${BACKBONE:?set BACKBONE=/path/to/Wan2.2-TI2V-5B}
 OUTPUT_DIR=${OUTPUT_DIR:?set OUTPUT_DIR=/path/to/text_embedding_cache}
 NUM_SHARDS=${NUM_SHARDS:-8}
@@ -36,7 +36,7 @@ PIDS=()
 for idx in "${!GPU_ARR[@]}"; do
   gpu="${GPU_ARR[$idx]}"
   echo "[launch] shard $idx/$NUM_SHARDS on GPU $gpu -> $OUTPUT_DIR/logs/shard_${idx}.log"
-  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -m starwam.tools.precompute_text_cache \
+  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -m streamwam.tools.precompute_text_cache \
     --config "$RECIPE" \
     --pretrained-model-id "$BACKBONE" \
     --output-dir "$OUTPUT_DIR" \

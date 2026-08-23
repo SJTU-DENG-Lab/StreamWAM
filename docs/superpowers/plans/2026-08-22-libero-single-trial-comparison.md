@@ -46,8 +46,8 @@
 ### Task 3: Comparable launchers
 
 **Files:**
-- Modify: `examples/libero/scripts/launch_starwam_libero_joint_cd_4gpu.sh`
-- Create: `examples/libero/scripts/launch_starwam_libero_rtc_ac_4gpu.sh`
+- Modify: `examples/libero/scripts/launch_streamwam_libero_joint_cd_4gpu.sh`
+- Create: `examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh`
 
 - [ ] Make the CD launcher default to one trial and EGL.
 - [ ] Add the matching RTC launcher with identical suites, trial count, seed, wait, GPU selection, and video setting.

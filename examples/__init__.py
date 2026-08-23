@@ -1,1 +1,1 @@
-"""Example integrations for StarWAM."""
+"""Example integrations for StreamWAM."""

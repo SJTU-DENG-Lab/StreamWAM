@@ -8,8 +8,8 @@ from examples.libero.rollout import (
     _save_video,
 )
 from examples.libero.timing import GlobalTimingSummary
-from starwam.inference.rtc_ac import RTCACOverlapRecord
-from starwam.inference.rtc_ac import RTCACPrediction
+from streamwam.inference.rtc_ac import RTCACOverlapRecord
+from streamwam.inference.rtc_ac import RTCACPrediction
 
 
 def test_global_timing_averages_all_chunks() -> None:

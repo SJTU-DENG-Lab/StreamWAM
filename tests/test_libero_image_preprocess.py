@@ -38,11 +38,11 @@ def test_fastwam_image_normalization_matches_reference_bfloat16_order() -> None:
     assert torch.equal(actual, expected)
 
 
-def test_starwam_image_normalization_preserves_float32_path() -> None:
+def test_streamwam_image_normalization_preserves_float32_path() -> None:
     actual, images = _obs_to_image(
         _fixture_obs(),
         _fixture_config(),
-        checkpoint_format="starwam",
+        checkpoint_format="streamwam",
         device=torch.device("cpu"),
         dtype=torch.bfloat16,
     )

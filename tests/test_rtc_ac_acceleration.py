@@ -9,18 +9,18 @@ import torch.nn.functional as F
 import pytest
 import triton
 
-from starwam.inference import rtc_ac as rtc_ac_inference
-from starwam.backbone.base import BackboneInfo
-from starwam.backbone.wan22 import Wan22Dit
-from starwam.inference.rtc_ac import RTCACAccelerationRuntime
-from starwam.modules.action_dit import ActionDiT
-from starwam.modules.rtc_ac import (
+from streamwam.inference import rtc_ac as rtc_ac_inference
+from streamwam.backbone.base import BackboneInfo
+from streamwam.backbone.wan22 import Wan22Dit
+from streamwam.inference.rtc_ac import RTCACAccelerationRuntime
+from streamwam.modules.action_dit import ActionDiT
+from streamwam.modules.rtc_ac import (
     RTCACMoT,
     build_rtc_ac_condition_mask,
     build_rtc_ac_policy_mask,
 )
-from starwam.modules.wan_block import DiTBlock, precompute_freqs_cis_1d
-from starwam.wam import rtc_ac_wam
+from streamwam.modules.wan_block import DiTBlock, precompute_freqs_cis_1d
+from streamwam.wam import rtc_ac_wam
 
 
 def _self_attention(

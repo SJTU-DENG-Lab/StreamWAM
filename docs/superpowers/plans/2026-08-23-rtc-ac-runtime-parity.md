@@ -20,7 +20,7 @@
 ### Task 1: Interpreter-selectable launcher
 
 **Files:**
-- Modify: `examples/libero/scripts/launch_starwam_libero_rtc_ac_4gpu.sh`
+- Modify: `examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh`
 - Test: `tests/test_libero_launchers.py`
 
 **Interfaces:**
@@ -35,7 +35,7 @@
 ### Task 2: Runtime provenance
 
 **Files:**
-- Modify: `starwam/inference/rtc_ac.py`
+- Modify: `streamwam/inference/rtc_ac.py`
 - Modify: `examples/libero/multigpu_rollout.py`
 - Test: `tests/test_rtc_ac_acceleration.py`
 - Test: `tests/test_libero_multigpu_manager.py`
@@ -60,5 +60,5 @@
 
 - [ ] Run all tests in the `libero` environment.
 - [ ] Run Python compilation, Bash syntax and `git diff --check`.
-- [ ] Verify the wyx Python can import both StarWAM rollout entrypoints.
+- [ ] Verify the wyx Python can import both StreamWAM rollout entrypoints.
 - [ ] Provide the exact single-GPU accelerated RTC-AC command; do not create a commit.

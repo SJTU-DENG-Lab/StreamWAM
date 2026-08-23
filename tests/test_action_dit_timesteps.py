@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from starwam.modules.action_dit import ActionDiT
+from streamwam.modules.action_dit import ActionDiT
 
 
 def _model() -> ActionDiT:

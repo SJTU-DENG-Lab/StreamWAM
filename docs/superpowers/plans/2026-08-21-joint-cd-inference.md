@@ -2,7 +2,7 @@
 
 > **For agentic workers:** Execute inline, task by task, using test-driven development. Do not commit; the user will inspect and commit manually.
 
-**Goal:** Run the original FastWAM Joint CD step-3400 checkpoint in StarWAM with synchronous one-step consistency inference and LIBERO replanning every 16 steps.
+**Goal:** Run the original FastWAM Joint CD step-3400 checkpoint in StreamWAM with synchronous one-step consistency inference and LIBERO replanning every 16 steps.
 
 **Architecture:** Keep checkpoint format and sampling semantics separate. Reuse `MoTWAM` and its full-video joint attention path, add focused consistency-boundary functions, extend ActionDiT's public timestep contract, and expose the sampler through the existing rollout interface.
 
@@ -21,8 +21,8 @@
 
 **Files:**
 - Create: `tests/test_consistency_sampling.py`
-- Create: `starwam/inference/__init__.py`
-- Create: `starwam/inference/consistency.py`
+- Create: `streamwam/inference/__init__.py`
+- Create: `streamwam/inference/consistency.py`
 
 **Interfaces:**
 - Produce: `action_consistency_boundary(sample, velocity, sigma) -> Tensor`
@@ -37,7 +37,7 @@
 
 **Files:**
 - Create: `tests/test_action_dit_timesteps.py`
-- Modify: `starwam/modules/action_dit.py`
+- Modify: `streamwam/modules/action_dit.py`
 
 **Interfaces:**
 - Consume: `ActionDiT.pre_dit(action_tokens, timestep, context, context_mask)`
@@ -52,7 +52,7 @@
 
 **Files:**
 - Modify: `tests/test_consistency_sampling.py`
-- Modify: `starwam/wam/mot_wam.py`
+- Modify: `streamwam/wam/mot_wam.py`
 
 **Interfaces:**
 - Consume: consistency boundary functions from Task 1.
@@ -69,7 +69,7 @@
 **Files:**
 - Modify: `tests/test_inference_checkpoint_cli.py`
 - Modify: `examples/libero/rollout.py`
-- Create: `examples/libero/configs/recipes/starwam_libero_joint_cd_wan22_5b.yaml`
+- Create: `examples/libero/configs/recipes/streamwam_libero_joint_cd_wan22_5b.yaml`
 
 **Interfaces:**
 - Produce: `--sampling-method {euler,consistency}`, default `euler`.
@@ -84,7 +84,7 @@
 
 **Files:**
 - Create symlink: `checkpoints/fastwam_joint_cd_step_003400.pt`
-- Create: `examples/libero/scripts/launch_starwam_libero_joint_cd_rollout.sh`
+- Create: `examples/libero/scripts/launch_streamwam_libero_joint_cd_rollout.sh`
 
 **Interfaces:**
 - Symlink target: `/inspire/hdd/project/qproject-fundationmodel/yangyi-253108120173/wyx/workspace/Dual-Streaming-World-Action-Model/outputs/cd_fastwam_joint_1step_bs1_ga8_20260807_080431/checkpoints/weights/step_003400.pt`

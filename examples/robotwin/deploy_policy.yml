@@ -1,43 +1,43 @@
-# RoboTwin deploy-policy config for StarWAM (in-process / local mode).
+# RoboTwin deploy-policy config for StreamWAM (in-process / local mode).
 #
 # Consumed by the official RoboTwin eval harness (script/eval_policy.py), which
 # loads THIS yaml as `usr_args` (flat top-level keys) and then merges the
 # --overrides pairs on top. All keys must be top-level (no nesting).
 #
 # Fill the paths below via --overrides at launch (keep placeholders in the repo):
-#   ln -s /ABS/PATH/starWAM/examples/robotwin RoboTwin/policy/starwam_policy
+#   ln -s /ABS/PATH/StreamWAM/examples/robotwin RoboTwin/policy/streamwam_policy
 #   python script/eval_policy.py \
-#     --config policy/starwam_policy/deploy_policy.yml \
-#     --overrides policy_name starwam_policy task_name <task> \
+#     --config policy/streamwam_policy/deploy_policy.yml \
+#     --overrides policy_name streamwam_policy task_name <task> \
 #                 task_config demo_randomized instruction_type unseen \
 #                 ckpt_setting <tag> seed 0 \
 #                 checkpoint /path/to/output/.../checkpoint-XXXX/pytorch_model \
 #                 overrides "backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B data.action_stats_path=/path/to/action_stats.json data.state_stats_path=/path/to/action_stats.json data.text_embedding_cache_dir=/path/to/text_embedding_cache" \
 #                 num_inference_steps 4 action_num_inference_steps 4
 #
-# If SAPIEN and Torch/StarWAM are in separate envs, use deploy_policy_client.yml
+# If SAPIEN and Torch/StreamWAM are in separate envs, use deploy_policy_client.yml
 # with examples.robotwin.policy_server instead.
 
 # --- Standard RoboTwin keys (set via --overrides at launch) ---
-policy_name: starwam_policy
+policy_name: streamwam_policy
 task_name: null
 task_config: null
 ckpt_setting: null
 seed: 0
 instruction_type: unseen
 
-# --- StarWAM-specific keys (read by deploy_policy.get_model) ---
+# --- StreamWAM-specific keys (read by deploy_policy.get_model) ---
 policy_mode: local
 # Recipe used to train this checkpoint.
-config_path: examples/robotwin/configs/recipes/starwam_robotwin_mot_wan22_5b.yaml
+config_path: examples/robotwin/configs/recipes/streamwam_robotwin_mot_wan22_5b.yaml
 # Trained checkpoint (DeepSpeed dir with mp_rank_00_model_states.pt, or a .pt file).
-checkpoint: /path/to/output/starwam_robotwin_mot_wan22_5b/checkpoint-XXXX/pytorch_model
+checkpoint: /path/to/output/streamwam_robotwin_mot_wan22_5b/checkpoint-XXXX/pytorch_model
 # Recipe overrides applied at eval time (space-separated key=value).
 overrides: >-
   backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B
-  data.action_stats_path=/path/to/output/starwam_robotwin_mot_wan22_5b/action_stats.json
-  data.state_stats_path=/path/to/output/starwam_robotwin_mot_wan22_5b/action_stats.json
-  data.text_embedding_cache_dir=/path/to/output/starwam_robotwin_mot_wan22_5b/text_embedding_cache
+  data.action_stats_path=/path/to/output/streamwam_robotwin_mot_wan22_5b/action_stats.json
+  data.state_stats_path=/path/to/output/streamwam_robotwin_mot_wan22_5b/action_stats.json
+  data.text_embedding_cache_dir=/path/to/output/streamwam_robotwin_mot_wan22_5b/text_embedding_cache
 device: cuda:0
 # MoT uses 4 flow-matching steps. Shared-DiT uses 16 video/action steps; override
 # config_path, checkpoint, and both values together when evaluating that recipe.

@@ -21,8 +21,8 @@ Add deterministic timestamp tests for an on-time D8 prediction, a deadline miss,
 ### Task 2: Add controller event records
 
 **Files:**
-- Modify: `starwam/inference/rtc_ac.py`
-- Modify: `starwam/inference/__init__.py`
+- Modify: `streamwam/inference/rtc_ac.py`
+- Modify: `streamwam/inference/__init__.py`
 
 Extend `RTCACPrediction` with optional synchronized inference timestamps. Add an immutable D8 overlap record and a pure timestamp-to-record helper. Record D8 launch/completion/boundary/swap or episode-end events in `RTCACController`, expose a drain-once record API, and retain deterministic executor cleanup and exception behavior.
 

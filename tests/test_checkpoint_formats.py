@@ -7,8 +7,8 @@ import pytest
 import torch
 from torch import nn
 
-from starwam.checkpointing import load_inference_checkpoint, load_inference_stats
-from starwam.modules.rtc_ac import RTCACSlotEncoder
+from streamwam.checkpointing import load_inference_checkpoint, load_inference_stats
+from streamwam.modules.rtc_ac import RTCACSlotEncoder
 
 
 class TinyExpert(nn.Module):
@@ -259,12 +259,12 @@ def test_standard_checkpoint_loading_remains_supported(tmp_path: Path) -> None:
     path = _save_payload(tmp_path, {"model_state_dict": expected, "step": 42})
     target = nn.Linear(2, 3)
 
-    report = load_inference_checkpoint(target, path, checkpoint_format="starwam")
+    report = load_inference_checkpoint(target, path, checkpoint_format="streamwam")
 
     for tensor in target.state_dict().values():
         torch.testing.assert_close(tensor, torch.full_like(tensor, 6.0))
     assert report["step"] == 42
-    assert report["checkpoint_format"] == "starwam"
+    assert report["checkpoint_format"] == "streamwam"
 
 
 def test_fastwam_stats_are_canonicalized_in_memory(tmp_path: Path) -> None:

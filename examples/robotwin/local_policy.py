@@ -1,19 +1,19 @@
-"""In-process RoboTwin 2.0 policy adapter for StarWAM.
+"""In-process RoboTwin 2.0 policy adapter for StreamWAM.
 
-This plugs a StarWAM checkpoint directly into the official RoboTwin evaluation
+This plugs a StreamWAM checkpoint directly into the official RoboTwin evaluation
 harness (``RoboTwin/script/eval_policy.py``). Use it when SAPIEN and the
-Torch/StarWAM stack live in the same Python environment.
+Torch/StreamWAM stack live in the same Python environment.
 
 RoboTwin harness entry points: get_model / eval / reset_model.
 
 All benchmark-neutral logic (recipe/checkpoint loading, text conditioning,
 normalization, flow-matching inference, replan queue) lives in
-:class:`starwam.eval.policy.StarwamPolicy`. This file only handles the
+:class:`streamwam.eval.policy.StreamWAMPolicy`. This file only handles the
 RoboTwin-specific pieces:
 
   * 3-camera observation -> the exact 384x320 grid used at training time
     (head 256x320 on top, [left|right] 128x160 each on the bottom). The resize
-    reuses ``starwam.data.lerobot._resize_frames`` so eval pixels match training
+    reuses ``streamwam.data.lerobot._resize_frames`` so eval pixels match training
     pixels bit-for-bit.
   * 14-D dual-arm proprio state from ``observation["joint_action"]["vector"]``.
   * 14-D action executed via ``task_env.take_action(action, action_type="qpos")``
@@ -32,13 +32,13 @@ from typing import Any, Dict, Optional
 import numpy as np
 import torch
 
-# Make the StarWAM package importable when launched from the RoboTwin repo.
+# Make the StreamWAM package importable when launched from the RoboTwin repo.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from starwam.data.lerobot import _resize_frames  # noqa: E402
-from starwam.eval.policy import StarwamPolicy  # noqa: E402
+from streamwam.data.lerobot import _resize_frames  # noqa: E402
+from streamwam.eval.policy import StreamWAMPolicy  # noqa: E402
 
 
 def _to_chw_uint8(rgb: np.ndarray) -> torch.Tensor:
@@ -66,10 +66,10 @@ def build_robotwin_image(observation: Dict[str, Any], device: torch.device, dtyp
     return frame.to(device=device, dtype=dtype)
 
 
-class RoboTwinStarwamModel:
-    """Wraps :class:`StarwamPolicy` with RoboTwin obs/action conventions."""
+class RoboTwinStreamWAMModel:
+    """Wraps :class:`StreamWAMPolicy` with RoboTwin obs/action conventions."""
 
-    def __init__(self, policy: StarwamPolicy) -> None:
+    def __init__(self, policy: StreamWAMPolicy) -> None:
         self.policy = policy
 
     def step(self, task_env: Any, observation: Optional[Dict[str, Any]]) -> None:
@@ -97,10 +97,10 @@ def _get(usr_args: Dict[str, Any], key: str, default: Any = None) -> Any:
     return value
 
 
-def get_model(usr_args: Dict[str, Any]) -> RoboTwinStarwamModel:
+def get_model(usr_args: Dict[str, Any]) -> RoboTwinStreamWAMModel:
     config_path = _get(usr_args, "config_path") or _get(usr_args, "config")
     checkpoint = _get(usr_args, "checkpoint") or _get(usr_args, "ckpt_setting")
-    checkpoint_format = _get(usr_args, "checkpoint_format", "starwam")
+    checkpoint_format = _get(usr_args, "checkpoint_format", "streamwam")
     if config_path is None or checkpoint is None:
         raise ValueError("`config_path` and `checkpoint` are required in deploy_policy args.")
 
@@ -118,7 +118,7 @@ def get_model(usr_args: Dict[str, Any]) -> RoboTwinStarwamModel:
     replan_steps = int(_get(usr_args, "replan_steps", 8))
     seed = _get(usr_args, "seed")
 
-    policy = StarwamPolicy(
+    policy = StreamWAMPolicy(
         config_path=str(config_path),
         checkpoint=str(checkpoint),
         checkpoint_format=str(checkpoint_format),
@@ -131,12 +131,12 @@ def get_model(usr_args: Dict[str, Any]) -> RoboTwinStarwamModel:
         replan_steps=replan_steps,
         seed=int(seed) if seed is not None else None,
     )
-    return RoboTwinStarwamModel(policy)
+    return RoboTwinStreamWAMModel(policy)
 
 
-def eval(TASK_ENV: Any, model: RoboTwinStarwamModel, observation: Optional[Dict[str, Any]]) -> None:
+def eval(TASK_ENV: Any, model: RoboTwinStreamWAMModel, observation: Optional[Dict[str, Any]]) -> None:
     model.step(TASK_ENV, observation)
 
 
-def reset_model(model: RoboTwinStarwamModel) -> None:
+def reset_model(model: RoboTwinStreamWAMModel) -> None:
     model.reset()

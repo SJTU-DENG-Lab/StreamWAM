@@ -1,12 +1,12 @@
-"""RoboTwin deploy-policy entry point for StarWAM.
+"""RoboTwin deploy-policy entry point for StreamWAM.
 
 RoboTwin imports ``deploy_policy.py`` from ``RoboTwin/policy/<policy_name>`` and
 calls get_model / eval / reset_model. This file stays lightweight so it can be
-imported in a SAPIEN-only environment. The heavy Torch/StarWAM stack is imported
+imported in a SAPIEN-only environment. The heavy Torch/StreamWAM stack is imported
 only when ``policy_mode: local`` is selected.
 
 Modes:
-  * ``local``: run StarWAM in the same process/env as RoboTwin.
+  * ``local``: run StreamWAM in the same process/env as RoboTwin.
   * ``client``: talk to ``examples.robotwin.policy_server`` over a socket.
 """
 
@@ -50,7 +50,7 @@ def _infer_mode(usr_args: Dict[str, Any]) -> str:
     mode = str(mode).strip().lower()
     if mode not in _MODE_TO_MODULE:
         valid = ", ".join(sorted(_MODE_TO_MODULE))
-        raise ValueError(f"Unknown StarWAM RoboTwin policy_mode={mode!r}; valid modes: {valid}")
+        raise ValueError(f"Unknown StreamWAM RoboTwin policy_mode={mode!r}; valid modes: {valid}")
     return mode
 
 

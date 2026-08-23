@@ -1,1 +1,1 @@
-"""LIBERO example integration for StarWAM."""
+"""LIBERO example integration for StreamWAM."""

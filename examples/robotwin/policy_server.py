@@ -1,6 +1,6 @@
-"""StarWAM RoboTwin policy inference server (socket-based).
+"""StreamWAM RoboTwin policy inference server (socket-based).
 
-Runs in the Torch/StarWAM environment and serves action-chunk inference over a
+Runs in the Torch/StreamWAM environment and serves action-chunk inference over a
 plain TCP socket (length-prefixed pickle, stdlib only) so the RoboTwin
 simulation process can live in a separate SAPIEN environment.
 
@@ -8,7 +8,7 @@ The client sends raw RoboTwin observations (three camera RGB frames + the 14-D
 state vector + instruction); the server composes the exact 384x320 training
 grid, runs flow-matching inference, denormalizes, and returns the action chunk.
 
-Run from the StarWAM repo root, or with the repo root on PYTHONPATH:
+Run from the StreamWAM repo root, or with the repo root on PYTHONPATH:
     python -m examples.robotwin.policy_server \
         --config /path/to/recipe.yaml \
         --checkpoint /path/to/checkpoint-XXXX/pytorch_model \
@@ -32,13 +32,13 @@ from pathlib import Path
 import numpy as np
 import torch
 
-# Make the StarWAM package importable when launched from another working dir.
+# Make the StreamWAM package importable when launched from another working dir.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from starwam.data.lerobot import _resize_frames  # noqa: E402
-from starwam.eval.policy import StarwamPolicy  # noqa: E402
+from streamwam.data.lerobot import _resize_frames  # noqa: E402
+from streamwam.eval.policy import StreamWAMPolicy  # noqa: E402
 
 
 # Length-prefixed pickle framing (stdlib only; mirrored by client_policy.py).
@@ -93,14 +93,14 @@ def _build_robotwin_image(head, left, right, device, dtype) -> torch.Tensor:
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="StarWAM RoboTwin policy inference server")
+    parser = argparse.ArgumentParser(description="StreamWAM RoboTwin policy inference server")
     parser.add_argument("--config", required=True)
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument(
         "--checkpoint-format",
-        choices=("starwam", "fastwam"),
-        default="starwam",
-        help="Source checkpoint/stats format (default: starwam).",
+        choices=("streamwam", "fastwam"),
+        default="streamwam",
+        help="Source checkpoint/stats format (default: streamwam).",
     )
     parser.add_argument("--override", nargs="*", default=[])
     parser.add_argument("--device", default="cuda:0")
@@ -125,7 +125,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = _build_arg_parser().parse_args()
 
-    policy = StarwamPolicy(
+    policy = StreamWAMPolicy(
         config_path=args.config,
         checkpoint=args.checkpoint,
         overrides=list(args.override) if args.override else None,
@@ -135,7 +135,7 @@ def main() -> None:
         seed=args.seed,
         checkpoint_format=args.checkpoint_format,
     )
-    print(f"[starwam_robotwin_server] model ready on {args.device}; listening on {args.host}:{args.port}", flush=True)
+    print(f"[streamwam_robotwin_server] model ready on {args.device}; listening on {args.host}:{args.port}", flush=True)
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -148,7 +148,7 @@ def main() -> None:
         except (ConnectionError, OSError):
             continue
         conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        print(f"[starwam_robotwin_server] client connected: {addr}", flush=True)
+        print(f"[streamwam_robotwin_server] client connected: {addr}", flush=True)
         try:
             while True:
                 try:
@@ -187,7 +187,7 @@ def main() -> None:
                 conn.close()
             except OSError:
                 pass
-            print(f"[starwam_robotwin_server] client disconnected: {addr}", flush=True)
+            print(f"[streamwam_robotwin_server] client disconnected: {addr}", flush=True)
 
 
 if __name__ == "__main__":

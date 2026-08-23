@@ -39,14 +39,14 @@ def test_fastwam_context_exposes_zero_padding_like_reference_encode_prompt() -> 
     assert torch.equal(actual_mask, torch.ones(4, dtype=torch.bool))
 
 
-def test_starwam_context_preserves_padding_mask_and_values() -> None:
+def test_streamwam_context_preserves_padding_mask_and_values() -> None:
     context = torch.tensor([[1.0, 2.0], [9.0, 9.0]])
     mask = torch.tensor([True, False])
 
     actual_context, actual_mask = _prepare_context_for_checkpoint(
         context,
         mask,
-        checkpoint_format="starwam",
+        checkpoint_format="streamwam",
     )
 
     assert torch.equal(actual_context, context)
@@ -117,7 +117,7 @@ def test_predict_action_chunk_forwards_memory_cache_to_context_loader(
     def fake_obs_to_image(
         obs,
         config,
-        checkpoint_format="starwam",
+        checkpoint_format="streamwam",
         device=None,
         dtype=None,
     ):

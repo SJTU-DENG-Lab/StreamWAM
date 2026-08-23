@@ -2,8 +2,8 @@
 
 ## Objective
 
-Make StarWAM's opt-in accelerated RTC-AC path reproduce the established wyx
-Stage-2 selfatt-z1 steady-state inference latency while preserving StarWAM's
+Make StreamWAM's opt-in accelerated RTC-AC path reproduce the established wyx
+Stage-2 selfatt-z1 steady-state inference latency while preserving StreamWAM's
 existing architecture and all non-accelerated behavior.
 
 The performance target is measured after excluding the first asynchronous D8
@@ -13,7 +13,7 @@ call in a process:
 - D8 p50: at most 45 ms;
 - no correctness regression on the FastWAM step-5500 checkpoint;
 - no behavior change to eager RTC-AC, Joint CD, standard FastWAM joint, or
-  ordinary StarWAM Euler inference.
+  ordinary StreamWAM Euler inference.
 
 The wyx reference reproduced this target on GPU 0 with PyTorch 2.7.1+cu128 and
 Triton 3.3.1. Its measured D8 calls were 114.14, 45.38, 40.52, 41.86, and
@@ -43,7 +43,7 @@ on the accelerated contract.
 
 ### Reference-shaped compiled core
 
-`starwam/modules/rtc_ac.py` keeps the existing eager `forward_rtc_ac` method.
+`streamwam/modules/rtc_ac.py` keeps the existing eager `forward_rtc_ac` method.
 Only the accelerated method is replaced with a reference-shaped fixed-geometry
 core whose inputs and block execution order mirror wyx
 `Stage2ThreeStreamMoT1StepSelfAttZ1Accelerated.forward_stage2`:
@@ -58,7 +58,7 @@ core whose inputs and block execution order mirror wyx
 5. Apply post-attention, cross-attention, and FFN work in the same stream order.
 6. Return only video and action tokens.
 
-The implementation uses StarWAM modules and parameter ownership; it does not
+The implementation uses StreamWAM modules and parameter ownership; it does not
 import runtime code from the wyx repository. State-dict names and checkpoint
 loading remain unchanged.
 
@@ -67,7 +67,7 @@ loading remain unchanged.
 `RTCACWAM.infer_action` uses `torch.inference_mode()` rather than
 `torch.no_grad()`, matching the wyx public accelerated inference entry. It
 continues to prepare VAE latents, noise, schedules, fixed masks, prompt cache,
-proprio token, and consistency boundaries in the existing StarWAM WAM layer.
+proprio token, and consistency boundaries in the existing StreamWAM WAM layer.
 
 For accelerated calls, `rtc_ac_wam.py` converts the prepared states into the
 reference-shaped compiled payload. Eager calls continue using the existing

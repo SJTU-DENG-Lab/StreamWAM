@@ -1,7 +1,7 @@
-# RoboTwin deploy-policy config for the StarWAM socket client (SAPIEN side).
+# RoboTwin deploy-policy config for the StreamWAM socket client (SAPIEN side).
 #
-# Use this when SAPIEN and the Torch/StarWAM stack live in separate envs:
-#   1) In the Torch/StarWAM env, start the inference server:
+# Use this when SAPIEN and the Torch/StreamWAM stack live in separate envs:
+#   1) In the Torch/StreamWAM env, start the inference server:
 #        python -m examples.robotwin.policy_server \
 #          --config /path/to/recipe.yaml \
 #          --checkpoint /path/to/checkpoint-XXXX/pytorch_model \
@@ -11,16 +11,16 @@
 #                     data.text_embedding_cache_dir=/path/to/text_embedding_cache \
 #          --host 0.0.0.0 --port 8765
 #   2) In the RoboTwin (SAPIEN) env, symlink this shared RoboTwin adapter dir:
-#        ln -s /ABS/PATH/starWAM/examples/robotwin RoboTwin/policy/starwam_client
+#        ln -s /ABS/PATH/StreamWAM/examples/robotwin RoboTwin/policy/streamwam_client
 #        python script/eval_policy.py \
-#          --config policy/starwam_client/deploy_policy_client.yml \
-#          --overrides policy_name starwam_client task_name <task> \
+#          --config policy/streamwam_client/deploy_policy_client.yml \
+#          --overrides policy_name streamwam_client task_name <task> \
 #                      task_config demo_randomized instruction_type unseen \
 #                      ckpt_setting <tag> seed 0 \
 #                      server_host 127.0.0.1 server_port 8765
 
 # --- Standard RoboTwin keys (set via --overrides at launch) ---
-policy_name: starwam_client
+policy_name: streamwam_client
 task_name: null
 task_config: null
 ckpt_setting: null
