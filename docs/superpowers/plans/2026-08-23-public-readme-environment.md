@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Do not create an environment filename containing `rtc-ac-cu128` or another internal benchmark suffix.
-- Record Python 3.10.20 in `.python-version` and accept only Python 3.10 in package metadata.
+- Select Python 3.10 in `.python-version`, accept only Python 3.10 in package metadata, and record 3.10.20 as the benchmark interpreter in the README.
 - Pin PyTorch 2.7.1 from the cu128 index, torchvision 0.22.1 from the cu128 index, and Triton 3.3.1.
 - Keep TensorRT, diffusers, DeepSpeed, FlashAttention, and xFormers out of the default accelerated inference environment.
 - Do not publish `/inspire/...`, the validated `wyx/FastWAM/.venv`, or another machine-specific absolute path.
@@ -34,7 +34,7 @@
 
 - [ ] **Step 1: Record the interpreter and dependency set**
 
-Set `.python-version` to `3.10.20`. Update `pyproject.toml` to use `requires-python = ">=3.10,<3.11"`, exact validated default dependencies, and explicit `pytorch-cu128` sources for torch and torchvision. Preserve nonessential training tools only in a separate `train` extra.
+Set `.python-version` to `3.10`. Update `pyproject.toml` to use `requires-python = ">=3.10,<3.11"`, exact validated default dependencies, and explicit `pytorch-cu128` sources for torch and torchvision. Preserve nonessential training tools only in a separate `train` extra.
 
 - [ ] **Step 2: Remove the duplicate dependency source**
 
@@ -47,7 +47,7 @@ Run:
 ```bash
 uv lock
 uv lock --check
-uv run --no-sync python -c 'import tomllib; tomllib.load(open("pyproject.toml", "rb"))'
+uv run --no-sync --with tomli python -c 'import tomli; tomli.load(open("pyproject.toml", "rb"))'
 ```
 
 Expected: dependency resolution succeeds, the lock is current, and TOML parsing exits zero.

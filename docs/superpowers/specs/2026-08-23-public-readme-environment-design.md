@@ -23,7 +23,7 @@ The README will not expose machine-specific paths, imply that unreleased checkpo
 
 ## Environment Interface
 
-The root `pyproject.toml` will be the canonical environment definition, matching WaveForcing's single-entry approach. A root `.python-version` will record Python 3.10.20 as the exact reproduced interpreter while project metadata accepts compatible Python 3.10 patch releases. The environment definition will:
+The root `pyproject.toml` will be the canonical environment definition, matching WaveForcing's single-entry approach. A root `.python-version` will select Python 3.10 without requiring a patch release that `uv` cannot provision; the benchmark table will record Python 3.10.20 as the exact reproduced interpreter. The environment definition will:
 
 - constrain Python to the validated 3.10 series;
 - pin the validated PyTorch 2.7.1/cu128, torchvision 0.22.1/cu128, Triton 3.3.1, and supporting packages;
