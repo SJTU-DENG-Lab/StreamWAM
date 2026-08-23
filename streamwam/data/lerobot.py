@@ -564,7 +564,6 @@ class LeRobotDataset(Dataset):
         rest of the pipeline does not care whether episodes.jsonl exists.
         """
         import re
-        import pyarrow.parquet as pq
         data_dir = self.root / "data"
         if not data_dir.is_dir():
             return []

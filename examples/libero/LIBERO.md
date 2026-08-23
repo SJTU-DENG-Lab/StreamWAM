@@ -328,7 +328,6 @@ Before running them, edit recipe paths or pass overrides through environment var
 ```bash
 cd /path/to/StreamWAM
 
-export CONDA_ENV=streamwam-libero
 export REPO_DIR=/path/to/StreamWAM
 export TRAIN_OVERRIDES='data.dataset_dirs=["/path/to/libero_spatial_lerobot","/path/to/libero_object_lerobot","/path/to/libero_goal_lerobot","/path/to/libero_10_lerobot"] backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B framework.action_expert_init_from=/path/to/preprocessed/streamwam_action_dit_init_wan22.pt training.output_dir=/path/to/output/streamwam_libero_mot_wan22_5b data.text_embedding_cache_dir=/path/to/output/streamwam_libero_mot_wan22_5b/text_embedding_cache data.action_stats_path=/path/to/output/streamwam_libero_mot_wan22_5b/action_stats.json data.state_stats_path=/path/to/output/streamwam_libero_mot_wan22_5b/action_stats.json training.wandb_enabled=false'
 

@@ -3,8 +3,6 @@
 set -euo pipefail
 
 REPO_DIR=${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}
-CONDA_SH=${CONDA_SH:-$HOME/anaconda3/etc/profile.d/conda.sh}
-CONDA_ENV=${CONDA_ENV:-streamwam-libero}
 PY=${PY:-python}
 
 RECIPE=${RECIPE:-examples/libero/configs/recipes/streamwam_libero_shared_dit_wan22_5b.yaml}
@@ -20,16 +18,8 @@ export TOKENIZERS_PARALLELISM=false
 export PYTHONUNBUFFERED=1
 export PYTORCH_CUDA_ALLOC_CONF=${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}
 export TORCH_NCCL_TRACE_BUFFER_SIZE=${TORCH_NCCL_TRACE_BUFFER_SIZE:-1048576}
-export http_proxy=http://agent.baidu.com:8891
-export https_proxy=http://agent.baidu.com:8891
 
 cd "$REPO_DIR"
-
-if [ -f "$CONDA_SH" ]; then
-  # shellcheck disable=SC1090
-  source "$CONDA_SH"
-  conda activate "$CONDA_ENV"
-fi
 
 OUTPUT_DIR=$($PY - "$RECIPE" $TRAIN_OVERRIDES <<'PY'
 import sys
