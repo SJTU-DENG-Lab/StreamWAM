@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import os
 import platform
+from pathlib import Path
+import subprocess
 import sys
 
 import torch
@@ -21,6 +24,32 @@ from streamwam.modules.rtc_ac import (
 )
 from streamwam.modules.wan_block import DiTBlock, precompute_freqs_cis_1d
 from streamwam.wam import rtc_ac_wam
+
+
+def test_rtc_ac_launcher_requires_public_paths() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    environment = os.environ.copy()
+    for name in (
+        "BACKBONE_PATH",
+        "CHECKPOINT_PATH",
+        "LIBERO_HOME",
+        "LIBERO_HOME_PATH",
+        "STATS_PATH",
+    ):
+        environment.pop(name, None)
+    environment["PYTHON_BIN"] = "/bin/false"
+
+    result = subprocess.run(
+        ["bash", "examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh"],
+        cwd=repo_root,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "set BACKBONE_PATH=/path/to/Wan2.2-TI2V-5B" in result.stderr
 
 
 def _self_attention(
