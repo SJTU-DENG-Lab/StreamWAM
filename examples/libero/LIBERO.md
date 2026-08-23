@@ -12,8 +12,13 @@ accelerated RTC-AC benchmark.
 
 ```bash
 python -m pip install -U uv
-uv sync
+uv sync --extra train
+source .venv/bin/activate
 ```
+
+The root README uses plain `uv sync` for RTC-AC rollout. This detailed guide
+also covers training, so it installs the `train` extra. Activating `.venv`
+keeps the `python` and `accelerate` commands below in the locked environment.
 
 Install LIBERO from source into the same environment without allowing it to
 replace the pinned runtime packages:
@@ -78,17 +83,15 @@ Wan2.2-TI2V-5B recipes. Values are copied from each recipe header.
 ### Download data and backbones
 
 ```bash
-pip install -U "huggingface_hub[cli]"
-
 # LIBERO LeRobot datasets
-hf download IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot --repo-type dataset --local-dir /path/to/libero_spatial_lerobot
-hf download IPEC-COMMUNITY/libero_object_no_noops_1.0.0_lerobot  --repo-type dataset --local-dir /path/to/libero_object_lerobot
-hf download IPEC-COMMUNITY/libero_goal_no_noops_1.0.0_lerobot    --repo-type dataset --local-dir /path/to/libero_goal_lerobot
-hf download IPEC-COMMUNITY/libero_10_no_noops_1.0.0_lerobot      --repo-type dataset --local-dir /path/to/libero_10_lerobot
+huggingface-cli download IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot --repo-type dataset --local-dir /path/to/libero_spatial_lerobot
+huggingface-cli download IPEC-COMMUNITY/libero_object_no_noops_1.0.0_lerobot  --repo-type dataset --local-dir /path/to/libero_object_lerobot
+huggingface-cli download IPEC-COMMUNITY/libero_goal_no_noops_1.0.0_lerobot    --repo-type dataset --local-dir /path/to/libero_goal_lerobot
+huggingface-cli download IPEC-COMMUNITY/libero_10_no_noops_1.0.0_lerobot      --repo-type dataset --local-dir /path/to/libero_10_lerobot
 
 # Backbones
-hf download Wan-AI/Wan2.2-TI2V-5B --local-dir /path/to/Wan2.2-TI2V-5B
-hf download nvidia/Cosmos-Predict2-2B-Video2World --local-dir /path/to/Cosmos-Predict2-2B-Video2World
+huggingface-cli download Wan-AI/Wan2.2-TI2V-5B --local-dir /path/to/Wan2.2-TI2V-5B
+huggingface-cli download nvidia/Cosmos-Predict2-2B-Video2World --local-dir /path/to/Cosmos-Predict2-2B-Video2World
 ```
 
 Set `data.dataset_dirs` to the four LIBERO dirs above, and set `backbone.pretrained_model_id` to the selected backbone dir.
@@ -522,8 +525,9 @@ ModelScope namespace
 Download them first:
 
 ```bash
-pip install modelscope
-modelscope download --model panshaohua/starwam --local_dir /path/to/streamwam_ckpts
+uv tool run --from modelscope modelscope download \
+  --model panshaohua/starwam \
+  --local_dir /path/to/streamwam_ckpts
 ```
 
 After download, the LIBERO checkpoints are laid out as:

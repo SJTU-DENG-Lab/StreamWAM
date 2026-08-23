@@ -36,7 +36,6 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Optional
 
-import pyarrow.parquet as pq
 import torch
 from torch.utils.data import Dataset
 
@@ -45,6 +44,17 @@ from streamwam.config import DataConfig
 
 DEFAULT_TEXT_PROMPT = "A video recorded from a robot's point of view executing the following instruction: {task}"
 DEFAULT_TEXT_CACHE_ENCODER_ID = "wan22ti2v5b"
+
+
+def _parquet():
+    try:
+        import pyarrow.parquet as pq
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "LeRobot datasets require the StreamWAM training dependencies; "
+            "install them with `uv sync --extra train`."
+        ) from exc
+    return pq
 
 
 def format_text_prompt(task: str, template: str = DEFAULT_TEXT_PROMPT) -> str:
@@ -343,7 +353,7 @@ def _compute_column_stats(
             parquet_path = root / "data" / f"chunk-{chunk:03d}" / f"episode_{episode_index:06d}.parquet"
             if not parquet_path.is_file():
                 continue
-            table = pq.read_table(parquet_path, columns=[column_key])
+            table = _parquet().read_table(parquet_path, columns=[column_key])
             value = torch.tensor(table.column(column_key).to_pylist(), dtype=torch.float32)
             if value.numel() == 0:
                 continue
@@ -514,7 +524,7 @@ class LeRobotDataset(Dataset):
                 episode_index = int(ep["episode_index"])
                 parquet_path, _ = self._episode_paths(episode_index)
                 try:
-                    ep_len = pq.read_metadata(parquet_path).num_rows
+                    ep_len = _parquet().read_metadata(parquet_path).num_rows
                     ep["length"] = ep_len
                 except Exception:
                     ep_len = 1
@@ -570,7 +580,7 @@ class LeRobotDataset(Dataset):
                 continue
             seen.add(idx)
             try:
-                length = pq.read_metadata(parquet).num_rows
+                length = _parquet().read_metadata(parquet).num_rows
             except Exception:
                 length = 0
             eps.append({"episode_index": idx, "length": int(length)})
@@ -592,13 +602,13 @@ class LeRobotDataset(Dataset):
         return parquet, videos
 
     def _load_actions(self, parquet_path: Path) -> torch.Tensor:
-        table = pq.read_table(parquet_path, columns=[self.action_key])
+        table = _parquet().read_table(parquet_path, columns=[self.action_key])
         col = table.column(self.action_key).to_pylist()  # list of list[float]
         return torch.tensor(col, dtype=torch.float32)
 
     def _load_proprio(self, parquet_path: Path) -> torch.Tensor | None:
         try:
-            table = pq.read_table(parquet_path, columns=[self.state_key])
+            table = _parquet().read_table(parquet_path, columns=[self.state_key])
         except Exception:
             return None
         col = table.column(self.state_key).to_pylist()
@@ -616,7 +626,7 @@ class LeRobotDataset(Dataset):
             task_indices = self._episode_task_indices.get(episode_index)
             if task_indices is None:
                 try:
-                    table = pq.read_table(parquet_path, columns=["task_index"])
+                    table = _parquet().read_table(parquet_path, columns=["task_index"])
                     task_indices = [int(x) for x in table.column("task_index").to_pylist()]
                 except Exception:
                     task_indices = []

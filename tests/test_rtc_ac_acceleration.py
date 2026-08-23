@@ -26,7 +26,35 @@ from streamwam.modules.wan_block import DiTBlock, precompute_freqs_cis_1d
 from streamwam.wam import rtc_ac_wam
 
 
-def test_rtc_ac_launcher_requires_public_paths() -> None:
+@pytest.mark.parametrize(
+    ("provided", "expected_error"),
+    [
+        ({}, "set BACKBONE_PATH=/path/to/Wan2.2-TI2V-5B"),
+        (
+            {"BACKBONE_PATH": "/tmp/backbone"},
+            "set CHECKPOINT_PATH=/path/to/rtc_ac_checkpoint.pt",
+        ),
+        (
+            {
+                "BACKBONE_PATH": "/tmp/backbone",
+                "CHECKPOINT_PATH": "/tmp/checkpoint.pt",
+            },
+            "set STATS_PATH=/path/to/dataset_stats.json",
+        ),
+        (
+            {
+                "BACKBONE_PATH": "/tmp/backbone",
+                "CHECKPOINT_PATH": "/tmp/checkpoint.pt",
+                "STATS_PATH": "/tmp/stats.json",
+            },
+            "set LIBERO_HOME_PATH=/path/to/LIBERO or LIBERO_HOME=/path/to/LIBERO",
+        ),
+    ],
+)
+def test_rtc_ac_launcher_requires_public_paths(
+    provided: dict[str, str],
+    expected_error: str,
+) -> None:
     repo_root = Path(__file__).resolve().parents[1]
     environment = os.environ.copy()
     for name in (
@@ -37,6 +65,7 @@ def test_rtc_ac_launcher_requires_public_paths() -> None:
         "STATS_PATH",
     ):
         environment.pop(name, None)
+    environment.update(provided)
     environment["PYTHON_BIN"] = "/bin/false"
 
     result = subprocess.run(
@@ -49,7 +78,34 @@ def test_rtc_ac_launcher_requires_public_paths() -> None:
     )
 
     assert result.returncode != 0
-    assert "set BACKBONE_PATH=/path/to/Wan2.2-TI2V-5B" in result.stderr
+    assert expected_error in result.stderr
+
+
+def test_rtc_ac_launcher_accepts_libero_home_fallback() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    environment = os.environ.copy()
+    environment.pop("LIBERO_HOME_PATH", None)
+    environment.update(
+        {
+            "BACKBONE_PATH": "/tmp/backbone",
+            "CHECKPOINT_PATH": "/tmp/checkpoint.pt",
+            "LIBERO_HOME": "/tmp/LIBERO",
+            "PYTHON_BIN": "/bin/false",
+            "STATS_PATH": "/tmp/stats.json",
+        }
+    )
+
+    result = subprocess.run(
+        ["bash", "examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh"],
+        cwd=repo_root,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "set LIBERO_HOME_PATH" not in result.stderr
 
 
 def _self_attention(
