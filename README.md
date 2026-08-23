@@ -1,130 +1,172 @@
-# StreamWAM: Streaming World-Action Models for Robot Control
+<div align="center">
+  <h1>StreamWAM</h1>
+  <h3>Asynchronous World-Action Models for Streaming Robot Control</h3>
 
-StreamWAM is a research framework for **World-Action Models (WAMs)** with
-synchronous and asynchronous robot-policy inference. It combines generative
-video/world models with action prediction and includes action-conditioned
-RTC-AC execution that overlaps action-chunk inference with environment steps.
+  <a href="https://github.com/SJTU-DENG-Lab/StreamWAM"><img src="https://img.shields.io/badge/GitHub-Code-111827?logo=github" alt="GitHub Code"></a>
+  <a href="https://www.modelscope.cn/models/panshaohua/starwam"><img src="https://img.shields.io/badge/ModelScope-Checkpoints-624AFF" alt="ModelScope Checkpoints"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-6B5BFF" alt="Apache 2.0 License"></a>
+</div>
 
-The framework is designed for modular experimentation with world-model
-backbones, action representations, consistency-distilled policies, and
-streaming control schedules.
+StreamWAM is a research framework for **streaming world-action models**. It
+couples video/world-model backbones with action prediction and provides
+**RTC-AC**, an action-conditioned runtime that infers the next action chunk
+asynchronously while the robot executes the current chunk.
 
-> This repository is an early research release. More WAM variants, benchmarks, model checkpoints, and technical details will be added.
+The accelerated RTC-AC path combines `torch.compile`, CUDA Graph Trees, prompt
+K/V caching, fixed D0/D8 graphs, and asynchronous action execution. The
+inference, training, LIBERO, and RoboTwin code in this repository is open
+source.
 
-## News
+## Release status
 
-- **2026/08**: Added one-step Joint-CD inference and asynchronous RTC-AC action-chunk execution, including overlap timing and accelerated fixed-geometry runtime support.
-- **2026/07**: RoboTwin 2.0 integration — dual-arm MoT and Shared-DiT recipes with a client/server adapter for the official harness (89.5% and 92.6% over 50 tasks).
-- **2026/07**: Initial StreamWAM codebase prepared with Wan2.2 and Cosmos-Predict2 backbone adapters, LIBERO training/rollout recipes, MoT WAM, Shared-DiT WAM, and feature-conditioned WAM support.
+| Asset | Status |
+|---|---|
+| StreamWAM inference and training code | ✅ Available in this repository |
+| Accelerated RTC-AC runtime | ✅ Available in this repository |
+| LIBERO and RoboTwin recipes | ✅ Available in this repository |
+| MoT and Shared-DiT checkpoints | ✅ [Available on ModelScope](https://www.modelscope.cn/models/panshaohua/starwam) |
+| RTC-AC benchmark checkpoint | ⏳ Coming soon |
+| Technical report | ⏳ Coming soon |
 
-## Highlights
+> [!NOTE]
+> Public checkpoints retain their original `starwam` ModelScope paths so
+> existing downloads remain valid. The repository and Python package are named
+> `StreamWAM` and `streamwam`.
 
-- **World-model backbones**: reuse pretrained video generation models as robot world models, e.g., Wan2.2 and Cosmos-Predict2.
-- **Streaming control**: run action-conditioned RTC-AC inference asynchronously while the robot executes the current action chunk.
-- **Consistency inference**: evaluate one-step Joint-CD policies alongside RTC-AC checkpoints with comparable timing instrumentation.
-- **Multiple WAM families**:
-  - `mot_wam`: multi-stream video/action experts with mixed attention, e.g., Motus / FastWAM-style world-action modeling.
-  - `shared_dit_wam`: shared-DiT/register-token video-action prediction, e.g., DreamZero / LingBot-VA-style shared-token formulations.
-  - `feature_conditioned_action_model`: action prediction conditioned on video/world-model features, e.g., Video-IDM, Mimic-Video / World2Action, and StarVLA-WM4A-style variants.
-- **Benchmark recipes**: benchmark-specific data loading, normalization, text embedding caches, training recipes, and rollout utilities.
-- **Typed recipe system**: YAML recipes are loaded into Python dataclasses without requiring Hydra.
+## Quick start: accelerated RTC-AC on LIBERO
 
-## Repository Layout
+The reference environment uses Python 3.10, PyTorch 2.7.1/cu128, and Triton
+3.3.1. `pyproject.toml` is the canonical dependency definition.
 
-```text
-streamwam/                     # Core Python package
-  backbone/                  # Wan2.2 / Cosmos-Predict2 backbone adapters
-  wam/                       # WAM wrappers and taxonomy-level model families
-  modules/                   # DiT blocks, MoT, scheduler, shared-DiT modules
-  action_model/              # Action expert builders
-  data/                      # LeRobot dataset and text-cache utilities
-  checkpointing/             # Native and FastWAM checkpoint adapters
-  inference/                 # Consistency sampling and RTC-AC controller
-  training/                  # Trainer, losses, flow utilities, entrypoint
-  tools/                     # Preprocessing utilities
-  utils/                     # Checkpoint and config helpers
-configs/                     # Accelerate / DeepSpeed configs
-examples/                    # Benchmark-specific recipes, rollout scripts, and launch scripts
-pyproject.toml               # Python package metadata
-```
-
-## Model Families
-
-StreamWAM organizes WAM methods by taxonomy-level model families. The taxonomy is separated from the video/world-model backbone, so the same WAM family can be instantiated with different backbones.
-
-### `mot_wam`
-
-`mot_wam` uses separate video and action experts and mixes their Q/K/V streams through MoT-style attention. It supports first-frame and full-video action conditioning. This is the first functional LIBERO path in this codebase.
-
-### `shared_dit_wam`
-
-`shared_dit_wam` uses a shared DiT token space for clean video, noisy video, action tokens, and state tokens. Wan Shared-DiT is currently supported; additional backbones can implement the same `build_shared_dit_core(...)` interface.
-
-### `feature_conditioned_action_model`
-
-This family covers action models conditioned on video/world-model features. A single Wan DiT forward extracts observation tokens that condition an ActionDiT flow-matching expert. It is the intended home for Video-IDM, Mimic-Video/World2Action, and StarVLA-WM4A-style variants where a video generation model provides hidden states or generated-video features to an action decoder.
-
-## Examples
-
-Benchmark-specific setup, training, and evaluation instructions are maintained under `examples/`.
-
-- [LIBERO examples](examples/libero/LIBERO.md)
-- [RoboTwin 2.0 examples](examples/robotwin/RoboTwin.md)
-
-## Model Zoo
-
-Pretrained checkpoints were released before the project rename and remain in
-the legacy external ModelScope namespace
-[**panshaohua/starwam**](https://www.modelscope.cn/models/panshaohua/starwam).
-These external asset names are unchanged so existing downloads continue to
-work; the installed Python package is `streamwam`.
-
-LIBERO:
-
-- `starwam-libero/mot/starwam_wan225b_mot.pt` — Wan2.2-TI2V-5B MoT WAM.
-- `starwam-libero/sharedit/starwam_wan225b_shareddit.pt` — Wan2.2-TI2V-5B Shared-DiT WAM.
-- `starwam-libero/action_stats.json` — shared action normalization stats for both checkpoints.
-
-RoboTwin 2.0:
-
-- `starwam-robotwin/mot/starwam_wan225b_robotwin_mot.pt` — Wan2.2-TI2V-5B dual-arm MoT WAM.
-- `starwam-robotwin/sharedit/starwam_wan225b_robotwin_sharedit.pt` — Wan2.2-TI2V-5B dual-arm Shared-DiT WAM.
-- `starwam-robotwin/action_stats.json` — z-score action/state normalization stats.
-
-Download:
+### 1. Install StreamWAM
 
 ```bash
-pip install modelscope
-modelscope download --model panshaohua/starwam --local_dir /path/to/streamwam_ckpts
+git clone https://github.com/SJTU-DENG-Lab/StreamWAM.git
+cd StreamWAM
+
+python -m pip install -U uv
+uv sync
 ```
 
-See [LIBERO examples](examples/libero/LIBERO.md) and [RoboTwin 2.0 examples](examples/robotwin/RoboTwin.md) for rollout commands that use these checkpoints.
+`uv` installs PyTorch and torchvision from the official cu128 wheel index. A
+compatible NVIDIA driver is required; the host CUDA Toolkit does not need to
+match the wheel's bundled CUDA 12.8 runtime exactly.
 
-## Roadmap
+### 2. Prepare LIBERO and Wan2.2
 
-- [x] Wan2.2 backbone adapter.
-- [x] Cosmos-Predict2 backbone adapter.
-- [x] MoT WAM training and action rollout path.
-- [x] Shared-DiT WAM path.
-- [x] Feature-conditioned Video-IDM / WM4A action model path.
-- [ ] Additional benchmark integrations.
-- [x] Pretrained LIBERO checkpoints (ModelScope model zoo).
-- [ ] Technical report.
+```bash
+git clone https://github.com/Lifelong-Robot-Learning/LIBERO.git third_party/LIBERO
+uv pip install -e third_party/LIBERO --no-deps
+
+uv run huggingface-cli download Wan-AI/Wan2.2-TI2V-5B \
+  --local-dir checkpoints/Wan2.2-TI2V-5B
+```
+
+LIBERO is supplied as an external source checkout through `LIBERO_HOME_PATH`.
+Its expected source tree contains `libero/libero/{benchmark,bddl_files,
+init_files,assets}`. A `datasets/` directory is optional for rollout-only use.
+
+### 3. Launch RTC-AC
+
+Place a compatible RTC-AC checkpoint and its dataset statistics on disk, then
+run:
+
+```bash
+PYTHON_BIN=.venv/bin/python \
+GPU_IDS=0,1,2,3 \
+BACKBONE_PATH="$PWD/checkpoints/Wan2.2-TI2V-5B" \
+LIBERO_HOME_PATH="$PWD/third_party/LIBERO" \
+CHECKPOINT_PATH=/path/to/rtc_ac_checkpoint.pt \
+STATS_PATH=/path/to/dataset_stats.json \
+  bash examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh \
+  --rtc-ac-accelerated
+```
+
+The launcher defaults to one trial for every task in `libero_spatial`,
+`libero_object`, `libero_goal`, and `libero_10`. See the
+[LIBERO guide](examples/libero/LIBERO.md) for checkpoint formats, training,
+single-task rollout, and evaluation controls.
+
+## Current results
+
+The following RTC-AC measurements were collected with four NVIDIA H100 80 GB
+GPUs. Steady-state D8 statistics exclude the first background D8 call from
+each worker.
+
+| Model | Runtime | Precision | Mean / chunk | p50 | p90 | Deadline misses |
+|---|---|---|---:|---:|---:|---:|
+| Wan2.2-TI2V-5B RTC-AC | Inductor + CUDA Graph Trees + K/V cache | BF16 | **45.20 ms** | 45.75 ms | 46.50 ms | 0 / 4 |
+
+The recorded run produced one Dynamo graph, zero recompiles, and zero Inductor
+CUDA Graph skips. A correctly reproduced H100 setup should normally reach
+approximately **40–46 ms per steady-state D8 chunk**; exact latency depends on
+hardware, clocks, drivers, and competing workloads.
+
+## Accelerated runtime contract
+
+The measured path uses PyTorch Inductor/Triton and does not require TensorRT,
+DeepSpeed, FlashAttention, xFormers, or diffusers.
+
+| Component | Validated value |
+|---|---|
+| Python | 3.10.20 |
+| PyTorch / torchvision | 2.7.1+cu128 / 0.22.1+cu128 |
+| Triton | 3.3.1 |
+| GPU / dtype | NVIDIA H100 80 GB / BF16 |
+| Compiler tools | GCC/G++ 11.4.0, ninja 1.13.0 |
+| Input | batch 1, `[1, 3, 224, 448]` |
+| Wan2.2 5B | hidden size 3072, 30 layers, 24 heads |
+| RTC geometry | `H=32`, `stride=16`, `delay=8`, 9 video frames, 1 inference step |
+
+A healthy accelerated run reports:
+
+```text
+compile_active: True
+compile_fullgraph: True
+compile_dynamic: False
+cuda_graph_trees: True
+dynamo_unique_graphs: 1
+dynamo_recompiles: 0
+inductor_cudagraph_skips: 0
+prewarmed_d0: True
+prewarmed_d8: True
+```
+
+Acceleration is intentionally strict: unsupported shapes, non-BF16 inputs, or
+compiler/prewarm failures abort instead of silently falling back to eager
+execution.
+
+## Runtime layout
+
+```text
+streamwam/
+├── backbone/              # Wan2.2 and Cosmos-Predict2 adapters
+├── wam/                   # MoT, Shared-DiT, and RTC-AC model wrappers
+├── modules/               # DiT, ActionDiT, attention, and scheduler modules
+├── inference/             # consistency sampling and RTC-AC runtime
+├── checkpointing/         # native and FastWAM checkpoint adapters
+├── training/              # trainers, losses, and entrypoint
+└── data/                  # dataset and text-cache utilities
+examples/
+├── libero/                # LIBERO recipes, rollout, and launchers
+└── robotwin/              # RoboTwin recipes and deployment adapters
+```
 
 ## Citation
 
-If you find StreamWAM useful in your research, please consider citing it. A formal BibTeX entry will be added once the technical report is released.
+A formal BibTeX entry will be added with the technical report. Until then,
+please cite the repository URL in derived work.
+
+## License
+
+Released under the [Apache License 2.0](LICENSE).
 
 ## Acknowledgements
 
-This project draws inspiration and references from several notable open-source initiatives, including:
-
-- [StarVLA](https://github.com/starVLA/starVLA) — a primary reference for this project; its VLA/WM4A designs and training recipes directly informed StreamWAM's action modeling.
-- [DreamZero](https://github.com/dreamzero0/dreamzero)
-- [LingBot-VA](https://github.com/robbyant/lingbot-va)
-- [FastWAM](https://github.com/yuantianyuan01/FastWAM)
-- [Mimic-Video](https://github.com/mimic-video/mimic-video)
-- [LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO)
-- [LeRobot](https://github.com/huggingface/lerobot)
-- [Wan](https://github.com/Wan-Video/Wan2.2)
-- [Cosmos-Predict2](https://github.com/nvidia-cosmos/cosmos-predict2)
+StreamWAM builds on ideas and open-source work from
+[FastWAM](https://github.com/yuantianyuan01/FastWAM),
+[StarVLA](https://github.com/starVLA/starVLA),
+[DreamZero](https://github.com/dreamzero0/dreamzero),
+[LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO),
+[Wan2.2](https://github.com/Wan-Video/Wan2.2), and
+[Cosmos-Predict2](https://github.com/nvidia-cosmos/cosmos-predict2).

@@ -6,34 +6,45 @@ The generic StreamWAM package documentation is in the repository root [README.md
 
 ## 1. Environment
 
-Use one Conda environment for training and LIBERO rollout.
+The root `pyproject.toml` is the canonical environment definition. It selects
+Python 3.10 and pins the PyTorch 2.7.1/cu128 and Triton 3.3.1 stack used by the
+accelerated RTC-AC benchmark.
 
 ```bash
-conda create -n streamwam-libero python=3.11 -y
-conda activate streamwam-libero
-
-# Install the PyTorch wheel matching your CUDA setup.
-pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
-  --index-url https://download.pytorch.org/whl/cu124
-
-pip install -r examples/libero/requirements.txt
-pip install flash-attn --no-build-isolation
-pip install -e .
+python -m pip install -U uv
+uv sync
 ```
 
-Install LIBERO from source in the same environment:
+Install LIBERO from source into the same environment without allowing it to
+replace the pinned runtime packages:
 
 ```bash
-git clone https://github.com/Lifelong-Robot-Learning/LIBERO.git
-cd LIBERO && pip install -e . --no-deps
+git clone https://github.com/Lifelong-Robot-Learning/LIBERO.git third_party/LIBERO
+uv pip install -e third_party/LIBERO --no-deps
 ```
 
-Notes:
+Pass the checkout root with `--libero-home`, `LIBERO_HOME`, or
+`LIBERO_HOME_PATH`. The expected layout is:
 
-- `--no-deps` avoids changing versions pinned by `examples/libero/requirements.txt`.
-- Install a CUDA/PyTorch-compatible `flash-attn` version if the default one fails.
+```text
+LIBERO/
+└── libero/
+    ├── libero/
+    │   ├── benchmark/
+    │   ├── bddl_files/
+    │   ├── init_files/
+    │   └── assets/
+    └── datasets/           # optional for rollout-only use
+```
+
+Environment notes:
+
+- `--no-deps` prevents LIBERO from changing versions pinned in `pyproject.toml`.
+- The PyTorch wheel carries the CUDA 12.8 runtime. A different host CUDA
+  Toolkit version is acceptable when the NVIDIA driver supports that runtime.
+- The accelerated path uses Inductor/Triton; TensorRT, FlashAttention, xFormers,
+  diffusers, and DeepSpeed are not required for rollout.
 - On headless servers, set `export MUJOCO_GL=egl` if rendering fails.
-- Launch scripts default to `CONDA_ENV=streamwam-libero`.
 
 ## 2. Recipes
 
@@ -651,11 +662,16 @@ Select different GPUs without editing Python:
 GPU_IDS=2,3,6,7 bash examples/libero/scripts/launch_streamwam_libero_joint_cd_4gpu.sh
 ```
 
-RTC-AC has one launcher and one implementation. Run the eager third group
-without an extra option, or enable the fourth-group compiler/cache path by
-appending `--rtc-ac-accelerated`:
+RTC-AC has one launcher and one implementation. Set the four public asset
+paths once, then run eager mode without an extra option or append
+`--rtc-ac-accelerated` for the compiler/cache path:
 
 ```bash
+export BACKBONE_PATH=/path/to/Wan2.2-TI2V-5B
+export LIBERO_HOME_PATH=/path/to/LIBERO
+export CHECKPOINT_PATH=/path/to/rtc_ac_checkpoint.pt
+export STATS_PATH=/path/to/dataset_stats.json
+
 GPU_IDS=0,1,2,3 \
   bash examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh
 
@@ -674,21 +690,24 @@ It also records Dynamo graph/recompile counts, Inductor CUDA Graph skips, the
 first background-thread D8 latency, and steady-state D8 mean/p50/p90 after
 excluding exactly one background-thread warmup sample per worker.
 
-For latency parity with the wyx reference, use its PyTorch 2.7.1 and Triton
-3.3.1 environment:
+For latency validation, use the locked environment from Section 1:
 
 ```bash
-PYTHON_BIN=/inspire/qb-ilm/project/qproject-fundationmodel/yangyi-253108120173/wyx/FastWAM/.venv/bin/python \
-GPU_IDS=0 \
+PYTHON_BIN=.venv/bin/python \
+GPU_IDS=0,1,2,3 \
+BACKBONE_PATH=/path/to/Wan2.2-TI2V-5B \
+LIBERO_HOME_PATH=/path/to/LIBERO \
+CHECKPOINT_PATH=/path/to/rtc_ac_checkpoint.pt \
+STATS_PATH=/path/to/dataset_stats.json \
   bash examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh \
-  --rtc-ac-accelerated \
-  --suites libero_spatial
+  --rtc-ac-accelerated
 ```
 
-This short validation covers the ten `libero_spatial` tasks on one GPU. The
-acceptance target is steady-state D8 mean 40-45 ms, p50 at most 45 ms, and no
-unexpected CUDA Graph skips or recompiles. The raw average remains available
-and includes each worker's first background D8 call.
+The validated H100 target is approximately 40–46 ms per steady-state D8 chunk.
+The recorded reference run reached 45.20 ms mean, 45.75 ms p50, and 46.50 ms
+p90, with one Dynamo graph, zero recompiles, zero CUDA Graph skips, and zero of
+four deadline misses. The raw average remains available and includes each
+worker's first background D8 call.
 
 To run 50 trials per task, change `--num-trials 1` to
 `--num-trials 50` in the launcher. That creates 2000 episode units: 500 per
