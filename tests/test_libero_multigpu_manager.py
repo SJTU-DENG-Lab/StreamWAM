@@ -207,6 +207,14 @@ def test_rtc_ac_launcher_forwards_acceleration_flag(tmp_path) -> None:
     fake_python.chmod(0o755)
     environment = os.environ.copy()
     environment["PATH"] = f"{fake_bin}:{environment['PATH']}"
+    environment.update(
+        {
+            "BACKBONE_PATH": str(tmp_path / "backbone"),
+            "CHECKPOINT_PATH": str(tmp_path / "checkpoint.pt"),
+            "LIBERO_HOME_PATH": str(tmp_path / "LIBERO"),
+            "STATS_PATH": str(tmp_path / "stats.json"),
+        }
+    )
 
     completed = subprocess.run(
         [
@@ -241,9 +249,13 @@ def test_rtc_ac_launcher_uses_explicit_python_bin(tmp_path) -> None:
     environment = os.environ.copy()
     environment.update(
         {
+            "BACKBONE_PATH": str(tmp_path / "backbone"),
+            "CHECKPOINT_PATH": str(tmp_path / "checkpoint.pt"),
+            "LIBERO_HOME_PATH": str(tmp_path / "LIBERO"),
             "PYTHON_BIN": str(selected_python),
             "PYTHON_INVOCATION_LOG": str(invocation_log),
             "REAL_PYTHON": sys.executable,
+            "STATS_PATH": str(tmp_path / "stats.json"),
         }
     )
 
