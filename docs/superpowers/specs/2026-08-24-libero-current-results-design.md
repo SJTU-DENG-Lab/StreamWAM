@@ -14,7 +14,7 @@ The results section will state that every method is evaluated on the four LIBERO
 
 | Method | LIBERO-10 | Spatial | Goal | Object | Average (%) ↑ | Chunk Time (ms) ↓ | Episode Time (s) ↓ Long / Short |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| FastWAM | 93.20 | 96.20 | 94.20 | 96.20 | 95.70 | 493.0 | 16.31 / 8.25 |
+| FastWAM | 96.20 | 96.20 | 94.20 | 96.20 | 95.70 | 493.0 | 16.31 / 8.25 |
 | FastWAM-Joint-CD | 97.20 | 99.60 | 98.60 | 100.00 | 98.85 | 114.2 | 6.89 / 3.74 |
 | FastWAM-RTC | 58.40 | 76.20 | 77.00 | 83.40 | 73.75 | 142.3 | 6.23 / 3.20 |
 | **AC-StreamWAM (Ours)** | 96.60 | 98.80 | 97.40 | 100.00 | 98.20 | 41.0 | 5.36 / 3.15 |
