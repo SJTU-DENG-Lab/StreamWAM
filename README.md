@@ -87,6 +87,12 @@ single-task rollout, and evaluation controls.
 
 ## Current results
 
+All StreamWAM models are initialized from FastWAM-Joint checkpoints and then
+further trained. The RoboCasa implementation builds on X-WAM, while the
+RoboTwin implementation builds on StarWAM.
+
+### LIBERO
+
 We evaluate all methods on four LIBERO suites with 50 trials per task and 10
 tasks per suite. Success rates are reported as percentages, and `Average` is
 the arithmetic mean across LIBERO-10, LIBERO-Spatial, LIBERO-Goal, and
@@ -110,39 +116,21 @@ FastWAM and 2.8× compared with FastWAM-Joint-CD. Removing action conditioning
 decreases the average success rate by 1.95 percentage points, while removing
 the slot encoder results in a 0.55-point drop.
 
-## Accelerated runtime contract
+### RoboCasa
 
-The measured path uses PyTorch Inductor/Triton and does not require TensorRT,
-DeepSpeed, FlashAttention, xFormers, or diffusers.
+| Method | Accuracy (%) ↑ | Chunk Time (ms) ↓ | Total Time (s) ↓ |
+|---|---:|---:|---:|
+| X-WAM | 75.42 | 504.00 | 37.31 |
+| X-WAM-CD | 75.83 | 135.21 | 33.60 |
+| **StreamWAM (Ours)** | **75.35** | **136.76** | **11.76** |
 
-| Component | Validated value |
-|---|---|
-| Python | 3.10.20 |
-| PyTorch / torchvision | 2.7.1+cu128 / 0.22.1+cu128 |
-| Triton | 3.3.1 |
-| GPU / dtype | NVIDIA H100 80 GB / BF16 |
-| Compiler tools | GCC/G++ 11.4.0, ninja 1.13.0 |
-| Input | batch 1, `[1, 3, 224, 448]` |
-| Wan2.2 5B | hidden size 3072, 30 layers, 24 heads |
-| AC-StreamWAM geometry | `H=32`, `stride=16`, `delay=8`, 9 video frames, 1 inference step |
+### RoboTwin
 
-A healthy accelerated run reports:
-
-```text
-compile_active: True
-compile_fullgraph: True
-compile_dynamic: False
-cuda_graph_trees: True
-dynamo_unique_graphs: 1
-dynamo_recompiles: 0
-inductor_cudagraph_skips: 0
-prewarmed_d0: True
-prewarmed_d8: True
-```
-
-Acceleration is intentionally strict: unsupported shapes, non-BF16 inputs, or
-compiler/prewarm failures abort instead of silently falling back to eager
-execution.
+| Method | Clean (%) ↑ | Random (%) ↑ | Total (%) ↑ | Chunk Time (ms) ↓ | Total Time (s) ↓ |
+|---|---:|---:|---:|---:|---:|
+| StarWAM | 84.8 | 86.0 | 85.4 | 189.3 | — |
+| StarWAM-CD | 79.0 | 79.2 | 79.1 | 81.6 | — |
+| **StreamWAM (Ours)** | **87.2** | **88.8** | **87.6** | — | **112.2** |
 
 ## Runtime layout
 
@@ -160,11 +148,6 @@ examples/
 └── robotwin/              # RoboTwin recipes and deployment adapters
 ```
 
-## Citation
-
-A formal BibTeX entry will be added with the technical report. Until then,
-please cite the repository URL in derived work.
-
 ## License
 
 Released under the [Apache License 2.0](LICENSE).
@@ -173,6 +156,8 @@ Released under the [Apache License 2.0](LICENSE).
 
 StreamWAM builds on ideas and open-source work from
 [FastWAM](https://github.com/yuantianyuan01/FastWAM),
+[StarWAM](https://github.com/shaohua-pan/StarWAM),
+[X-WAM](https://github.com/sharinka0715/X-WAM),
 [StarVLA](https://github.com/starVLA/starVLA),
 [DreamZero](https://github.com/dreamzero0/dreamzero),
 [LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO),
