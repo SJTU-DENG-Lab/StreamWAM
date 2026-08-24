@@ -33,9 +33,12 @@ with `StreamWAM`, including:
 - the LIBERO result row and result analysis;
 - runtime-layout descriptions.
 
-Preserve literal executable interfaces containing `ac_stream`, including the
-checkpoint filename example, launcher filename, and `--ac-stream-accelerated`
-flag. These literals must continue to match the renamed runtime implementation.
+Preserve the literal executable interfaces present in the commit being
+published. Because `origin/main` still exposes the RTC-AC implementation, this
+README-only publication retains `rtc_ac_checkpoint.pt`,
+`launch_streamwam_libero_rtc_ac_4gpu.sh`, and `--rtc-ac-accelerated`. The
+concurrent AC-stream runtime rename remains unstaged and will update these
+literals only when its implementation is committed and published with them.
 
 ## Result-row presentation
 
@@ -73,9 +76,9 @@ copyable Markdown table data. No SVG or image table will be introduced.
 
 - Confirm no reader-facing `AC-StreamWAM`, `AC-Stream`, or `(Ours)` remains in
   `README.md`.
-- Confirm literal `ac_stream_checkpoint.pt`,
-  `launch_streamwam_libero_ac_stream_4gpu.sh`, and
-  `--ac-stream-accelerated` remain unchanged.
+- Confirm the published README retains `rtc_ac_checkpoint.pt`,
+  `launch_streamwam_libero_rtc_ac_4gpu.sh`, and `--rtc-ac-accelerated`, matching
+  the executable interface on `origin/main`.
 - Confirm exactly three result rows begin with `<mark>StreamWAM</mark>` and that
   their numeric values match the approved rows.
 - Render a representative row through GitHub's Markdown API and confirm every
