@@ -11,27 +11,27 @@ StreamWAM is a research framework for **streaming World-Action Models (WAMs)**.
 It provides a unified testbed for systematically studying and comparing
 different streaming strategies for WAM-based robot control.
 
-Building on this framework, we introduce **Action-Conditioned Streaming WAM
-(AC-StreamWAM)**, a streaming formulation that feeds the prefix of actions
-currently being executed by the robot back into the world model, conditioning
-future video generation on ongoing actions. Rather than treating
-inference–execution overlap merely as a systems optimization, AC-StreamWAM
-couples the two processes: the actions being executed shape the predicted
-visual future, while the model asynchronously infers the next world-action
-chunk as the robot continues executing the current action chunk.
+Building on this framework, we introduce **StreamWAM**, an
+**action-conditioned streaming formulation** that feeds the prefix of actions
+currently being executed by the robot back into the world model. This
+explicitly conditions future video generation on ongoing robot actions.
+Rather than treating inference–execution overlap merely as a systems
+optimization, StreamWAM couples the two processes: the executed action prefix
+shapes the predicted visual future, while the model asynchronously infers the
+next world-action chunk as the robot continues executing the current chunk.
 
 ## Release status
 
 | Asset | Status |
 |---|---|
 | StreamWAM inference and training code | ✅ Available in this repository |
-| Accelerated AC-StreamWAM runtime | ✅ Available in this repository |
+| Accelerated StreamWAM runtime | ✅ Available in this repository |
 | LIBERO and RoboTwin recipes | ✅ Available in this repository |
 | FastWAM-Joint-CD checkpoint | ✅ [Available on Hugging Face](https://huggingface.co/SJTU-DENG-Lab/StreamWAM) |
-| AC-StreamWAM checkpoint | ✅ [Available on Hugging Face](https://huggingface.co/SJTU-DENG-Lab/StreamWAM) |
+| StreamWAM checkpoint | ✅ [Available on Hugging Face](https://huggingface.co/SJTU-DENG-Lab/StreamWAM) |
 | Technical report | ⏳ Coming soon |
 
-## Quick start: accelerated AC-StreamWAM on LIBERO
+## Quick start: accelerated StreamWAM on LIBERO
 
 The reference environment uses Python 3.10, PyTorch 2.7.1/cu128, and Triton
 3.3.1. `pyproject.toml` is the canonical dependency definition.
@@ -64,9 +64,9 @@ LIBERO is supplied as an external source checkout through `LIBERO_HOME_PATH`.
 Its expected source tree contains `libero/libero/{benchmark,bddl_files,
 init_files,assets}`. A `datasets/` directory is optional for rollout-only use.
 
-### 3. Launch AC-StreamWAM
+### 3. Launch StreamWAM
 
-Place a compatible AC-StreamWAM checkpoint and its dataset statistics on disk,
+Place a compatible StreamWAM checkpoint and its dataset statistics on disk,
 then run:
 
 ```bash
@@ -105,11 +105,11 @@ and short-horizon tasks.
 | FastWAM | 96.20 | 96.20 | 94.20 | 96.20 | 95.70 | 493.0 | 16.31 / 8.25 |
 | FastWAM-Joint-CD | 97.20 | 99.60 | 98.60 | 100.00 | 98.85 | 114.2 | 6.89 / 3.74 |
 | FastWAM-RTC | 58.40 | 76.20 | 77.00 | 83.40 | 73.75 | 142.3 | 6.23 / 3.20 |
-| **AC-StreamWAM (Ours)** | 96.60 | 98.80 | 97.40 | 100.00 | 98.20 | 41.0 | 5.36 / 3.15 |
+| <mark>StreamWAM</mark> | <mark>96.60</mark> | <mark>98.80</mark> | <mark>97.40</mark> | <mark>100.00</mark> | <mark>98.20</mark> | <mark>41.0</mark> | <mark>5.36 / 3.15</mark> |
 | w/o Action Conditioning | 94.40 | 96.40 | 96.60 | 97.60 | 96.25 | 35.1 | 5.20 / 2.92 |
 | w/o Slot Encoder | 95.60 | 98.40 | 96.80 | 99.80 | 97.65 | 36.3 | 5.31 / 3.01 |
 
-AC-StreamWAM achieves a 98.20% average success rate with a chunk latency of
+StreamWAM achieves a 98.20% average success rate with a chunk latency of
 41.0 ms, providing a strong balance between control performance and streaming
 efficiency. It reduces chunk latency by approximately 12.0× compared with
 FastWAM and 2.8× compared with FastWAM-Joint-CD. Removing action conditioning
@@ -125,7 +125,7 @@ trials per task, and report the average task success rate.
 |---|---:|---:|---:|
 | X-WAM | 75.42 | 504.00 | 37.31 |
 | X-WAM-CD | 75.83 | 135.21 | 33.60 |
-| **StreamWAM (Ours)** | **75.35** | **136.76** | **11.76** |
+| <mark>StreamWAM</mark> | <mark>75.35</mark> | <mark>136.76</mark> | <mark>11.76</mark> |
 
 ### RoboTwin
 
@@ -137,16 +137,16 @@ success rate under the hard domain-randomization setting.
 |---|---:|---:|---:|---:|---:|
 | StarWAM | 84.8 | 86.0 | 85.4 | 189.3 | — |
 | StarWAM-CD | 79.0 | 79.2 | 79.1 | 81.6 | — |
-| **StreamWAM (Ours)** | **87.2** | **88.8** | **87.6** | — | **112.2** |
+| <mark>StreamWAM</mark> | <mark>87.2</mark> | <mark>88.8</mark> | <mark>87.6</mark> | <mark>—</mark> | <mark>112.2</mark> |
 
 ## Runtime layout
 
 ```text
 streamwam/
 ├── backbone/              # Wan2.2 and Cosmos-Predict2 adapters
-├── wam/                   # MoT, Shared-DiT, and AC-StreamWAM model wrappers
+├── wam/                   # MoT, Shared-DiT, and StreamWAM model wrappers
 ├── modules/               # DiT, ActionDiT, attention, and scheduler modules
-├── inference/             # consistency sampling and AC-StreamWAM runtime
+├── inference/             # consistency sampling and StreamWAM runtime
 ├── checkpointing/         # native and FastWAM checkpoint adapters
 ├── training/              # trainers, losses, and entrypoint
 └── data/                  # dataset and text-cache utilities
