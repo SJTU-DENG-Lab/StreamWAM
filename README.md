@@ -1,6 +1,6 @@
 <div align="center">
   <h1>StreamWAM</h1>
-  <h3>Asynchronous World-Action Models for Streaming Robot Control</h3>
+  <h3>Streaming World-Action Models for Streaming Robot Control</h3>
 
   <a href="https://github.com/SJTU-DENG-Lab/StreamWAM"><img src="https://img.shields.io/badge/GitHub-Code-111827?logo=github" alt="GitHub Code"></a>
   <a href="https://www.modelscope.cn/models/panshaohua/starwam"><img src="https://img.shields.io/badge/ModelScope-Checkpoints-624AFF" alt="ModelScope Checkpoints"></a>
