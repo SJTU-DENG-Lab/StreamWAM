@@ -118,6 +118,9 @@ the slot encoder results in a 0.55-point drop.
 
 ### RoboCasa
 
+We evaluate on the RoboCasa target benchmark across 50 target tasks, with 50
+trials per task, and report the average task success rate.
+
 | Method | Accuracy (%) ↑ | Chunk Time (ms) ↓ | Total Time (s) ↓ |
 |---|---:|---:|---:|
 | X-WAM | 75.42 | 504.00 | 37.31 |
@@ -125,6 +128,10 @@ the slot encoder results in a 0.55-point drop.
 | **StreamWAM (Ours)** | **75.35** | **136.76** | **11.76** |
 
 ### RoboTwin
+
+We evaluate 50 RoboTwin 2.0 tasks with 100 rollout episodes per task. `Clean`
+reports the success rate under the easy setting, while `Random` reports the
+success rate under the hard domain-randomization setting.
 
 | Method | Clean (%) ↑ | Random (%) ↑ | Total (%) ↑ | Chunk Time (ms) ↓ | Total Time (s) ↓ |
 |---|---:|---:|---:|---:|---:|
