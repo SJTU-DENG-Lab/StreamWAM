@@ -105,7 +105,7 @@ and short-horizon tasks.
 | FastWAM | 96.20 | 96.20 | 94.20 | 96.20 | 95.70 | 493.0 | 16.31 / 8.25 |
 | FastWAM-Joint-CD | 97.20 | 99.60 | 98.60 | 100.00 | 98.85 | 114.2 | 6.89 / 3.74 |
 | FastWAM-RTC | 58.40 | 76.20 | 77.00 | 83.40 | 73.75 | 142.3 | 6.23 / 3.20 |
-| <mark>StreamWAM</mark> | <mark>96.60</mark> | <mark>98.80</mark> | <mark>97.40</mark> | <mark>100.00</mark> | <mark>98.20</mark> | <mark>41.0</mark> | <mark>5.36 / 3.15</mark> |
+| StreamWAM | 96.60 | 98.80 | 97.40 | 100.00 | 98.20 | 41.0 | 5.36 / 3.15 |
 | w/o Action Conditioning | 94.40 | 96.40 | 96.60 | 97.60 | 96.25 | 35.1 | 5.20 / 2.92 |
 | w/o Slot Encoder | 95.60 | 98.40 | 96.80 | 99.80 | 97.65 | 36.3 | 5.31 / 3.01 |
 
@@ -125,7 +125,7 @@ trials per task, and report the average task success rate.
 |---|---:|---:|---:|
 | X-WAM | 75.42 | 504.00 | 37.31 |
 | X-WAM-CD | 75.83 | 135.21 | 33.60 |
-| <mark>StreamWAM</mark> | <mark>75.35</mark> | <mark>136.76</mark> | <mark>11.76</mark> |
+| StreamWAM | 75.35 | 136.76 | 11.76 |
 
 ### RoboTwin
 
@@ -137,7 +137,7 @@ success rate under the hard domain-randomization setting.
 |---|---:|---:|---:|---:|---:|
 | StarWAM | 84.8 | 86.0 | 85.4 | 189.3 | — |
 | StarWAM-CD | 79.0 | 79.2 | 79.1 | 81.6 | — |
-| <mark>StreamWAM</mark> | <mark>87.2</mark> | <mark>88.8</mark> | <mark>87.6</mark> | <mark>—</mark> | <mark>112.2</mark> |
+| StreamWAM | 87.2 | 88.8 | 87.6 | — | 112.2 |
 
 ## Runtime layout
 
