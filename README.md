@@ -3,37 +3,34 @@
   <h3>Streaming World-Action Models for Streaming Robot Control</h3>
 
   <a href="https://github.com/SJTU-DENG-Lab/StreamWAM"><img src="https://img.shields.io/badge/GitHub-Code-111827?logo=github" alt="GitHub Code"></a>
-  <a href="https://www.modelscope.cn/models/panshaohua/starwam"><img src="https://img.shields.io/badge/ModelScope-Checkpoints-624AFF" alt="ModelScope Checkpoints"></a>
+  <a href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM"><img src="https://img.shields.io/badge/%F0%9F%A4%97-Checkpoint-FFD21E" alt="Hugging Face Checkpoint"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-6B5BFF" alt="Apache 2.0 License"></a>
 </div>
 
-StreamWAM is a research framework for **streaming world-action models**. It
-couples video/world-model backbones with action prediction and provides
-**RTC-AC**, an action-conditioned runtime that infers the next action chunk
-asynchronously while the robot executes the current chunk.
+StreamWAM is a research framework for **streaming World-Action Models (WAMs)**.
+It provides a unified testbed for systematically studying and comparing
+different streaming strategies for WAM-based robot control.
 
-The accelerated RTC-AC path combines `torch.compile`, CUDA Graph Trees, prompt
-K/V caching, fixed D0/D8 graphs, and asynchronous action execution. The
-inference, training, LIBERO, and RoboTwin code in this repository is open
-source.
+Building on this framework, we introduce **Action-Conditioned Streaming WAM
+(AC-StreamWAM)**, a streaming formulation that feeds the prefix of actions
+currently being executed by the robot back into the world model, conditioning
+future video generation on ongoing actions. Rather than treating
+inference–execution overlap merely as a systems optimization, AC-StreamWAM
+couples the two processes: the actions being executed shape the predicted
+visual future, while the model asynchronously infers the next world-action
+chunk as the robot continues executing the current action chunk.
 
 ## Release status
 
 | Asset | Status |
 |---|---|
 | StreamWAM inference and training code | ✅ Available in this repository |
-| Accelerated RTC-AC runtime | ✅ Available in this repository |
+| Accelerated AC-StreamWAM runtime | ✅ Available in this repository |
 | LIBERO and RoboTwin recipes | ✅ Available in this repository |
-| MoT and Shared-DiT checkpoints | ✅ [Available on ModelScope](https://www.modelscope.cn/models/panshaohua/starwam) |
-| RTC-AC benchmark checkpoint | ⏳ Coming soon |
+| AC-StreamWAM checkpoint | ✅ [Available on Hugging Face](https://huggingface.co/SJTU-DENG-Lab/StreamWAM) |
 | Technical report | ⏳ Coming soon |
 
-> [!NOTE]
-> Public checkpoints retain their original `starwam` ModelScope paths so
-> existing downloads remain valid. The repository and Python package are named
-> `StreamWAM` and `streamwam`.
-
-## Quick start: accelerated RTC-AC on LIBERO
+## Quick start: accelerated AC-StreamWAM on LIBERO
 
 The reference environment uses Python 3.10, PyTorch 2.7.1/cu128, and Triton
 3.3.1. `pyproject.toml` is the canonical dependency definition.
@@ -66,10 +63,10 @@ LIBERO is supplied as an external source checkout through `LIBERO_HOME_PATH`.
 Its expected source tree contains `libero/libero/{benchmark,bddl_files,
 init_files,assets}`. A `datasets/` directory is optional for rollout-only use.
 
-### 3. Launch RTC-AC
+### 3. Launch AC-StreamWAM
 
-Place a compatible RTC-AC checkpoint and its dataset statistics on disk, then
-run:
+Place a compatible AC-StreamWAM checkpoint and its dataset statistics on disk,
+then run:
 
 ```bash
 PYTHON_BIN=.venv/bin/python \
@@ -89,13 +86,13 @@ single-task rollout, and evaluation controls.
 
 ## Current results
 
-The following RTC-AC measurements were collected with four NVIDIA H100 80 GB
-GPUs. Steady-state D8 statistics exclude the first background D8 call from
-each worker.
+The following AC-StreamWAM measurements were collected with four NVIDIA H100
+80 GB GPUs. Steady-state D8 statistics exclude the first background D8 call
+from each worker.
 
 | Model | Runtime | Precision | Mean / chunk | p50 | p90 | Deadline misses |
 |---|---|---|---:|---:|---:|---:|
-| Wan2.2-TI2V-5B RTC-AC | Inductor + CUDA Graph Trees + K/V cache | BF16 | **45.20 ms** | 45.75 ms | 46.50 ms | 0 / 4 |
+| Wan2.2-TI2V-5B AC-StreamWAM | Inductor + CUDA Graph Trees + K/V cache | BF16 | **45.20 ms** | 45.75 ms | 46.50 ms | 0 / 4 |
 
 The recorded run produced one Dynamo graph, zero recompiles, and zero Inductor
 CUDA Graph skips. A correctly reproduced H100 setup should normally reach
@@ -116,7 +113,7 @@ DeepSpeed, FlashAttention, xFormers, or diffusers.
 | Compiler tools | GCC/G++ 11.4.0, ninja 1.13.0 |
 | Input | batch 1, `[1, 3, 224, 448]` |
 | Wan2.2 5B | hidden size 3072, 30 layers, 24 heads |
-| RTC geometry | `H=32`, `stride=16`, `delay=8`, 9 video frames, 1 inference step |
+| AC-StreamWAM geometry | `H=32`, `stride=16`, `delay=8`, 9 video frames, 1 inference step |
 
 A healthy accelerated run reports:
 
@@ -141,9 +138,9 @@ execution.
 ```text
 streamwam/
 ├── backbone/              # Wan2.2 and Cosmos-Predict2 adapters
-├── wam/                   # MoT, Shared-DiT, and RTC-AC model wrappers
+├── wam/                   # MoT, Shared-DiT, and AC-StreamWAM model wrappers
 ├── modules/               # DiT, ActionDiT, attention, and scheduler modules
-├── inference/             # consistency sampling and RTC-AC runtime
+├── inference/             # consistency sampling and AC-StreamWAM runtime
 ├── checkpointing/         # native and FastWAM checkpoint adapters
 ├── training/              # trainers, losses, and entrypoint
 └── data/                  # dataset and text-cache utilities
