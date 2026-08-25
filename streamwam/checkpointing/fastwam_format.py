@@ -7,11 +7,11 @@ from typing import Any, Mapping
 import torch
 
 
-RTC_AC_PHASE = "stage2_1step_selfatt_z1"
-RTC_AC_ARCHITECTURE = (
+AC_STREAM_PHASE = "stage2_1step_selfatt_z1"
+AC_STREAM_ARCHITECTURE = (
     "stage1_16slot_z1_only_fixed_residual_plus_d0d8_policy_stream_v1"
 )
-RTC_AC_SLOT_KEY = (
+AC_STREAM_SLOT_KEY = (
     "mixtures.video.rtc_1step_selfatt_z1_slot_encoder.state_embedding.weight"
 )
 
@@ -79,40 +79,40 @@ def load_fastwam_checkpoint(model: torch.nn.Module, path: Path) -> dict[str, Any
         )
 
     model_variant = getattr(model, "inference_variant", "standard")
-    has_rtc_metadata = (
+    has_ac_stream_metadata = (
         "training_rtc_phase" in payload
         or "training_rtc_architecture" in payload
     )
-    if has_rtc_metadata:
-        if model_variant != "rtc_ac":
+    if has_ac_stream_metadata:
+        if model_variant != "ac-stream":
             raise ValueError(
-                "FastWAM RTC-AC checkpoint requires an RTC-AC model variant"
+                "FastWAM AC-Stream checkpoint requires an AC-Stream model variant"
             )
         phase = payload.get("training_rtc_phase")
-        if phase != RTC_AC_PHASE:
+        if phase != AC_STREAM_PHASE:
             raise ValueError(
-                f"FastWAM RTC-AC phase mismatch: expected {RTC_AC_PHASE!r}, "
+                f"FastWAM AC-Stream phase mismatch: expected {AC_STREAM_PHASE!r}, "
                 f"got {phase!r}"
             )
         architecture = payload.get("training_rtc_architecture")
-        if architecture != RTC_AC_ARCHITECTURE:
+        if architecture != AC_STREAM_ARCHITECTURE:
             raise ValueError(
-                "FastWAM RTC-AC architecture mismatch: expected "
-                f"{RTC_AC_ARCHITECTURE!r}, got {architecture!r}"
+                "FastWAM AC-Stream architecture mismatch: expected "
+                f"{AC_STREAM_ARCHITECTURE!r}, got {architecture!r}"
             )
-        slot_value = mot_state.get(RTC_AC_SLOT_KEY)
+        slot_value = mot_state.get(AC_STREAM_SLOT_KEY)
         if not isinstance(slot_value, torch.Tensor):
             raise ValueError(
-                f"FastWAM RTC-AC checkpoint is missing tensor {RTC_AC_SLOT_KEY!r}"
+                f"FastWAM AC-Stream checkpoint is missing tensor {AC_STREAM_SLOT_KEY!r}"
             )
         if tuple(slot_value.shape) != (2, 1024):
             raise ValueError(
-                f"FastWAM RTC-AC slot tensor must have shape (2, 1024), got "
+                f"FastWAM AC-Stream slot tensor must have shape (2, 1024), got "
                 f"{tuple(slot_value.shape)}"
             )
-    elif model_variant == "rtc_ac":
+    elif model_variant == "ac-stream":
         raise ValueError(
-            "RTC-AC model variant requires FastWAM RTC-AC checkpoint metadata"
+            "AC-Stream model variant requires FastWAM AC-Stream checkpoint metadata"
         )
 
     video_prefix = "mixtures.video."
@@ -156,11 +156,11 @@ def load_fastwam_checkpoint(model: torch.nn.Module, path: Path) -> dict[str, Any
         "action_tensors": len(action_state),
         "proprio_tensors": len(proprio_state),
     }
-    if has_rtc_metadata:
+    if has_ac_stream_metadata:
         report.update(
             {
-                "training_rtc_phase": payload["training_rtc_phase"],
-                "training_rtc_architecture": payload["training_rtc_architecture"],
+                "training_ac_stream_phase": payload["training_rtc_phase"],
+                "training_ac_stream_architecture": payload["training_rtc_architecture"],
             }
         )
     return report

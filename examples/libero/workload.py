@@ -69,6 +69,7 @@ def build_worker_manifests(
     suites: Sequence[str],
     num_trials: int,
     gpus: Sequence[str],
+    task_ids: Sequence[int] | None = None,
     task_counts: Mapping[str, int] | None = None,
 ) -> list[dict[str, Any]]:
     """Split ordered ``(suite, task, trial)`` units across GPU workers."""
@@ -78,10 +79,30 @@ def build_worker_manifests(
     normalized_gpus = [str(gpu).strip() for gpu in gpus]
     _validate_inputs(normalized_suites, num_trials, normalized_gpus, counts)
 
+    selected_task_ids = None if task_ids is None else [int(task_id) for task_id in task_ids]
+    if selected_task_ids is not None:
+        if not selected_task_ids:
+            raise ValueError("task_ids must contain at least one task ID")
+        if len(set(selected_task_ids)) != len(selected_task_ids):
+            raise ValueError("Task IDs must be unique")
+        out_of_range = {
+            suite: [
+                task_id
+                for task_id in selected_task_ids
+                if task_id < 0 or task_id >= counts[suite]
+            ]
+            for suite in normalized_suites
+        }
+        out_of_range = {suite: values for suite, values in out_of_range.items() if values}
+        if out_of_range:
+            raise ValueError(f"Task IDs out of range for selected suites: {out_of_range}")
+
     trials = [
         (suite, task_id, trial_id)
         for suite in normalized_suites
-        for task_id in range(counts[suite])
+        for task_id in (
+            range(counts[suite]) if selected_task_ids is None else selected_task_ids
+        )
         for trial_id in range(num_trials)
     ]
     if len(normalized_gpus) > len(trials):

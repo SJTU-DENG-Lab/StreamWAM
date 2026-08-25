@@ -154,7 +154,7 @@ def test_predict_action_chunk_forwards_memory_cache_to_context_loader(
         dtype=torch.float32,
         num_inference_steps=1,
         action_num_inference_steps=1,
-        sampling_method="rtc_ac",
+        sampling_method="ac-stream",
         checkpoint_format="fastwam",
         seed=0,
         context_memory_cache=memory_cache,

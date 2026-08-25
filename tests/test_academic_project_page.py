@@ -11,11 +11,9 @@ PAGE_ROOT = REPO_ROOT / "academic_project_page"
 INDEX_PATH = PAGE_ROOT / "index.html"
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "pages.yml"
 ARTICLE_SECTION_IDS = (
-    "motivation",
-    "overlap",
-    "method",
-    "execution",
-    "testbed",
+    "act-wam",
+    "act-async",
+    "act-streamwam",
     "experiments",
     "discussion",
 )
@@ -30,6 +28,10 @@ class PageParser(HTMLParser):
         self.text_parts: list[str] = []
         self.article_depth = 0
         self.article_paragraph_count = 0
+        self.pre_experiment_paragraph_count = 0
+        self.before_experiments = True
+        self.section_stack: list[str] = []
+        self.act_heading_tags: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         normalized = {name: value or "" for name, value in attrs}
@@ -39,12 +41,25 @@ class PageParser(HTMLParser):
             self.ids.add(element_id)
         if tag == "article":
             self.article_depth += 1
+        if tag == "section":
+            section_id = normalized.get("id", "")
+            self.section_stack.append(section_id)
+            if section_id == "experiments":
+                self.before_experiments = False
         if tag == "p" and self.article_depth:
             self.article_paragraph_count += 1
+            if self.before_experiments:
+                self.pre_experiment_paragraph_count += 1
+        if tag in {"h1", "h2", "h3", "h4", "h5", "h6"} and any(
+            section_id.startswith("act-") for section_id in self.section_stack
+        ):
+            self.act_heading_tags.append(tag)
 
     def handle_endtag(self, tag: str) -> None:
         if tag == "article":
             self.article_depth -= 1
+        if tag == "section":
+            self.section_stack.pop()
 
     def handle_data(self, data: str) -> None:
         if stripped := data.strip():
@@ -110,10 +125,9 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
     assert parser.tags.count("footer") == 1
     assert {
         "overview",
-        "motivation",
-        "testbed",
-        "method",
-        "execution",
+        "act-wam",
+        "act-async",
+        "act-streamwam",
         "experiments",
         "discussion",
         "resources",
@@ -246,12 +260,11 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
         if tag == "meta" and attrs.get("name") == "theme-color"
     ]
 
-    assert "Why Streaming WAM?" in visible_text
-    assert "A Common Testbed for Streaming Strategies" in visible_text
-    assert "Action-Conditioned Streaming" in visible_text
-    assert "Streaming While Acting" in visible_text
-    assert "Sequential WAM" in visible_text
-    assert "Execution overlap" in visible_text
+    assert "Why capable world-action models still make robots wait" in visible_text
+    assert "Asynchrony removes the wait, but exposes a boundary" in visible_text
+    assert "StreamWAM conditions the visual future on the action already underway" in visible_text
+    assert "inference-time RTC" in visible_text
+    assert "prefix-conditioned" in visible_text
     assert "00 · Abstract" in visible_text
     assert "Task success and control time are reported together" in visible_text
     assert "StreamWAM reaches 98.20% average success" in visible_text
@@ -284,6 +297,26 @@ def test_page_is_a_linear_text_first_research_article() -> None:
     assert parser.article_paragraph_count >= 40
     assert "chapter-index" not in html
     assert "future-slots" not in html
+
+
+def test_article_opens_with_three_detailed_editorial_acts() -> None:
+    parser, _ = parse_page()
+    act_sections = [
+        attrs
+        for tag, attrs in parser.attributes
+        if tag == "section" and attrs.get("id", "").startswith("act-")
+    ]
+    links = {
+        attrs.get("href")
+        for tag, attrs in parser.attributes
+        if tag == "a" and attrs.get("href")
+    }
+
+    assert [section["id"] for section in act_sections] == ["act-wam", "act-async", "act-streamwam"]
+    assert all("editorial-act" in section.get("class", "").split() for section in act_sections)
+    assert parser.pre_experiment_paragraph_count >= 18
+    assert parser.act_heading_tags == []
+    assert "https://arxiv.org/abs/2608.01880" in links
 
 
 def test_all_benchmark_tables_are_visible_without_tabs() -> None:

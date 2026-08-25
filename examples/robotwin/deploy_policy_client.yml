@@ -33,3 +33,5 @@ server_host: 127.0.0.1
 server_port: 8765
 # Fast-WAM RoboTwin eval replans every 24 of 32 chunk steps.
 replan_steps: 24
+inference_mode: baseline
+prewarm: true

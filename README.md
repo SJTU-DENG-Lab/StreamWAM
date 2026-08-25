@@ -74,10 +74,10 @@ PYTHON_BIN=.venv/bin/python \
 GPU_IDS=0,1,2,3 \
 BACKBONE_PATH="$PWD/checkpoints/Wan2.2-TI2V-5B" \
 LIBERO_HOME_PATH="$PWD/third_party/LIBERO" \
-CHECKPOINT_PATH=/path/to/rtc_ac_checkpoint.pt \
+CHECKPOINT_PATH=/path/to/ac_stream_checkpoint.pt \
 STATS_PATH=/path/to/dataset_stats.json \
-  bash examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh \
-  --rtc-ac-accelerated
+  bash examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh \
+  --ac-stream-accelerated
 ```
 
 The launcher defaults to one trial for every task in `libero_spatial`,

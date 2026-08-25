@@ -8,26 +8,28 @@ import pytest
 import torch
 
 from streamwam.inference import normalize_sampling_method
-from streamwam.inference.rtc_ac import (
-    RTCACController,
-    RTCACOverlapRecord,
-    RTCACPrediction,
-    apply_rtc_ac_hard_prefix_,
-    build_rtc_ac_overlap_record,
-    build_rtc_ac_prev_action_target,
-    validate_rtc_ac_geometry,
+from streamwam.inference.ac_stream import (
+    ACStreamController,
+    ACStreamOverlapRecord,
+    ACStreamPrediction,
+    apply_ac_stream_hard_prefix_,
+    build_ac_stream_overlap_record,
+    build_ac_stream_prev_action_target,
+    validate_ac_stream_geometry,
 )
-from streamwam.modules.rtc_ac import RTCACSlotEncoder
-from streamwam.modules.rtc_ac import (
-    RTCACMoT,
-    build_rtc_ac_condition_mask,
-    build_rtc_ac_policy_mask,
+from streamwam.modules.ac_stream import ACStreamSlotEncoder
+from streamwam.modules.ac_stream import (
+    ACStreamMoT,
+    build_ac_stream_condition_mask,
+    build_ac_stream_policy_mask,
+    build_starwam_rtc_condition_mask,
+    build_starwam_rtc_policy_mask,
 )
 
 
-def test_rtc_ac_is_a_public_sampling_method() -> None:
-    assert normalize_sampling_method("rtc_ac") == "rtc_ac"
-    assert normalize_sampling_method("RTC-AC") == "rtc_ac"
+def test_ac_stream_is_a_public_sampling_method() -> None:
+    assert normalize_sampling_method("ac-stream") == "ac-stream"
+    assert normalize_sampling_method("AC-Stream") == "ac-stream"
 
 
 @pytest.mark.parametrize(
@@ -42,7 +44,7 @@ def test_rtc_ac_is_a_public_sampling_method() -> None:
         ({"num_inference_steps": 2}, "num_inference_steps=1"),
     ],
 )
-def test_rtc_ac_rejects_checkpoint_incompatible_geometry(
+def test_ac_stream_rejects_checkpoint_incompatible_geometry(
     override: dict[str, int],
     match: str,
 ) -> None:
@@ -57,12 +59,12 @@ def test_rtc_ac_rejects_checkpoint_incompatible_geometry(
     }
     values.update(override)
     with pytest.raises(ValueError, match=match):
-        validate_rtc_ac_geometry(**values)
+        validate_ac_stream_geometry(**values)
 
 
-def test_rtc_ac_aligns_d8_prefix_to_launch_cursor() -> None:
+def test_ac_stream_aligns_d8_prefix_to_launch_cursor() -> None:
     current = torch.arange(32 * 7, dtype=torch.float32).reshape(32, 7)
-    target = build_rtc_ac_prev_action_target(
+    target = build_ac_stream_prev_action_target(
         current,
         cursor=8,
         action_horizon=32,
@@ -73,12 +75,12 @@ def test_rtc_ac_aligns_d8_prefix_to_launch_cursor() -> None:
     assert target.data_ptr() != current.data_ptr()
 
 
-def test_rtc_ac_hard_prefix_clamps_first_eight_tokens_and_sigma() -> None:
+def test_ac_stream_hard_prefix_clamps_first_eight_tokens_and_sigma() -> None:
     latents = torch.full((1, 32, 7), -3.0)
     timesteps = torch.full((1, 32), 1000.0)
     prefix_source = torch.arange(32 * 7, dtype=torch.float32).reshape(1, 32, 7)
 
-    clean = apply_rtc_ac_hard_prefix_(latents, timesteps, prefix_source)
+    clean = apply_ac_stream_hard_prefix_(latents, timesteps, prefix_source)
 
     torch.testing.assert_close(latents[:, :8], prefix_source[:, :8])
     torch.testing.assert_close(latents[:, 8:], torch.full((1, 24, 7), -3.0))
@@ -88,8 +90,33 @@ def test_rtc_ac_hard_prefix_clamps_first_eight_tokens_and_sigma() -> None:
     assert clean.data_ptr() != prefix_source.data_ptr()
 
 
-def test_rtc_ac_slot_encoder_keeps_known_content_and_zeros_unknown_content() -> None:
-    encoder = RTCACSlotEncoder(hidden_dim=2)
+def test_ac_stream_hard_prefix_supports_robotwin_action_dimension() -> None:
+    latents = torch.randn(1, 32, 14)
+    timesteps = torch.full((1, 32), 1000.0)
+    previous = torch.randn(32, 14)
+
+    clean = apply_ac_stream_hard_prefix_(latents, timesteps, previous)
+
+    assert clean.shape == (1, 8, 14)
+    torch.testing.assert_close(latents[:, :8], previous[:8].unsqueeze(0))
+    assert bool((timesteps[:, :8] == 0).all())
+
+
+def test_ac_stream_prediction_supports_robotwin_action_dimension() -> None:
+    model = torch.zeros((32, 14))
+
+    prediction = ACStreamPrediction(
+        env_actions=model.numpy(),
+        model_actions=model,
+        communication_ms=1.0,
+        inference_ms=2.0,
+    )
+
+    assert prediction.model_actions.shape == (32, 14)
+
+
+def test_ac_stream_slot_encoder_keeps_known_content_and_zeros_unknown_content() -> None:
+    encoder = ACStreamSlotEncoder(hidden_dim=2)
     with torch.no_grad():
         encoder.state_embedding.weight.copy_(
             torch.tensor([[10.0, 20.0], [100.0, 200.0]])
@@ -107,8 +134,8 @@ def test_rtc_ac_slot_encoder_keeps_known_content_and_zeros_unknown_content() -> 
     )
 
 
-def test_rtc_ac_d0_policy_mask_has_no_clean_prefix_restriction() -> None:
-    mask = build_rtc_ac_policy_mask(
+def test_ac_stream_d0_policy_mask_has_no_clean_prefix_restriction() -> None:
+    mask = build_ac_stream_policy_mask(
         video_seq_len=6,
         action_seq_len=32,
         video_tokens_per_frame=2,
@@ -122,8 +149,60 @@ def test_rtc_ac_d0_policy_mask_has_no_clean_prefix_restriction() -> None:
     assert bool(mask[2:6, :6].all())
 
 
-def test_rtc_ac_d8_policy_mask_isolates_clean_prefix() -> None:
-    mask = build_rtc_ac_policy_mask(
+def test_starwam_rtc_d0_policy_reads_only_z0_and_policy_stream() -> None:
+    mask = build_starwam_rtc_policy_mask(
+        batch_size=1,
+        video_seq_len=6,
+        policy_seq_len=32,
+        video_tokens_per_frame=2,
+        known_prefix_length=0,
+        device=torch.device("cpu"),
+    )
+
+    assert mask.shape == (1, 1, 32, 38)
+    assert bool(mask[..., :2].all())
+    assert not bool(mask[..., 2:6].any())
+    assert bool(mask[..., 6:].all())
+
+
+def test_starwam_rtc_d8_policy_separates_clean_and_noisy_queries() -> None:
+    mask = build_starwam_rtc_policy_mask(
+        batch_size=1,
+        video_seq_len=6,
+        policy_seq_len=32,
+        video_tokens_per_frame=2,
+        known_prefix_length=8,
+        device=torch.device("cpu"),
+    )
+
+    clean = mask[0, 0, :8]
+    noisy = mask[0, 0, 8:]
+    assert bool(clean[:, :2].all())
+    assert not bool(clean[:, 2:6].any())
+    assert bool(clean[:, 6:14].all())
+    assert not bool(clean[:, 14:].any())
+    assert bool(noisy.all())
+
+
+def test_starwam_rtc_condition_mask_matches_known_slot_routing() -> None:
+    mask = build_starwam_rtc_condition_mask(
+        batch_size=1,
+        condition_seq_len=16,
+        video_tokens_per_frame=2,
+        known_prefix_length=8,
+        device=torch.device("cpu"),
+    )
+
+    assert mask.shape == (1, 1, 16, 18)
+    known = mask[0, 0, :8]
+    unknown = mask[0, 0, 8:]
+    assert bool(known[:, :10].all())
+    assert not bool(known[:, 10:].any())
+    assert bool(unknown.all())
+
+
+def test_ac_stream_d8_policy_mask_isolates_clean_prefix() -> None:
+    mask = build_ac_stream_policy_mask(
         video_seq_len=6,
         action_seq_len=32,
         video_tokens_per_frame=2,
@@ -138,8 +217,8 @@ def test_rtc_ac_d8_policy_mask_isolates_clean_prefix() -> None:
     assert bool(mask[14:, :].all())
 
 
-def test_rtc_ac_condition_mask_injects_slots_only_into_z1() -> None:
-    mask = build_rtc_ac_condition_mask(
+def test_ac_stream_condition_mask_injects_slots_only_into_z1() -> None:
+    mask = build_ac_stream_condition_mask(
         video_seq_len=6,
         condition_seq_len=16,
         video_tokens_per_frame=2,
@@ -156,7 +235,7 @@ def test_rtc_ac_condition_mask_injects_slots_only_into_z1() -> None:
     assert bool(mask[14:, 6:].all())
 
 
-def test_builder_selects_rtc_ac_wam_variant(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_builder_selects_ac_stream_wam_variant(monkeypatch: pytest.MonkeyPatch) -> None:
     import streamwam.backbone
     import streamwam.wam
     from streamwam.builder import build_framework
@@ -164,7 +243,7 @@ def test_builder_selects_rtc_ac_wam_variant(monkeypatch: pytest.MonkeyPatch) -> 
 
     marker = object()
 
-    class FakeRTCACWAM:
+    class FakeACStreamWAM:
         def __new__(cls, *args, **kwargs):
             return marker
 
@@ -173,15 +252,63 @@ def test_builder_selects_rtc_ac_wam_variant(monkeypatch: pytest.MonkeyPatch) -> 
             return object()
 
     monkeypatch.setattr(streamwam.backbone, "build_backbone", lambda *args, **kwargs: object())
-    monkeypatch.setattr(streamwam.wam, "RTCACWAM", FakeRTCACWAM, raising=False)
+    monkeypatch.setattr(streamwam.wam, "ACStreamWAM", FakeACStreamWAM, raising=False)
     monkeypatch.setattr(streamwam.wam, "MoTWAM", FakeStandardWAM)
     config = StreamWAMConfig()
-    config.framework.variant = "rtc_ac"
+    config.framework.variant = "ac-stream"
 
     assert build_framework(config) is marker
 
 
-def test_rtc_ac_three_stream_residual_changes_only_z1_video_tokens() -> None:
+def test_framework_config_exposes_starwam_rtc_architecture() -> None:
+    from streamwam.config import FrameworkConfig
+
+    config = FrameworkConfig(
+        variant="ac-stream",
+        ac_stream_architecture="starwam_rtc_h32_s16_d8_z1_method3_v2",
+    )
+
+    assert config.ac_stream_architecture == "starwam_rtc_h32_s16_d8_z1_method3_v2"
+
+
+def test_starwam_rtc_model_uses_original_top_level_slot_key(monkeypatch) -> None:
+    from streamwam.config import FrameworkConfig
+    from streamwam.wam.ac_stream_wam import ACStreamWAM, AC_STREAM_SLOT_ENCODER_NAME
+    from streamwam.wam.mot_wam import MoTWAM
+
+    class FakeExpert(torch.nn.Module):
+        hidden_dim = 4
+
+        def __init__(self) -> None:
+            super().__init__()
+            self.blocks = torch.nn.ModuleList()
+
+    class FakeBackbone:
+        def __init__(self) -> None:
+            self.video = FakeExpert()
+
+        def get_dit(self):
+            return self.video
+
+    def fake_base_init(self, backbone, config, device="cpu", dtype=torch.float32):
+        del device, dtype
+        torch.nn.Module.__init__(self)
+        self.backbone = backbone
+        self.config = config
+        self.action_expert = FakeExpert()
+
+    monkeypatch.setattr(MoTWAM, "__init__", fake_base_init)
+    config = FrameworkConfig(
+        variant="ac-stream",
+        ac_stream_architecture="starwam_rtc_h32_s16_d8_z1_method3_v2",
+    )
+    model = ACStreamWAM(FakeBackbone(), config, dtype=torch.float32)
+
+    assert "rtc_slot_state_embedding.weight" in model.state_dict()
+    assert not hasattr(model.backbone.get_dit(), AC_STREAM_SLOT_ENCODER_NAME)
+
+
+def test_ac_stream_three_stream_residual_changes_only_z1_video_tokens() -> None:
     class FakeBlock(torch.nn.Module):
         num_heads = 1
         attn_head_dim = 1
@@ -199,7 +326,7 @@ def test_rtc_ac_three_stream_residual_changes_only_z1_video_tokens() -> None:
             super().__init__()
             self.blocks = torch.nn.ModuleList([FakeBlock()])
 
-    mot = RTCACMoT(
+    mot = ACStreamMoT(
         experts={"video": FakeExpert(), "action": FakeExpert()},
         checkpoint_mixed_attn=False,
     )
@@ -217,28 +344,28 @@ def test_rtc_ac_three_stream_residual_changes_only_z1_video_tokens() -> None:
         "action": {"tokens": action, **common_state},
         "condition": {"tokens": condition, **common_state},
     }
-    policy_mask = build_rtc_ac_policy_mask(
+    policy_mask = build_ac_stream_policy_mask(
         video_seq_len=6,
         action_seq_len=32,
         video_tokens_per_frame=2,
         known_prefix_length=8,
         device=torch.device("cpu"),
     )
-    condition_mask = build_rtc_ac_condition_mask(
+    condition_mask = build_ac_stream_condition_mask(
         video_seq_len=6,
         condition_seq_len=16,
         video_tokens_per_frame=2,
         device=torch.device("cpu"),
     )
 
-    inactive = mot.forward_rtc_ac(
+    inactive = mot.forward_ac_stream(
         states,
         policy_attention_mask=policy_mask,
         condition_attention_mask=condition_mask,
         video_tokens_per_frame=2,
         action_condition_active=torch.tensor([False]),
     )["video"]
-    active = mot.forward_rtc_ac(
+    active = mot.forward_ac_stream(
         states,
         policy_attention_mask=policy_mask,
         condition_attention_mask=condition_mask,
@@ -251,9 +378,81 @@ def test_rtc_ac_three_stream_residual_changes_only_z1_video_tokens() -> None:
     torch.testing.assert_close(active[:, 4:], inactive[:, 4:])
 
 
-def test_rtc_ac_wam_d8_returns_exact_clean_prefix() -> None:
+def test_starwam_rtc_three_stream_residual_changes_only_z1_video_tokens() -> None:
+    class FakeBlock(torch.nn.Module):
+        num_heads = 1
+        attn_head_dim = 1
+
+        def get_qkv(self, tokens, t_mod, freqs):
+            del t_mod, freqs
+            return torch.zeros_like(tokens), torch.zeros_like(tokens), tokens
+
+        def post_attention(self, tokens, attn_out, t_mod, context, context_mask):
+            del t_mod, context, context_mask
+            return tokens + attn_out
+
+    class FakeExpert(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.blocks = torch.nn.ModuleList([FakeBlock()])
+
+    mot = ACStreamMoT(
+        experts={"video": FakeExpert(), "action": FakeExpert()},
+        checkpoint_mixed_attn=False,
+    )
+    common_state = {
+        "freqs": torch.zeros((1,)),
+        "t_mod": torch.zeros((1,)),
+        "context": torch.zeros((1, 1, 1)),
+        "context_mask": torch.ones((1, 1), dtype=torch.bool),
+    }
+    states = {
+        "video": {"tokens": torch.zeros((1, 6, 1)), **common_state},
+        "action": {"tokens": torch.zeros((1, 32, 1)), **common_state},
+        "condition": {"tokens": torch.ones((1, 16, 1)), **common_state},
+    }
+    video_mask = torch.ones((6, 6), dtype=torch.bool)
+    policy_mask = build_starwam_rtc_policy_mask(
+        batch_size=1,
+        video_seq_len=6,
+        policy_seq_len=32,
+        video_tokens_per_frame=2,
+        known_prefix_length=8,
+        device=torch.device("cpu"),
+    )
+    condition_mask = build_starwam_rtc_condition_mask(
+        batch_size=1,
+        condition_seq_len=16,
+        video_tokens_per_frame=2,
+        known_prefix_length=8,
+        device=torch.device("cpu"),
+    )
+
+    inactive = mot.forward_starwam_rtc(
+        states,
+        video_attention_mask=video_mask,
+        policy_attention_mask=policy_mask,
+        condition_attention_mask=condition_mask,
+        video_tokens_per_frame=2,
+        action_condition_active=torch.tensor([False]),
+    )["video"]
+    active = mot.forward_starwam_rtc(
+        states,
+        video_attention_mask=video_mask,
+        policy_attention_mask=policy_mask,
+        condition_attention_mask=condition_mask,
+        video_tokens_per_frame=2,
+        action_condition_active=torch.tensor([True]),
+    )["video"]
+
+    torch.testing.assert_close(active[:, :2], inactive[:, :2])
+    assert bool((active[:, 2:4] > inactive[:, 2:4]).all())
+    torch.testing.assert_close(active[:, 4:], inactive[:, 4:])
+
+
+def test_ac_stream_wam_d8_returns_exact_clean_prefix() -> None:
     from streamwam.config import SchedulerConfig
-    from streamwam.wam.rtc_ac_wam import RTCACWAM, RTC_AC_SLOT_ENCODER_NAME
+    from streamwam.wam.ac_stream_wam import ACStreamWAM, AC_STREAM_SLOT_ENCODER_NAME
 
     class FakeVAE:
         temporal_compress = 4
@@ -281,7 +480,7 @@ def test_rtc_ac_wam_d8_returns_exact_clean_prefix() -> None:
         def __init__(self):
             super().__init__()
             self.video = FakeVideoExpert()
-            setattr(self.video, RTC_AC_SLOT_ENCODER_NAME, RTCACSlotEncoder(1))
+            setattr(self.video, AC_STREAM_SLOT_ENCODER_NAME, ACStreamSlotEncoder(1))
             self.vae = FakeVAE()
             self.info = SimpleNamespace(patch_size=(1, 1, 1))
 
@@ -312,12 +511,12 @@ def test_rtc_ac_wam_d8_returns_exact_clean_prefix() -> None:
             return torch.zeros((tokens.shape[0], tokens.shape[1], 7), dtype=tokens.dtype)
 
     class FakeMoT(torch.nn.Module):
-        def forward_rtc_ac(self, states, **kwargs):
+        def forward_ac_stream(self, states, **kwargs):
             del kwargs
             assert torch.is_inference_mode_enabled()
             return {"video": states["video"]["tokens"], "action": states["action"]["tokens"]}
 
-    model = RTCACWAM.__new__(RTCACWAM)
+    model = ACStreamWAM.__new__(ACStreamWAM)
     torch.nn.Module.__init__(model)
     model.config = SimpleNamespace(
         chunk_size=32,
@@ -342,30 +541,131 @@ def test_rtc_ac_wam_d8_returns_exact_clean_prefix() -> None:
         action_horizon=32,
         num_inference_steps=1,
         num_video_frames=9,
-        sampling_method="rtc_ac",
-        rtc_prev_action_chunk=previous,
-        rtc_inference_delay=8,
+        sampling_method="ac-stream",
+        ac_stream_prev_action_chunk=previous,
+        ac_stream_inference_delay=8,
         seed=42,
     )
 
     torch.testing.assert_close(action[0, :8], previous[:8])
 
 
-def test_rtc_ac_controller_launches_d8_at_eight_and_swaps_to_cursor_eight() -> None:
+def test_starwam_rtc_wam_d8_returns_exact_14d_clean_prefix() -> None:
+    from streamwam.config import SchedulerConfig
+    from streamwam.wam.ac_stream_wam import ACStreamWAM, STARWAM_RTC_ARCHITECTURE
+
+    class FakeVAE:
+        temporal_compress = 4
+
+    class FakeVideoExpert(torch.nn.Module):
+        def pre_dit(self, latents, timestep, context, context_mask, **kwargs):
+            del timestep, kwargs
+            batch = latents.shape[0]
+            return {
+                "tokens": torch.zeros((batch, 3, 1), dtype=latents.dtype),
+                "freqs": torch.zeros((3, 1, 1)),
+                "t_mod": torch.zeros((batch, 3, 6, 1)),
+                "context": context,
+                "context_mask": context_mask,
+                "meta": {"tokens_per_frame": 1, "latent_shape": tuple(latents.shape)},
+                "t": torch.zeros((batch, 3, 1)),
+            }
+
+        def post_dit(self, tokens, meta, timestep):
+            del tokens, timestep
+            return torch.zeros(meta["latent_shape"])
+
+    class FakeBackbone(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.video = FakeVideoExpert()
+            self.vae = FakeVAE()
+
+        def get_dit(self):
+            return self.video
+
+        def get_vae(self):
+            return self.vae
+
+        def encode_video(self, video):
+            return torch.zeros((video.shape[0], 1, 1, 1, 1), dtype=video.dtype)
+
+    class FakeActionExpert(torch.nn.Module):
+        hidden_dim = 1
+
+        def pre_dit(self, action, timestep, context, context_mask, **kwargs):
+            del timestep, kwargs
+            batch, length = action.shape[:2]
+            return {
+                "tokens": torch.zeros((batch, length, 1), dtype=action.dtype),
+                "freqs": torch.zeros((length, 1, 1)),
+                "t_mod": torch.zeros((batch, length, 6, 1)),
+                "context": context,
+                "context_mask": context_mask,
+            }
+
+        def post_dit(self, tokens):
+            return torch.zeros((tokens.shape[0], tokens.shape[1], 14), dtype=tokens.dtype)
+
+    class FakeMoT(torch.nn.Module):
+        def forward_starwam_rtc(self, states, **kwargs):
+            assert kwargs["policy_attention_mask"].shape == (1, 1, 32, 35)
+            assert kwargs["condition_attention_mask"].shape == (1, 1, 16, 17)
+            return {"video": states["video"]["tokens"], "action": states["action"]["tokens"]}
+
+    model = ACStreamWAM.__new__(ACStreamWAM)
+    torch.nn.Module.__init__(model)
+    model.config = SimpleNamespace(
+        chunk_size=32,
+        action_dim=14,
+        video_scheduler=SchedulerConfig(),
+        action_scheduler=SchedulerConfig(),
+    )
+    model.ac_stream_architecture = STARWAM_RTC_ARCHITECTURE
+    model.backbone = FakeBackbone()
+    model.action_expert = FakeActionExpert()
+    model.rtc_slot_state_embedding = torch.nn.Embedding(2, 1)
+    model.mot = FakeMoT()
+    model.proprio_encoder = None
+    model.proprio_dim = None
+    model.action_video_conditioning = "first_frame"
+    model.video_scheduler = SimpleNamespace(num_train_timesteps=1000)
+    model.action_scheduler = SimpleNamespace(num_train_timesteps=1000)
+    previous = torch.arange(32 * 14, dtype=torch.float32).reshape(32, 14) / 100.0 + 0.001
+
+    action = model.infer_action(
+        input_image=torch.zeros((1, 3, 384, 320), dtype=torch.bfloat16),
+        context=torch.zeros((1, 2, 1), dtype=torch.bfloat16),
+        context_mask=torch.ones((1, 2), dtype=torch.bool),
+        action_horizon=32,
+        num_inference_steps=1,
+        num_video_frames=9,
+        sampling_method="ac-stream",
+        ac_stream_prev_action_chunk=previous,
+        ac_stream_inference_delay=8,
+        seed=42,
+    )
+
+    assert action.shape == (1, 32, 14)
+    assert action.dtype == torch.float32
+    torch.testing.assert_close(action[0, :8], previous[:8])
+
+
+def test_ac_stream_controller_launches_d8_at_eight_and_swaps_to_cursor_eight() -> None:
     calls: list[tuple[int, torch.Tensor | None]] = []
 
     def predict(observation, previous_target, delay):
         calls.append((int(delay), None if previous_target is None else previous_target.clone()))
         base = 0.0 if previous_target is None else 100.0
         model = torch.arange(32, dtype=torch.float32).unsqueeze(1).expand(32, 7) + base
-        return RTCACPrediction(
+        return ACStreamPrediction(
             env_actions=model.numpy().copy(),
             model_actions=model,
             communication_ms=1.0,
             inference_ms=2.0,
         )
 
-    controller = RTCACController(predict, block_on_miss=True)
+    controller = ACStreamController(predict, block_on_miss=True)
     controller.start_episode({"step": 0})
     executed = []
     for step in range(16):
@@ -386,18 +686,18 @@ def test_rtc_ac_controller_launches_d8_at_eight_and_swaps_to_cursor_eight() -> N
     torch.testing.assert_close(calls[1][1][16:], torch.zeros((16, 7)))
 
 
-def test_rtc_ac_close_returns_generated_but_uninstalled_prediction() -> None:
+def test_ac_stream_close_returns_generated_but_uninstalled_prediction() -> None:
     def predict(observation, previous_target, delay):
         del observation, previous_target
         model = torch.full((32, 7), float(delay))
-        return RTCACPrediction(
+        return ACStreamPrediction(
             env_actions=model.numpy().copy(),
             model_actions=model,
             communication_ms=3.0,
             inference_ms=4.0,
         )
 
-    controller = RTCACController(predict)
+    controller = ACStreamController(predict)
     controller.start_episode({})
     controller.pop_installed_predictions()
     for _ in range(8):
@@ -412,12 +712,12 @@ def test_rtc_ac_close_returns_generated_but_uninstalled_prediction() -> None:
     assert pending.inference_ms == 4.0
 
 
-def test_rtc_ac_rejects_nonblocking_miss_policy() -> None:
+def test_ac_stream_rejects_nonblocking_miss_policy() -> None:
     with pytest.raises(ValueError, match="block_on_miss=True"):
-        RTCACController(lambda *_: None, block_on_miss=False)
+        ACStreamController(lambda *_: None, block_on_miss=False)
 
 
-def test_rtc_ac_predictor_error_is_not_rethrown_during_close() -> None:
+def test_ac_stream_predictor_error_is_not_rethrown_during_close() -> None:
     calls = 0
 
     def predict(observation, previous_target, delay):
@@ -427,9 +727,9 @@ def test_rtc_ac_predictor_error_is_not_rethrown_during_close() -> None:
         if calls == 2:
             raise RuntimeError("predict failed")
         model = torch.zeros((32, 7))
-        return RTCACPrediction(model.numpy().copy(), model, 0.0, 0.0)
+        return ACStreamPrediction(model.numpy().copy(), model, 0.0, 0.0)
 
-    controller = RTCACController(predict)
+    controller = ACStreamController(predict)
     controller.start_episode({})
     for _ in range(16):
         controller.next_action({})
@@ -442,8 +742,8 @@ def test_rtc_ac_predictor_error_is_not_rethrown_during_close() -> None:
     assert controller.close() is None
 
 
-def test_rtc_ac_overlap_record_for_prediction_ready_before_boundary() -> None:
-    record = build_rtc_ac_overlap_record(
+def test_ac_stream_overlap_record_for_prediction_ready_before_boundary() -> None:
+    record = build_ac_stream_overlap_record(
         inference_started_ns=100_000_000,
         inference_completed_ns=300_000_000,
         prediction_completed_ns=320_000_000,
@@ -452,7 +752,7 @@ def test_rtc_ac_overlap_record_for_prediction_ready_before_boundary() -> None:
         swap_ns=1_000_000_000,
     )
 
-    assert record == RTCACOverlapRecord(
+    assert record == ACStreamOverlapRecord(
         inference_wall_ms=200.0,
         action_overlap_ms=200.0,
         boundary_wait_ms=0.0,
@@ -461,8 +761,8 @@ def test_rtc_ac_overlap_record_for_prediction_ready_before_boundary() -> None:
     )
 
 
-def test_rtc_ac_overlap_counts_only_measured_action_execution_intervals() -> None:
-    record = build_rtc_ac_overlap_record(
+def test_ac_stream_overlap_counts_only_measured_action_execution_intervals() -> None:
+    record = build_ac_stream_overlap_record(
         inference_started_ns=100_000_000,
         inference_completed_ns=500_000_000,
         prediction_completed_ns=510_000_000,
@@ -480,8 +780,8 @@ def test_rtc_ac_overlap_counts_only_measured_action_execution_intervals() -> Non
     assert record.action_overlap_ms == 150.0
 
 
-def test_rtc_ac_overlap_record_for_boundary_miss() -> None:
-    record = build_rtc_ac_overlap_record(
+def test_ac_stream_overlap_record_for_boundary_miss() -> None:
+    record = build_ac_stream_overlap_record(
         inference_started_ns=100_000_000,
         inference_completed_ns=1_200_000_000,
         prediction_completed_ns=1_230_000_000,
@@ -497,8 +797,8 @@ def test_rtc_ac_overlap_record_for_boundary_miss() -> None:
     assert record.hidden_inference_ratio == pytest.approx(9 / 11)
 
 
-def test_rtc_ac_overlap_record_for_episode_end_drain() -> None:
-    record = build_rtc_ac_overlap_record(
+def test_ac_stream_overlap_record_for_episode_end_drain() -> None:
+    record = build_ac_stream_overlap_record(
         inference_started_ns=100_000_000,
         inference_completed_ns=800_000_000,
         prediction_completed_ns=850_000_000,
@@ -513,7 +813,7 @@ def test_rtc_ac_overlap_record_for_episode_end_drain() -> None:
     assert record.episode_end_before_boundary is True
 
 
-def test_rtc_ac_controller_latches_boundary_at_last_action_completion() -> None:
+def test_ac_stream_controller_latches_boundary_at_last_action_completion() -> None:
     release_d8 = threading.Event()
     d8_completed = threading.Event()
 
@@ -524,7 +824,7 @@ def test_rtc_ac_controller_latches_boundary_at_last_action_completion() -> None:
             assert release_d8.wait(timeout=1.0)
         completed_ns = time.perf_counter_ns()
         model = torch.zeros((32, 7))
-        prediction = RTCACPrediction(
+        prediction = ACStreamPrediction(
             model.numpy().copy(),
             model,
             0.0,
@@ -536,7 +836,7 @@ def test_rtc_ac_controller_latches_boundary_at_last_action_completion() -> None:
             d8_completed.set()
         return prediction
 
-    controller = RTCACController(predict)
+    controller = ACStreamController(predict)
     controller.start_episode({})
     controller.pop_installed_predictions()
     for _ in range(16):

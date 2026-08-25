@@ -3,13 +3,13 @@ import pytest
 import torch
 
 from examples.libero.rollout import (
-    _prewarm_rtc_ac_if_needed,
+    _prewarm_ac_stream_if_needed,
     _prewarm_sync_if_needed,
     _save_video,
 )
 from examples.libero.timing import GlobalTimingSummary
-from streamwam.inference.rtc_ac import RTCACOverlapRecord
-from streamwam.inference.rtc_ac import RTCACPrediction
+from streamwam.inference.ac_stream import ACStreamOverlapRecord
+from streamwam.inference.ac_stream import ACStreamPrediction
 
 
 def test_global_timing_averages_all_chunks() -> None:
@@ -61,18 +61,18 @@ def test_global_timing_formats_one_summary_block() -> None:
     assert "average inference/chunk" in rendered
     assert "average communication/chunk" in rendered
     assert "average action execution/chunk" in rendered
-    assert "RTC-AC Async Overlap" not in rendered
+    assert "AC-Stream Async Overlap" not in rendered
 
 
-def test_global_timing_aggregates_rtc_ac_overlap_once() -> None:
+def test_global_timing_aggregates_ac_stream_overlap_once() -> None:
     timing = GlobalTimingSummary()
-    timing.enable_rtc_ac()
+    timing.enable_ac_stream()
     first = timing.add_chunk(communication_ms=10.0, inference_ms=100.0)
     first.add_action_execution(890.0)
     second = timing.add_chunk(communication_ms=20.0, inference_ms=200.0)
     second.add_action_execution(780.0)
-    timing.add_rtc_ac_overlap(
-        RTCACOverlapRecord(
+    timing.add_ac_stream_overlap(
+        ACStreamOverlapRecord(
             inference_wall_ms=200.0,
             action_overlap_ms=150.0,
             boundary_wait_ms=50.0,
@@ -80,8 +80,8 @@ def test_global_timing_aggregates_rtc_ac_overlap_once() -> None:
             episode_end_before_boundary=False,
         )
     )
-    timing.add_rtc_ac_overlap(
-        RTCACOverlapRecord(
+    timing.add_ac_stream_overlap(
+        ACStreamOverlapRecord(
             inference_wall_ms=100.0,
             action_overlap_ms=100.0,
             boundary_wait_ms=0.0,
@@ -91,7 +91,7 @@ def test_global_timing_aggregates_rtc_ac_overlap_once() -> None:
     )
 
     summary = timing.as_dict(command_wall_ms=2500.0)
-    overlap = summary["rtc_ac_overlap"]
+    overlap = summary["ac_stream_overlap"]
 
     assert overlap == {
         "async_d8_inferences": 2,
@@ -115,7 +115,7 @@ def test_global_timing_aggregates_rtc_ac_overlap_once() -> None:
         "inference_hidden_ms_per_chunk": 125.0,
     }
     rendered = timing.format_summary(command_wall_ms=2500.0)
-    assert rendered.count("RTC-AC Async Overlap") == 1
+    assert rendered.count("AC-Stream Async Overlap") == 1
     assert "ready before chunk boundary     : 0/1 (0.00%)" in rendered
     assert "average hidden inference ratio  : 87.50%" in rendered
     assert "average effective time/chunk    : 875.00 ms" in rendered
@@ -123,13 +123,13 @@ def test_global_timing_aggregates_rtc_ac_overlap_once() -> None:
     assert "steady-state D8 inference       : mean=100.00 ms p50=100.00 ms" in rendered
 
 
-def test_rtc_ac_timing_excludes_exactly_first_background_d8_from_steady_state() -> None:
+def test_ac_stream_timing_excludes_exactly_first_background_d8_from_steady_state() -> None:
     timing = GlobalTimingSummary()
-    timing.enable_rtc_ac()
+    timing.enable_ac_stream()
     samples = [114.14, 45.38, 40.52, 41.86, 34.63]
     for sample in samples:
-        timing.add_rtc_ac_overlap(
-            RTCACOverlapRecord(
+        timing.add_ac_stream_overlap(
+            ACStreamOverlapRecord(
                 inference_wall_ms=sample,
                 action_overlap_ms=0.0,
                 boundary_wait_ms=0.0,
@@ -138,7 +138,7 @@ def test_rtc_ac_timing_excludes_exactly_first_background_d8_from_steady_state() 
             )
         )
 
-    overlap = timing.as_dict(command_wall_ms=0.0)["rtc_ac_overlap"]
+    overlap = timing.as_dict(command_wall_ms=0.0)["ac_stream_overlap"]
 
     assert overlap["average_inference_wall_ms"] == pytest.approx(sum(samples) / 5)
     assert overlap["first_background_d8_inference_ms"] == pytest.approx(114.14)
@@ -148,11 +148,11 @@ def test_rtc_ac_timing_excludes_exactly_first_background_d8_from_steady_state() 
     assert overlap["steady_state_d8_p90_ms"] == pytest.approx(44.324)
 
 
-def test_empty_rtc_ac_summary_is_safe() -> None:
+def test_empty_ac_stream_summary_is_safe() -> None:
     timing = GlobalTimingSummary()
-    timing.enable_rtc_ac()
+    timing.enable_ac_stream()
 
-    overlap = timing.as_dict(command_wall_ms=0.0)["rtc_ac_overlap"]
+    overlap = timing.as_dict(command_wall_ms=0.0)["ac_stream_overlap"]
 
     assert overlap["async_d8_inferences"] == 0
     assert overlap["average_hidden_inference_ratio"] == 0.0
@@ -211,7 +211,7 @@ def test_sync_policy_prewarms_once_per_task() -> None:
     assert prewarmed_tasks == {"suite/task0", "suite/task1"}
 
 
-def test_rtc_ac_acceleration_prewarms_d0_and_d8_once_per_task() -> None:
+def test_ac_stream_acceleration_prewarms_d0_and_d8_once_per_task() -> None:
     class FakeEnv:
         def __init__(self) -> None:
             self.reset_count = 0
@@ -230,19 +230,19 @@ def test_rtc_ac_acceleration_prewarms_d0_and_d8_once_per_task() -> None:
 
     class FakeModel:
         def __init__(self) -> None:
-            self.rtc_ac_prewarm_complete = False
+            self.ac_stream_prewarm_complete = False
             self.delays = []
 
-        def mark_rtc_ac_prewarmed(self, delay: int) -> None:
+        def mark_ac_stream_prewarmed(self, delay: int) -> None:
             self.delays.append(delay)
-            self.rtc_ac_prewarm_complete = set(self.delays) == {0, 8}
+            self.ac_stream_prewarm_complete = set(self.delays) == {0, 8}
 
     calls = []
 
     def predict(observation, previous_target, delay):
         calls.append((observation, previous_target, delay))
         model_actions = torch.full((32, 7), float(delay))
-        return RTCACPrediction(
+        return ACStreamPrediction(
             env_actions=model_actions.numpy(),
             model_actions=model_actions,
             communication_ms=1000.0,
@@ -253,7 +253,7 @@ def test_rtc_ac_acceleration_prewarms_d0_and_d8_once_per_task() -> None:
     model = FakeModel()
     prewarmed_tasks = set()
 
-    _prewarm_rtc_ac_if_needed(
+    _prewarm_ac_stream_if_needed(
         task_key="suite/task0",
         prewarmed_tasks=prewarmed_tasks,
         env=env,
@@ -263,7 +263,7 @@ def test_rtc_ac_acceleration_prewarms_d0_and_d8_once_per_task() -> None:
         predict=predict,
         accelerated=True,
     )
-    _prewarm_rtc_ac_if_needed(
+    _prewarm_ac_stream_if_needed(
         task_key="suite/task0",
         prewarmed_tasks=prewarmed_tasks,
         env=env,
@@ -273,7 +273,7 @@ def test_rtc_ac_acceleration_prewarms_d0_and_d8_once_per_task() -> None:
         predict=predict,
         accelerated=True,
     )
-    _prewarm_rtc_ac_if_needed(
+    _prewarm_ac_stream_if_needed(
         task_key="suite/task1",
         prewarmed_tasks=prewarmed_tasks,
         env=env,

@@ -66,47 +66,47 @@ def test_libero_parser_accepts_consistency_sampling() -> None:
     assert args.sampling_method == "consistency"
 
 
-def test_libero_parser_accepts_rtc_ac_sampling() -> None:
+def test_libero_parser_accepts_ac_stream_sampling() -> None:
     args = build_libero_parser().parse_args(
-        ["--config", "recipe.yaml", "--sampling-method", "rtc_ac"]
+        ["--config", "recipe.yaml", "--sampling-method", "ac-stream"]
     )
 
-    assert args.sampling_method == "rtc_ac"
+    assert args.sampling_method == "ac-stream"
 
 
-def test_libero_parser_accepts_rtc_ac_acceleration() -> None:
+def test_libero_parser_accepts_ac_stream_acceleration() -> None:
     args = build_libero_parser().parse_args(
-        ["--config", "recipe.yaml", "--rtc-ac-accelerated"]
+        ["--config", "recipe.yaml", "--ac-stream-accelerated"]
     )
 
-    assert args.rtc_ac_accelerated is True
+    assert args.ac_stream_accelerated is True
 
 
-def test_rtc_ac_acceleration_rejects_non_rtc_sampling() -> None:
+def test_ac_stream_acceleration_rejects_non_ac_stream_sampling() -> None:
     config = StreamWAMConfig()
     config.inference.sampling_method = "euler"
     args = build_libero_parser().parse_args(
-        ["--config", "recipe.yaml", "--rtc-ac-accelerated"]
+        ["--config", "recipe.yaml", "--ac-stream-accelerated"]
     )
 
-    with pytest.raises(ValueError, match="requires sampling_method='rtc_ac'"):
+    with pytest.raises(ValueError, match="requires sampling_method='ac-stream'"):
         _resolve_inference_args(config, args)
 
 
-def test_rtc_ac_acceleration_requires_cuda_device() -> None:
+def test_ac_stream_acceleration_requires_cuda_device() -> None:
     config = StreamWAMConfig()
-    config.framework.variant = "rtc_ac"
+    config.framework.variant = "ac-stream"
     config.framework.chunk_size = 32
     config.data.num_frames = 33
     config.data.action_freq_ratio = 4
-    config.inference.sampling_method = "rtc_ac"
+    config.inference.sampling_method = "ac-stream"
     config.inference.num_inference_steps = 1
     config.inference.replan_steps = 16
     args = build_libero_parser().parse_args(
         [
             "--config",
             "recipe.yaml",
-            "--rtc-ac-accelerated",
+            "--ac-stream-accelerated",
             "--device",
             "cpu",
         ]
@@ -116,20 +116,20 @@ def test_rtc_ac_acceleration_requires_cuda_device() -> None:
         _resolve_inference_args(config, args)
 
 
-def test_rtc_ac_recipe_resolves_eager_h32_s16_d8() -> None:
+def test_ac_stream_recipe_resolves_eager_h32_s16_d8() -> None:
     config = StreamWAMConfig()
-    config.framework.variant = "rtc_ac"
+    config.framework.variant = "ac-stream"
     config.framework.chunk_size = 32
     config.data.num_frames = 33
     config.data.action_freq_ratio = 4
-    config.inference.sampling_method = "rtc_ac"
+    config.inference.sampling_method = "ac-stream"
     config.inference.num_inference_steps = 1
     config.inference.replan_steps = 16
     args = build_libero_parser().parse_args(["--config", "recipe.yaml"])
 
     _resolve_inference_args(config, args)
 
-    assert args.sampling_method == "rtc_ac"
+    assert args.sampling_method == "ac-stream"
     assert args.replan_steps == 16
     assert args.num_inference_steps == 1
 
@@ -290,3 +290,61 @@ def test_robotwin_server_checkpoint_format_accepts_fastwam() -> None:
     )
 
     assert args.checkpoint_format == "fastwam"
+
+
+def test_robotwin_server_checkpoint_format_accepts_starwam() -> None:
+    args = build_robotwin_server_parser().parse_args(
+        [
+            "--config",
+            "recipe.yaml",
+            "--checkpoint",
+            "model.pt",
+            "--checkpoint-format",
+            "starwam",
+        ]
+    )
+
+    assert args.checkpoint_format == "starwam"
+
+
+def test_robotwin_server_accepts_three_inference_modes() -> None:
+    for mode in ("baseline", "cd", "ac-stream"):
+        args = build_robotwin_server_parser().parse_args(
+            [
+                "--config",
+                "recipe.yaml",
+                "--checkpoint",
+                "model.pt",
+                "--inference-mode",
+                mode,
+            ]
+        )
+        assert args.inference_mode == mode
+
+
+def test_robotwin_server_accepts_ac_stream_backend_flags() -> None:
+    accelerated = build_robotwin_server_parser().parse_args(
+        [
+            "--config",
+            "recipe.yaml",
+            "--checkpoint",
+            "model.pt",
+            "--inference-mode",
+            "ac-stream",
+            "--ac-stream-accelerated",
+        ]
+    )
+    eager = build_robotwin_server_parser().parse_args(
+        [
+            "--config",
+            "recipe.yaml",
+            "--checkpoint",
+            "model.pt",
+            "--inference-mode",
+            "ac-stream",
+            "--ac-stream-eager",
+        ]
+    )
+
+    assert accelerated.ac_stream_accelerated is True
+    assert eager.ac_stream_eager is True

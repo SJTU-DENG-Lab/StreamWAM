@@ -77,6 +77,22 @@ def _validate_consistency_inference(
         )
 
 
+def _validate_first_frame_consistency_inference(*, num_inference_steps: int) -> None:
+    if int(num_inference_steps) != 1:
+        raise ValueError("First-frame CD consistency sampling requires exactly one inference step")
+
+
+def _shifted_consistency_anchors(
+    num_steps: int,
+    shift: float,
+    device: torch.device,
+) -> Tensor:
+    if int(num_steps) < 1:
+        raise ValueError(f"consistency teacher steps must be positive, got {num_steps}")
+    unit = torch.linspace(1.0, 0.0, int(num_steps) + 1, device=device, dtype=torch.float32)
+    return float(shift) * unit / (1.0 + (float(shift) - 1.0) * unit)
+
+
 def _sample_euler_noise(
     shape: tuple[int, ...],
     *,
@@ -274,16 +290,21 @@ class MoTWAM(WAMModel):
         rand_device = kwargs.get("rand_device")
         sampling_method = normalize_sampling_method(kwargs.get("sampling_method", "euler"))
         if sampling_method == "consistency":
-            if num_video_frames is None:
-                raise ValueError("num_video_frames is required for Joint CD inference")
-            _validate_consistency_inference(
-                num_inference_steps=num_inference_steps,
-                action_video_conditioning=self.action_video_conditioning,
-                action_horizon=action_horizon,
-                configured_horizon=int(self.config.chunk_size),
-                num_video_frames=int(num_video_frames),
-                temporal_compress=int(self.backbone.get_vae().temporal_compress),
-            )
+            if self.action_video_conditioning == "first_frame":
+                _validate_first_frame_consistency_inference(
+                    num_inference_steps=num_inference_steps,
+                )
+            else:
+                if num_video_frames is None:
+                    raise ValueError("num_video_frames is required for Joint CD inference")
+                _validate_consistency_inference(
+                    num_inference_steps=num_inference_steps,
+                    action_video_conditioning=self.action_video_conditioning,
+                    action_horizon=action_horizon,
+                    configured_horizon=int(self.config.chunk_size),
+                    num_video_frames=int(num_video_frames),
+                    temporal_compress=int(self.backbone.get_vae().temporal_compress),
+                )
         if self.action_video_conditioning == "full_video":
             if num_video_frames is None:
                 raise ValueError("num_video_frames is required for full-video action inference")
@@ -320,6 +341,27 @@ class MoTWAM(WAMModel):
             device=device,
             dtype=dtype,
         )
+        if sampling_method == "consistency":
+            teacher_steps = int(kwargs.get("consistency_teacher_steps", 4))
+            sigma = _shifted_consistency_anchors(
+                teacher_steps,
+                float(self.config.action_scheduler.infer_shift),
+                device,
+            )[0]
+            timestep = (sigma * 1000.0).reshape(1).to(dtype=dtype)
+            action_state = self.action_expert.pre_dit(
+                action_latents,
+                timestep,
+                context,
+                context_mask,
+            )
+            action_out = self.mot.forward_action_with_video_cache(
+                action_state,
+                video_kv_cache,
+            )
+            velocity = self.action_expert.post_dit(action_out)
+            return action_latents.float() - sigma.float() * velocity.float()
+
         timesteps, deltas = build_inference_schedule(
             self.config.action_scheduler,
             num_inference_steps,

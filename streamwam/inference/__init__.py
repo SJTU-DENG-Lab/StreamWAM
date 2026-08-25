@@ -5,25 +5,25 @@ from streamwam.inference.consistency import (
     normalize_sampling_method,
     video_consistency_boundary,
 )
-from streamwam.inference.rtc_ac import (
-    RTCACController,
-    RTCACOverlapRecord,
-    RTCACPrediction,
-    apply_rtc_ac_hard_prefix_,
-    build_rtc_ac_prev_action_target,
-    build_rtc_ac_overlap_record,
-    validate_rtc_ac_geometry,
+from streamwam.inference.ac_stream import (
+    ACStreamController,
+    ACStreamOverlapRecord,
+    ACStreamPrediction,
+    apply_ac_stream_hard_prefix_,
+    build_ac_stream_prev_action_target,
+    build_ac_stream_overlap_record,
+    validate_ac_stream_geometry,
 )
 
 __all__ = [
     "action_consistency_boundary",
     "normalize_sampling_method",
     "video_consistency_boundary",
-    "build_rtc_ac_prev_action_target",
-    "build_rtc_ac_overlap_record",
-    "apply_rtc_ac_hard_prefix_",
-    "validate_rtc_ac_geometry",
-    "RTCACController",
-    "RTCACOverlapRecord",
-    "RTCACPrediction",
+    "build_ac_stream_prev_action_target",
+    "build_ac_stream_overlap_record",
+    "apply_ac_stream_hard_prefix_",
+    "validate_ac_stream_geometry",
+    "ACStreamController",
+    "ACStreamOverlapRecord",
+    "ACStreamPrediction",
 ]

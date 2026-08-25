@@ -14,6 +14,7 @@ from examples.libero.multigpu_rollout import (
     build_worker_command,
     merge_worker_results,
 )
+from streamwam.config import load_config
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -115,6 +116,111 @@ def test_fastwam_official_launcher_emits_baseline_protocol(tmp_path) -> None:
     assert "--save-video" in arguments
 
 
+def test_fastwam_joint_launcher_emits_synchronous_joint_protocol(tmp_path) -> None:
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    fake_python = fake_bin / "python"
+    fake_python.write_text(
+        "#!/usr/bin/env bash\nprintf '%s\\n' \"$@\"\n",
+        encoding="utf-8",
+    )
+    fake_python.chmod(0o755)
+    environment = os.environ.copy()
+    environment.update(
+        {
+            "PATH": f"{fake_bin}:{environment['PATH']}",
+            "GPU_IDS": "1,3,5,7",
+            "BACKBONE_PATH": "/models/test-wan22",
+            "LIBERO_HOME_PATH": "/datasets/test-LIBERO",
+        }
+    )
+
+    completed = subprocess.run(
+        [
+            "bash",
+            str(
+                REPO_ROOT
+                / "examples/libero/scripts/launch_streamwam_libero_fastwam_joint_4gpu.sh"
+            ),
+        ],
+        cwd=REPO_ROOT,
+        env=environment,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    arguments = completed.stdout.splitlines()
+    parsed = _build_arg_parser().parse_args(arguments[1:])
+
+    assert arguments[0] == "examples/libero/multigpu_rollout.py"
+    assert parsed.gpus == "1,3,5,7"
+    assert parsed.suites == "libero_spatial,libero_object,libero_goal,libero_10"
+    assert parsed.num_trials == 1
+    assert parsed.config == (
+        "examples/libero/configs/recipes/streamwam_libero_fastwam_joint_wan22_5b.yaml"
+    )
+    assert parsed.checkpoint_format == "fastwam"
+    assert parsed.checkpoint == "checkpoints/fastwam_joint_step_040000.pt"
+    assert parsed.stats_path == "checkpoints/fastwam_joint_dataset_stats.json"
+    assert parsed.replan_steps == 16
+    assert parsed.num_inference_steps == 10
+    assert parsed.sampling_method == "euler"
+    assert parsed.fixed_seed is True
+
+
+def test_fastwam_joint_launcher_allows_fifty_trial_override(tmp_path) -> None:
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    fake_python = fake_bin / "python"
+    fake_python.write_text(
+        "#!/usr/bin/env bash\nprintf '%s\\n' \"$@\"\n",
+        encoding="utf-8",
+    )
+    fake_python.chmod(0o755)
+    environment = os.environ.copy()
+    environment.update(
+        {
+            "PATH": f"{fake_bin}:{environment['PATH']}",
+            "BACKBONE_PATH": "/models/test-wan22",
+            "LIBERO_HOME_PATH": "/datasets/test-LIBERO",
+        }
+    )
+
+    completed = subprocess.run(
+        [
+            "bash",
+            str(
+                REPO_ROOT
+                / "examples/libero/scripts/launch_streamwam_libero_fastwam_joint_4gpu.sh"
+            ),
+            "--num-trials",
+            "50",
+        ],
+        cwd=REPO_ROOT,
+        env=environment,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    parsed = _build_arg_parser().parse_args(completed.stdout.splitlines()[1:])
+
+    assert parsed.num_trials == 50
+
+
+def test_fastwam_joint_recipe_selects_full_video_euler_inference() -> None:
+    config = load_config(
+        REPO_ROOT
+        / "examples/libero/configs/recipes/streamwam_libero_fastwam_joint_wan22_5b.yaml"
+    )
+
+    assert config.framework.action_video_conditioning == "full_video"
+    assert config.framework.chunk_size == 32
+    assert config.data.num_frames == 33
+    assert config.inference.sampling_method == "euler"
+    assert config.inference.num_inference_steps == 10
+    assert config.inference.replan_steps == 16
+
+
 def test_worker_command_isolates_visible_gpu_and_uses_local_cuda_zero(tmp_path) -> None:
     args = _build_arg_parser().parse_args(
         [
@@ -153,35 +259,35 @@ def test_worker_command_isolates_visible_gpu_and_uses_local_cuda_zero(tmp_path) 
     assert "--save-video" in command
 
 
-def test_manager_accepts_rtc_ac_sampling_method() -> None:
+def test_manager_accepts_ac_stream_sampling_method() -> None:
     args = _build_arg_parser().parse_args(
         [
             "--gpus",
             "0,1,2,3",
             "--config",
-            "rtc.yaml",
+            "ac-stream.yaml",
             "--checkpoint",
-            "rtc.pt",
+            "ac-stream.pt",
             "--sampling-method",
-            "rtc_ac",
+            "ac-stream",
         ]
     )
 
-    assert args.sampling_method == "rtc_ac"
+    assert args.sampling_method == "ac-stream"
 
 
-def test_manager_forwards_rtc_ac_acceleration_to_worker(tmp_path) -> None:
+def test_manager_forwards_ac_stream_acceleration_to_worker(tmp_path) -> None:
     args = _build_arg_parser().parse_args(
         [
             "--gpus",
             "0",
             "--config",
-            "rtc.yaml",
+            "ac-stream.yaml",
             "--checkpoint",
-            "rtc.pt",
+            "ac-stream.pt",
             "--sampling-method",
-            "rtc_ac",
-            "--rtc-ac-accelerated",
+            "ac-stream",
+            "--ac-stream-accelerated",
         ]
     )
 
@@ -193,10 +299,10 @@ def test_manager_forwards_rtc_ac_acceleration_to_worker(tmp_path) -> None:
         output_dir=tmp_path / "worker",
     )
 
-    assert "--rtc-ac-accelerated" in command
+    assert "--ac-stream-accelerated" in command
 
 
-def test_rtc_ac_launcher_forwards_acceleration_flag(tmp_path) -> None:
+def test_ac_stream_launcher_forwards_acceleration_flag(tmp_path) -> None:
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
     fake_python = fake_bin / "python"
@@ -221,9 +327,9 @@ def test_rtc_ac_launcher_forwards_acceleration_flag(tmp_path) -> None:
             "bash",
             str(
                 REPO_ROOT
-                / "examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh"
+                / "examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh"
             ),
-            "--rtc-ac-accelerated",
+            "--ac-stream-accelerated",
         ],
         cwd=REPO_ROOT,
         env=environment,
@@ -232,10 +338,10 @@ def test_rtc_ac_launcher_forwards_acceleration_flag(tmp_path) -> None:
         text=True,
     )
 
-    assert "--rtc-ac-accelerated" in completed.stdout.splitlines()
+    assert "--ac-stream-accelerated" in completed.stdout.splitlines()
 
 
-def test_rtc_ac_launcher_uses_explicit_python_bin(tmp_path) -> None:
+def test_ac_stream_launcher_uses_explicit_python_bin(tmp_path) -> None:
     invocation_log = tmp_path / "python-invocations.txt"
     selected_python = tmp_path / "selected-python"
     selected_python.write_text(
@@ -264,7 +370,7 @@ def test_rtc_ac_launcher_uses_explicit_python_bin(tmp_path) -> None:
             "bash",
             str(
                 REPO_ROOT
-                / "examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh"
+                / "examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh"
             ),
             "--help",
         ],
@@ -279,47 +385,50 @@ def test_rtc_ac_launcher_uses_explicit_python_bin(tmp_path) -> None:
     assert "examples/libero/multigpu_rollout.py" in invocations
 
 
-def test_summary_prints_accelerated_runtime_identity() -> None:
+def test_terminal_summary_keeps_results_and_only_two_timing_metrics() -> None:
     result = {
-        "total_trials": 1,
-        "total_successes": 1,
+        "total_trials": 8,
+        "total_successes": 8,
         "success_rate": 1.0,
         "timing_summary": {
-            "tasks_executed": 1,
-            "chunks_executed": 1,
-            "average_inference_ms_per_chunk": 40.0,
-            "average_communication_ms_per_chunk": 2.0,
-            "average_action_execution_ms_per_chunk": 100.0,
-            "average_total_ms_per_chunk": 142.0,
-            "average_episode_wall_ms": 1000.0,
-            "evaluation_workload_wall_ms": 1000.0,
-            "command_wall_ms": 2000.0,
+            "tasks_executed": 8,
+            "chunks_executed": 93,
+            "average_inference_ms_per_chunk": 42.73,
+            "average_communication_ms_per_chunk": 6.29,
+            "average_action_execution_ms_per_chunk": 298.21,
+            "average_total_ms_per_chunk": 347.23,
+            "average_episode_wall_ms": 4530.0,
+            "evaluation_workload_wall_ms": 36280.0,
+            "command_wall_ms": 324640.0,
+            "readme_aligned": {
+                "chunk_time_ms_mean": 42.73,
+                "long_successful_episode_s_mean": 5.74,
+                "long_successful_episode_count": 4,
+                "short_successful_episode_s_mean": 3.33,
+                "short_successful_episode_count": 4,
+            },
         },
-        "rtc_ac_acceleration": {
+        "ac_stream_acceleration": {
             "backend": "accelerated",
             "compile_active": True,
-            "dynamo_unique_graphs": 2,
-            "dynamo_recompiles": 1,
-            "inductor_cudagraph_skips": 3,
-            "prewarmed_d0": True,
-            "prewarmed_d8": True,
-            "runtime": {
-                "python_executable": "/runtime/python",
-                "python_version": "3.10.0",
-                "torch_version": "2.7.1+cu128",
-                "triton_version": "3.3.1",
-                "cuda_version": "12.8",
-            },
         },
     }
 
-    summary = _format_summary(result, ["0"])
-
-    assert "Python executable: /runtime/python" in summary
-    assert "Python/PyTorch/Triton/CUDA: 3.10.0 / 2.7.1+cu128 / 3.3.1 / 12.8" in summary
-    assert "Dynamo graphs/recompiles: 2/1" in summary
-    assert "CUDA Graph skips: 3" in summary
-    assert "WARNING: accelerated graph replay is not clean" in summary
+    assert _format_summary(
+        result,
+        ["0", "1", "2", "3"],
+        results_path="/outputs/results.json",
+    ).splitlines() == [
+        "=== Multi-GPU LIBERO Evaluation Summary ===",
+        "GPUs: 0,1,2,3",
+        "Tasks: 8",
+        "Trials: 8",
+        "Success: 8/8 (1.0000)",
+        "Chunks: 93",
+        "Chunk Time: 42.73 ms",
+        "Total Time / Episode: 4.53 s",
+        "Results: /outputs/results.json",
+    ]
 
 
 def test_merge_worker_results_weights_timing_by_chunk_and_merges_split_task(tmp_path) -> None:
@@ -407,7 +516,70 @@ def test_merge_worker_results_weights_timing_by_chunk_and_merges_split_task(tmp_
     assert timing["command_wall_ms"] == 1234.0
 
 
-def test_merge_worker_results_reconstructs_rtc_overlap_totals(tmp_path) -> None:
+def test_merge_reports_readme_aligned_successful_long_and_short_timing(tmp_path) -> None:
+    tasks = {
+        "libero_10/0": {
+            "task_suite_name": "libero_10",
+            "task_id": 0,
+            "task_description": "long task",
+            "successes": 1,
+            "trials": 2,
+            "success_rate": 0.5,
+            "episodes": [
+                {"trial": 0, "success": True, "episode_wall_ms": 5000.0},
+                {"trial": 1, "success": False, "episode_wall_ms": 9000.0},
+            ],
+        },
+        "libero_goal/0": {
+            "task_suite_name": "libero_goal",
+            "task_id": 0,
+            "task_description": "short task",
+            "successes": 2,
+            "trials": 2,
+            "success_rate": 1.0,
+            "episodes": [
+                {"trial": 0, "success": True, "episode_wall_ms": 3000.0},
+                {"trial": 1, "success": True, "episode_wall_ms": 4000.0},
+            ],
+        },
+    }
+    payload = {
+        "checkpoint": "model.pt",
+        "task_results": tasks,
+        "total_successes": 3,
+        "total_trials": 4,
+        "timing_summary": {
+            "chunks_executed": 4,
+            "average_inference_ms_per_chunk": 41.0,
+            "average_communication_ms_per_chunk": 2.0,
+            "average_action_execution_ms_per_chunk": 100.0,
+            "average_total_ms_per_chunk": 143.0,
+            "average_episode_wall_ms": 5250.0,
+            "evaluation_workload_wall_ms": 21000.0,
+        },
+    }
+    path = tmp_path / "worker.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    merged = merge_worker_results(
+        [path],
+        command_wall_ms=22000.0,
+        expected_trials=[
+            (suite, 0, trial)
+            for suite in ("libero_10", "libero_goal")
+            for trial in (0, 1)
+        ],
+    )
+
+    reference = merged["timing_summary"]["readme_aligned"]
+    assert reference["chunk_time_ms_mean"] == 41.0
+    assert reference["long_successful_episode_s_mean"] == 5.0
+    assert reference["long_successful_episode_count"] == 1
+    assert reference["short_successful_episode_s_mean"] == 3.5
+    assert reference["short_successful_episode_count"] == 2
+
+
+def test_merge_worker_results_reconstructs_ac_stream_overlap_totals(tmp_path) -> None:
     common_task = {
         "task_suite_name": "libero_goal",
         "task_id": 0,
@@ -477,7 +649,7 @@ def test_merge_worker_results_reconstructs_rtc_overlap_totals(tmp_path) -> None:
     ):
         payloads.append(
             {
-                "checkpoint": "rtc.pt",
+                "checkpoint": "ac-stream.pt",
                 "task_results": {
                     "libero_goal/0": {
                         **common_task,
@@ -486,7 +658,7 @@ def test_merge_worker_results_reconstructs_rtc_overlap_totals(tmp_path) -> None:
                 },
                 "total_successes": 1,
                 "total_trials": 1,
-                "rtc_ac_acceleration": acceleration_status,
+                "ac_stream_acceleration": acceleration_status,
                 "timing_summary": {
                     "chunks_executed": chunks,
                     "average_inference_ms_per_chunk": 100.0,
@@ -495,13 +667,13 @@ def test_merge_worker_results_reconstructs_rtc_overlap_totals(tmp_path) -> None:
                     "average_total_ms_per_chunk": 200.0,
                     "average_episode_wall_ms": 1000.0,
                     "evaluation_workload_wall_ms": 1000.0,
-                    "rtc_ac_overlap": overlap,
+                    "ac_stream_overlap": overlap,
                 },
             }
         )
     paths = []
     for index, payload in enumerate(payloads):
-        path = tmp_path / f"rtc_worker_{index}.json"
+        path = tmp_path / f"ac_stream_worker_{index}.json"
         path.write_text(json.dumps(payload), encoding="utf-8")
         paths.append(path)
 
@@ -510,9 +682,9 @@ def test_merge_worker_results_reconstructs_rtc_overlap_totals(tmp_path) -> None:
         command_wall_ms=1500.0,
         expected_trials=[("libero_goal", 0, 0), ("libero_goal", 0, 1)],
     )
-    overlap = merged["timing_summary"]["rtc_ac_overlap"]
+    overlap = merged["timing_summary"]["ac_stream_overlap"]
 
-    assert merged["rtc_ac_acceleration"] == acceleration_status
+    assert merged["ac_stream_acceleration"] == acceleration_status
     assert overlap == {
         "async_d8_inferences": 3,
         "boundary_evaluated_inferences": 3,

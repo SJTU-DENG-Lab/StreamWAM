@@ -81,7 +81,16 @@ button { font: inherit; }
 .article-section .lead { color: var(--ink); }
 .article-section h2 + .lead { margin-top: 32px; }
 .article-section p + p { margin-top: 25px; }
-.article-section blockquote { margin: 50px 0 0; padding: 26px 30px; border-left: 3px solid var(--orange); color: var(--ink); background: var(--orange-soft); font: italic clamp(1.18rem,2vw,1.45rem)/1.6 var(--serif); }
+.editorial-act { padding-block: 36px; }
+.editorial-act:first-of-type { padding-top: 10px; }
+.editorial-act + .editorial-act { padding-top: 74px; }
+.editorial-act:last-of-type { padding-bottom: clamp(105px,12vw,165px); }
+.editorial-act p { color: var(--muted); font-size: 1.09rem; line-height: 1.9; }
+.editorial-act p + p { margin-top: 27px; }
+.editorial-act .act-label { margin: 0 0 13px; color: var(--teal-deep); font-size: .69rem; font-weight: 790; letter-spacing: .17em; line-height: 1.4; text-transform: uppercase; }
+.editorial-act .act-opening { max-width: 720px; margin: 0 0 40px; color: var(--ink); font-family: var(--serif); font-size: clamp(1.65rem,2.7vw,2.25rem); line-height: 1.3; letter-spacing: -.025em; }
+.editorial-act a { color: var(--teal-deep); text-decoration-color: #89bdb2; text-underline-offset: 4px; }
+.editorial-act em, .editorial-act cite { color: var(--ink); font-family: var(--serif); }
 
 .method-figure { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: stretch; gap: 18px; margin-top: 60px; padding: clamp(25px,4vw,45px); border: 1px solid var(--line); background: var(--bg); }
 .method-figure div { min-height: 195px; display: flex; flex-direction: column; padding: 26px; border: 1px solid var(--line); background: var(--paper); }
@@ -89,15 +98,10 @@ button { font: inherit; }
 .method-figure strong { margin-top: auto; font-family: var(--serif); font-size: 1.28rem; font-weight: 500; }
 .method-figure small { margin-top: 9px; color: var(--muted); line-height: 1.5; }
 .method-figure i { align-self: center; color: var(--teal); font-size: 1.4rem; font-style: normal; }
-.method-figure figcaption, .execution-timeline figcaption { grid-column: 1/-1; margin-top: 9px; color: var(--dim); font-size: .76rem; }
-
-.execution-timeline { margin-top: 60px; padding: clamp(25px,4vw,45px); border: 1px solid var(--line); background: var(--bg); }
-.execution-timeline > div { display: grid; grid-template-columns: 130px 1.2fr .45fr 1.2fr; gap: 6px; margin-top: 7px; }
-.execution-timeline strong { display: flex; align-items: center; font: .69rem/1 ui-monospace,monospace; text-transform: uppercase; }
-.execution-timeline span { min-height: 62px; display: grid; place-items: center; padding: 10px; color: var(--teal-deep); background: var(--teal-soft); font-size: .75rem; text-align: center; }
-.execution-timeline > div:nth-child(2) span { color: var(--orange); background: var(--orange-soft); }
+.method-figure figcaption { grid-column: 1/-1; margin-top: 9px; color: var(--dim); font-size: .76rem; }
 
 .experiments { background: var(--results-bg); }
+.experiments h2, #discussion h2, #resources h2 { font-size: clamp(2.45rem,4vw,3.65rem); }
 .benchmark { margin-top: 80px; padding: clamp(28px,4vw,48px); border: 1px solid var(--line); background: var(--paper); }
 .benchmark + .benchmark { margin-top: 38px; }
 .benchmark-intro { max-width: 800px; margin: 0 auto 30px; }
@@ -153,10 +157,12 @@ tbody td { color: var(--muted); font: .79rem/1.4 ui-monospace,monospace; }
   .headline-results p { min-height: 112px; border-top: 1px solid var(--line); border-left: 0; }
   .headline-results p:first-child { border-top: 0; }
   .article-header, .article-section { padding-block: 90px; }
+  .editorial-act { padding-block: 30px; }
+  .editorial-act + .editorial-act { padding-top: 58px; }
+  .editorial-act:last-of-type { padding-bottom: 90px; }
   .article-header h2, .article-section h2 { font-size: clamp(2.55rem,12.5vw,3.8rem); }
-  .article-header > p:not(.article-label):not(.article-dek), .article-section p { font-size: 1rem; line-height: 1.78; }
-  .method-figure, .execution-timeline { padding: 20px; }
-  .execution-timeline > div { grid-template-columns: 1fr; }
+  .article-header > p:not(.article-label):not(.article-dek), .article-section p, .editorial-act p { font-size: 1rem; line-height: 1.82; }
+  .method-figure { padding: 20px; }
   .benchmark { width: 100%; border-right: 0; border-left: 0; }
   .site-footer .shell { grid-template-columns: 1fr; gap: 7px; }
 }

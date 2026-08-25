@@ -32,6 +32,11 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--gpus", required=True, help="Comma-separated physical GPU IDs, e.g. 0,1,2,3")
     parser.add_argument("--suites", default=DEFAULT_SUITES, help="Comma-separated LIBERO suites")
+    parser.add_argument(
+        "--task-ids",
+        default=None,
+        help="Optional comma-separated task IDs applied to every selected suite",
+    )
     parser.add_argument("--num-trials", type=int, default=1, help="Trials per task")
     parser.add_argument("--config", required=True)
     parser.add_argument("--checkpoint", required=True)
@@ -45,13 +50,13 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--action-num-inference-steps", type=int, default=None)
     parser.add_argument(
         "--sampling-method",
-        choices=("euler", "consistency", "rtc_ac"),
+        choices=("euler", "consistency", "ac-stream"),
         default=None,
     )
     parser.add_argument("--max-steps", type=int, default=None)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--fixed-seed", action="store_true")
-    parser.add_argument("--rtc-ac-accelerated", action="store_true")
+    parser.add_argument("--ac-stream-accelerated", action="store_true")
     parser.add_argument("--mujoco-gl", choices=("osmesa", "egl", "glfw"), default=None)
     parser.add_argument("--save-video", action="store_true")
     parser.add_argument("--override", nargs="*", default=[])
@@ -118,8 +123,8 @@ def build_worker_command(
         _append_option(command, option, value)
     if args.fixed_seed:
         command.append("--fixed-seed")
-    if args.rtc_ac_accelerated:
-        command.append("--rtc-ac-accelerated")
+    if args.ac_stream_accelerated:
+        command.append("--ac-stream-accelerated")
     if args.save_video:
         command.append("--save-video")
     if args.override:
@@ -164,7 +169,7 @@ def _merge_acceleration_reports(
     """Require one acceleration contract while retaining per-worker evidence."""
 
     if not reports:
-        raise ValueError("No RTC-AC acceleration reports were provided")
+        raise ValueError("No AC-Stream acceleration reports were provided")
     if all(report == reports[0] for report in reports[1:]):
         return reports[0]
 
@@ -184,7 +189,7 @@ def _merge_acceleration_reports(
             key: value for key, value in report.items() if key not in diagnostic_keys
         }
         if contract != expected_contract:
-            raise ValueError("Workers reported different RTC-AC acceleration contracts")
+            raise ValueError("Workers reported different AC-Stream acceleration contracts")
 
     runtime_variable_keys = {"gpu_name", "gpu_compute_capability"}
     runtimes = [dict(report.get("runtime") or {}) for report in reports]
@@ -200,7 +205,7 @@ def _merge_acceleration_reports(
             if key not in runtime_variable_keys
         }
         if comparable != expected_runtime:
-            raise ValueError("Workers reported different RTC-AC software runtimes")
+            raise ValueError("Workers reported different AC-Stream software runtimes")
 
     merged = dict(expected_contract)
     for key in (
@@ -248,11 +253,11 @@ def merge_worker_results(
     checkpoints = {result["checkpoint"] for result in worker_results}
     if len(checkpoints) != 1:
         raise ValueError(f"Workers reported different checkpoints: {sorted(checkpoints)}")
-    acceleration_reports = [result.get("rtc_ac_acceleration") for result in worker_results]
+    acceleration_reports = [result.get("ac_stream_acceleration") for result in worker_results]
     acceleration_report = None
     if any(report is not None for report in acceleration_reports):
         if not all(report is not None for report in acceleration_reports):
-            raise ValueError("Workers mixed reported and unreported RTC-AC acceleration")
+            raise ValueError("Workers mixed reported and unreported AC-Stream acceleration")
         acceleration_report = _merge_acceleration_reports(
             [report for report in acceleration_reports if report is not None]
         )
@@ -263,18 +268,18 @@ def merge_worker_results(
     total_chunks = 0
     weighted_timing = {name: 0.0 for name in TIMING_AVERAGES}
     evaluation_workload_wall_ms = 0.0
-    rtc_presence: list[bool] = []
-    rtc_async_count = 0
-    rtc_boundary_count = 0
-    rtc_ready_count = 0
-    rtc_miss_count = 0
-    rtc_inference_wall_sum_ms = 0.0
-    rtc_action_overlap_sum_ms = 0.0
-    rtc_boundary_wait_sum_ms = 0.0
-    rtc_hidden_ratio_sum = 0.0
-    rtc_hidden_per_chunk_sum_ms = 0.0
-    rtc_first_background_d8_values: list[float] = []
-    rtc_steady_state_d8_values: list[float] = []
+    ac_stream_presence: list[bool] = []
+    ac_stream_async_count = 0
+    ac_stream_boundary_count = 0
+    ac_stream_ready_count = 0
+    ac_stream_miss_count = 0
+    ac_stream_inference_wall_sum_ms = 0.0
+    ac_stream_action_overlap_sum_ms = 0.0
+    ac_stream_boundary_wait_sum_ms = 0.0
+    ac_stream_hidden_ratio_sum = 0.0
+    ac_stream_hidden_per_chunk_sum_ms = 0.0
+    ac_stream_first_background_d8_values: list[float] = []
+    ac_stream_steady_state_d8_values: list[float] = []
     actual_trial_set: set[tuple[str, int, int]] = set()
 
     for result in worker_results:
@@ -290,35 +295,35 @@ def merge_worker_results(
         total_chunks += chunks
         for name in TIMING_AVERAGES:
             weighted_timing[name] += float(worker_timing[name]) * chunks
-        worker_overlap = worker_timing.get("rtc_ac_overlap")
-        rtc_presence.append(worker_overlap is not None)
+        worker_overlap = worker_timing.get("ac_stream_overlap")
+        ac_stream_presence.append(worker_overlap is not None)
         if worker_overlap is not None:
             async_count = int(worker_overlap["async_d8_inferences"])
             boundary_count = int(worker_overlap["boundary_evaluated_inferences"])
-            rtc_async_count += async_count
-            rtc_boundary_count += boundary_count
-            rtc_ready_count += int(worker_overlap["ready_before_boundary"])
-            rtc_miss_count += int(worker_overlap["deadline_misses"])
-            rtc_inference_wall_sum_ms += (
+            ac_stream_async_count += async_count
+            ac_stream_boundary_count += boundary_count
+            ac_stream_ready_count += int(worker_overlap["ready_before_boundary"])
+            ac_stream_miss_count += int(worker_overlap["deadline_misses"])
+            ac_stream_inference_wall_sum_ms += (
                 float(worker_overlap["average_inference_wall_ms"]) * async_count
             )
-            rtc_action_overlap_sum_ms += (
+            ac_stream_action_overlap_sum_ms += (
                 float(worker_overlap["average_action_overlap_ms"]) * async_count
             )
-            rtc_boundary_wait_sum_ms += (
+            ac_stream_boundary_wait_sum_ms += (
                 float(worker_overlap["average_boundary_wait_ms"]) * boundary_count
             )
-            rtc_hidden_ratio_sum += (
+            ac_stream_hidden_ratio_sum += (
                 float(worker_overlap["average_hidden_inference_ratio"]) * async_count
             )
-            rtc_hidden_per_chunk_sum_ms += (
+            ac_stream_hidden_per_chunk_sum_ms += (
                 float(worker_overlap["inference_hidden_ms_per_chunk"]) * chunks
             )
             if int(worker_overlap.get("first_background_d8_inference_count", 0)):
-                rtc_first_background_d8_values.append(
+                ac_stream_first_background_d8_values.append(
                     float(worker_overlap["first_background_d8_inference_ms"])
                 )
-            rtc_steady_state_d8_values.extend(
+            ac_stream_steady_state_d8_values.extend(
                 float(value)
                 for value in worker_overlap.get(
                     "steady_state_d8_inference_ms_values", []
@@ -367,8 +372,8 @@ def merge_worker_results(
         if unexpected:
             details.append(f"unexpected={sorted(unexpected)[:5]}")
         raise ValueError("Worker results do not match manifests: " + " ".join(details))
-    if any(rtc_presence) and not all(rtc_presence):
-        raise ValueError("Workers mixed RTC-AC and non-RTC timing summaries")
+    if any(ac_stream_presence) and not all(ac_stream_presence):
+        raise ValueError("Workers mixed AC-Stream and non-AC-Stream timing summaries")
 
     for task_key, task in merged_tasks.items():
         trial_ids = [int(episode["trial"]) for episode in task["episodes"]]
@@ -389,63 +394,90 @@ def merge_worker_results(
     )
     timing_summary["evaluation_workload_wall_ms"] = evaluation_workload_wall_ms
     timing_summary["command_wall_ms"] = float(command_wall_ms)
-    if rtc_presence and all(rtc_presence):
-        arithmetic_total_ms = weighted_timing["average_total_ms_per_chunk"]
-        timing_summary["rtc_ac_overlap"] = {
-            "async_d8_inferences": rtc_async_count,
-            "boundary_evaluated_inferences": rtc_boundary_count,
-            "ready_before_boundary": rtc_ready_count,
-            "ready_before_boundary_rate": (
-                rtc_ready_count / rtc_boundary_count if rtc_boundary_count else 0.0
+    successful_episode_ms: dict[str, list[float]] = {
+        "libero_10": [],
+        "libero_goal": [],
+    }
+    for task in merged_tasks.values():
+        suite_name = str(task["task_suite_name"])
+        if suite_name not in successful_episode_ms:
+            continue
+        successful_episode_ms[suite_name].extend(
+            float(episode["episode_wall_ms"])
+            for episode in task["episodes"]
+            if bool(episode["success"]) and "episode_wall_ms" in episode
+        )
+    if any(successful_episode_ms.values()):
+        long_values = successful_episode_ms["libero_10"]
+        short_values = successful_episode_ms["libero_goal"]
+        timing_summary["readme_aligned"] = {
+            "chunk_time_ms_mean": timing_summary["average_inference_ms_per_chunk"],
+            "long_successful_episode_s_mean": (
+                sum(long_values) / len(long_values) / 1000.0 if long_values else 0.0
             ),
-            "deadline_misses": rtc_miss_count,
+            "long_successful_episode_count": len(long_values),
+            "short_successful_episode_s_mean": (
+                sum(short_values) / len(short_values) / 1000.0 if short_values else 0.0
+            ),
+            "short_successful_episode_count": len(short_values),
+        }
+    if ac_stream_presence and all(ac_stream_presence):
+        arithmetic_total_ms = weighted_timing["average_total_ms_per_chunk"]
+        timing_summary["ac_stream_overlap"] = {
+            "async_d8_inferences": ac_stream_async_count,
+            "boundary_evaluated_inferences": ac_stream_boundary_count,
+            "ready_before_boundary": ac_stream_ready_count,
+            "ready_before_boundary_rate": (
+                ac_stream_ready_count / ac_stream_boundary_count if ac_stream_boundary_count else 0.0
+            ),
+            "deadline_misses": ac_stream_miss_count,
             "deadline_miss_rate": (
-                rtc_miss_count / rtc_boundary_count if rtc_boundary_count else 0.0
+                ac_stream_miss_count / ac_stream_boundary_count if ac_stream_boundary_count else 0.0
             ),
             "average_inference_wall_ms": (
-                rtc_inference_wall_sum_ms / rtc_async_count if rtc_async_count else 0.0
+                ac_stream_inference_wall_sum_ms / ac_stream_async_count if ac_stream_async_count else 0.0
             ),
             "first_background_d8_inference_ms": (
-                sum(rtc_first_background_d8_values)
-                / len(rtc_first_background_d8_values)
-                if rtc_first_background_d8_values
+                sum(ac_stream_first_background_d8_values)
+                / len(ac_stream_first_background_d8_values)
+                if ac_stream_first_background_d8_values
                 else 0.0
             ),
             "first_background_d8_inference_count": len(
-                rtc_first_background_d8_values
+                ac_stream_first_background_d8_values
             ),
-            "steady_state_d8_count": len(rtc_steady_state_d8_values),
+            "steady_state_d8_count": len(ac_stream_steady_state_d8_values),
             "steady_state_d8_mean_ms": (
-                sum(rtc_steady_state_d8_values) / len(rtc_steady_state_d8_values)
-                if rtc_steady_state_d8_values
+                sum(ac_stream_steady_state_d8_values) / len(ac_stream_steady_state_d8_values)
+                if ac_stream_steady_state_d8_values
                 else 0.0
             ),
             "steady_state_d8_p50_ms": _percentile(
-                rtc_steady_state_d8_values, 50
+                ac_stream_steady_state_d8_values, 50
             ),
             "steady_state_d8_p90_ms": _percentile(
-                rtc_steady_state_d8_values, 90
+                ac_stream_steady_state_d8_values, 90
             ),
-            "steady_state_d8_inference_ms_values": rtc_steady_state_d8_values,
+            "steady_state_d8_inference_ms_values": ac_stream_steady_state_d8_values,
             "average_action_overlap_ms": (
-                rtc_action_overlap_sum_ms / rtc_async_count if rtc_async_count else 0.0
+                ac_stream_action_overlap_sum_ms / ac_stream_async_count if ac_stream_async_count else 0.0
             ),
             "average_boundary_wait_ms": (
-                rtc_boundary_wait_sum_ms / rtc_boundary_count
-                if rtc_boundary_count
+                ac_stream_boundary_wait_sum_ms / ac_stream_boundary_count
+                if ac_stream_boundary_count
                 else 0.0
             ),
             "average_hidden_inference_ratio": (
-                rtc_hidden_ratio_sum / rtc_async_count if rtc_async_count else 0.0
+                ac_stream_hidden_ratio_sum / ac_stream_async_count if ac_stream_async_count else 0.0
             ),
             "average_effective_total_ms_per_chunk": (
-                max(0.0, arithmetic_total_ms - rtc_hidden_per_chunk_sum_ms)
+                max(0.0, arithmetic_total_ms - ac_stream_hidden_per_chunk_sum_ms)
                 / total_chunks
                 if total_chunks
                 else 0.0
             ),
             "inference_hidden_ms_per_chunk": (
-                rtc_hidden_per_chunk_sum_ms / total_chunks if total_chunks else 0.0
+                ac_stream_hidden_per_chunk_sum_ms / total_chunks if total_chunks else 0.0
             ),
         }
 
@@ -461,98 +493,31 @@ def merge_worker_results(
         "timing_summary": timing_summary,
     }
     if acceleration_report is not None:
-        merged_result["rtc_ac_acceleration"] = acceleration_report
+        merged_result["ac_stream_acceleration"] = acceleration_report
     return merged_result
 
 
-def _format_summary(result: dict[str, Any], gpus: Sequence[str]) -> str:
+def _format_summary(
+    result: dict[str, Any],
+    gpus: Sequence[str],
+    *,
+    results_path: str | Path | None = None,
+) -> str:
     timing = result["timing_summary"]
     lines = [
-            "=== Multi-GPU LIBERO Evaluation Summary ===",
-            f"GPUs: {','.join(gpus)}",
-            f"Tasks: {timing['tasks_executed']}",
-            f"Trials: {result['total_trials']}",
-            f"Success: {result['total_successes']}/{result['total_trials']} ({result['success_rate']:.4f})",
-            f"Chunks: {timing['chunks_executed']}",
-            f"Average model inference / chunk: {timing['average_inference_ms_per_chunk']:.2f} ms",
-            f"Average communication / chunk: {timing['average_communication_ms_per_chunk']:.2f} ms",
-            f"Average action execution / chunk: {timing['average_action_execution_ms_per_chunk']:.2f} ms",
-            f"Average total / chunk: {timing['average_total_ms_per_chunk']:.2f} ms",
-            f"Average episode wall time: {timing['average_episode_wall_ms'] / 1000.0:.2f} s",
-            f"Evaluation workload wall time: {timing['evaluation_workload_wall_ms'] / 1000.0:.2f} s",
-            f"Command wall time: {timing['command_wall_ms'] / 1000.0:.2f} s",
-        ]
-    overlap = timing.get("rtc_ac_overlap")
-    acceleration = result.get("rtc_ac_acceleration")
-    if acceleration is not None:
-        runtime = acceleration.get("runtime")
-        unique_graphs = acceleration.get("dynamo_unique_graphs")
-        recompiles = acceleration.get("dynamo_recompiles")
-        cudagraph_skips = acceleration.get("inductor_cudagraph_skips")
-        lines.extend(
-            [
-                "=== RTC-AC Backend ===",
-                f"Backend: {acceleration['backend']}",
-                f"Compile active: {bool(acceleration.get('compile_active', False))}",
-                f"D0/D8 prewarmed: {bool(acceleration.get('prewarmed_d0', False))}/"
-                f"{bool(acceleration.get('prewarmed_d8', False))}",
-            ]
-        )
-        if unique_graphs is not None or recompiles is not None:
-            lines.append(
-                "Dynamo graphs/recompiles: "
-                f"{unique_graphs if unique_graphs is not None else 'unknown'}/"
-                f"{recompiles if recompiles is not None else 'unknown'}"
-            )
-        if cudagraph_skips is not None:
-            lines.append(f"CUDA Graph skips: {cudagraph_skips}")
-        if int(recompiles or 0) > 0 or int(cudagraph_skips or 0) > 0:
-            lines.append("WARNING: accelerated graph replay is not clean")
-        if isinstance(runtime, dict):
-            lines.extend(
-                [
-                    f"Python executable: {runtime.get('python_executable')}",
-                    "Python/PyTorch/Triton/CUDA: "
-                    f"{runtime.get('python_version')} / "
-                    f"{runtime.get('torch_version')} / "
-                    f"{runtime.get('triton_version')} / "
-                    f"{runtime.get('cuda_version')}",
-                ]
-            )
-    if overlap is not None:
-        boundary_count = overlap["boundary_evaluated_inferences"]
-        lines.extend(
-            [
-                "=== RTC-AC Async Overlap ===",
-                f"Async D8 inferences: {overlap['async_d8_inferences']}",
-                "Ready before chunk boundary: "
-                f"{overlap['ready_before_boundary']}/{boundary_count} "
-                f"({overlap['ready_before_boundary_rate'] * 100.0:.2f}%)",
-                "Average D8 inference wall time: "
-                f"{overlap['average_inference_wall_ms']:.2f} ms",
-                "First background D8 inference: "
-                f"{overlap['first_background_d8_inference_ms']:.2f} ms "
-                f"(workers={overlap['first_background_d8_inference_count']})",
-                "Steady-state D8 inference: "
-                f"mean={overlap['steady_state_d8_mean_ms']:.2f} ms "
-                f"p50={overlap['steady_state_d8_p50_ms']:.2f} ms "
-                f"p90={overlap['steady_state_d8_p90_ms']:.2f} ms "
-                f"(n={overlap['steady_state_d8_count']})",
-                "Average action overlap time: "
-                f"{overlap['average_action_overlap_ms']:.2f} ms",
-                "Average boundary wait time: "
-                f"{overlap['average_boundary_wait_ms']:.2f} ms",
-                "Average hidden inference ratio: "
-                f"{overlap['average_hidden_inference_ratio'] * 100.0:.2f}%",
-                "Deadline misses: "
-                f"{overlap['deadline_misses']}/{boundary_count} "
-                f"({overlap['deadline_miss_rate'] * 100.0:.2f}%)",
-                "Average effective time / chunk: "
-                f"{overlap['average_effective_total_ms_per_chunk']:.2f} ms",
-                "Inference hidden by actions / chunk: "
-                f"{overlap['inference_hidden_ms_per_chunk']:.2f} ms",
-            ]
-        )
+        "=== Multi-GPU LIBERO Evaluation Summary ===",
+        f"GPUs: {','.join(gpus)}",
+        f"Tasks: {timing['tasks_executed']}",
+        f"Trials: {result['total_trials']}",
+        "Success: "
+        f"{result['total_successes']}/{result['total_trials']} "
+        f"({result['success_rate']:.4f})",
+        f"Chunks: {timing['chunks_executed']}",
+        f"Chunk Time: {timing['average_inference_ms_per_chunk']:.2f} ms",
+        f"Total Time / Episode: {timing['average_episode_wall_ms'] / 1000.0:.2f} s",
+    ]
+    if results_path is not None:
+        lines.append(f"Results: {results_path}")
     return "\n".join(lines)
 
 
@@ -572,10 +537,16 @@ def main() -> None:
     args = _build_arg_parser().parse_args()
     gpus = _split_csv(args.gpus, "--gpus")
     suites = _split_csv(args.suites, "--suites")
+    task_ids = (
+        [int(task_id) for task_id in _split_csv(args.task_ids, "--task-ids")]
+        if args.task_ids is not None
+        else None
+    )
     manifests = build_worker_manifests(
         suites=suites,
         num_trials=args.num_trials,
         gpus=gpus,
+        task_ids=task_ids,
     )
     timestamp = time.strftime("%Y%m%d_%H%M%S") + f"_{time.time_ns() % 1_000_000_000:09d}"
     output_dir = Path(args.output_dir or f"outputs/libero_multigpu_{timestamp}").resolve()
@@ -583,6 +554,7 @@ def main() -> None:
     assignment_payload = {
         "gpus": gpus,
         "suites": suites,
+        "task_ids": task_ids,
         "num_trials_per_task": args.num_trials,
         "total_workload_size": sum(item["workload_size"] for item in manifests),
         "workers": manifests,
@@ -667,8 +639,13 @@ def main() -> None:
     result["num_workers"] = len(gpus)
     result["assignments_file"] = str(output_dir / "assignments.json")
     _write_json_atomic(output_dir / "results.json", result)
-    print(_format_summary(result, gpus))
-    print(f"Results: {output_dir / 'results.json'}")
+    print(
+        _format_summary(
+            result,
+            gpus,
+            results_path=output_dir / "results.json",
+        )
+    )
 
 
 if __name__ == "__main__":

@@ -58,6 +58,34 @@ def test_single_trial_workers_mix_suites_for_runtime_balance() -> None:
         assert assigned_suites == set(suites)
 
 
+def test_explicit_task_ids_are_applied_to_each_suite() -> None:
+    manifests = build_worker_manifests(
+        suites=["libero_10", "libero_goal"],
+        num_trials=1,
+        gpus=["0", "1", "2", "3"],
+        task_ids=[0, 1, 2, 3],
+    )
+
+    assigned = [trial for manifest in manifests for trial in iter_manifest_trials(manifest)]
+
+    assert [manifest["workload_size"] for manifest in manifests] == [2, 2, 2, 2]
+    assert set(assigned) == {
+        (suite, task_id, 0)
+        for suite in ("libero_10", "libero_goal")
+        for task_id in range(4)
+    }
+
+
+def test_task_id_outside_selected_suite_is_rejected() -> None:
+    with pytest.raises(ValueError, match="Task IDs out of range"):
+        build_worker_manifests(
+            suites=["libero_goal"],
+            num_trials=1,
+            gpus=["0"],
+            task_ids=[10],
+        )
+
+
 def test_duplicate_gpu_ids_are_rejected() -> None:
     with pytest.raises(ValueError, match="unique"):
         build_worker_manifests(

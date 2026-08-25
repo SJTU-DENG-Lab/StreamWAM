@@ -31,10 +31,10 @@ from streamwam.data.lerobot import (  # noqa: E402
 )
 from streamwam.utils.config_cli import apply_overrides  # noqa: E402
 from streamwam.inference import (  # noqa: E402
-    RTCACController,
-    RTCACPrediction,
+    ACStreamController,
+    ACStreamPrediction,
     normalize_sampling_method,
-    validate_rtc_ac_geometry,
+    validate_ac_stream_geometry,
 )
 from examples.libero.timing import GlobalTimingSummary  # noqa: E402
 from examples.libero.workload import load_worker_manifest  # noqa: E402
@@ -61,7 +61,7 @@ ContextMemoryCache = dict[
 
 
 def _new_context_memory_cache(*, accelerated: bool) -> ContextMemoryCache | None:
-    """Keep the GPU-resident prompt cache exclusive to accelerated RTC-AC."""
+    """Keep the GPU-resident prompt cache exclusive to accelerated AC-Stream."""
 
     return {} if accelerated else None
 
@@ -473,30 +473,30 @@ def _resolve_inference_args(config: Any, args: argparse.Namespace) -> None:
     args.sampling_method = normalize_sampling_method(args.sampling_method)
     if args.replan_steps is None:
         args.replan_steps = int(getattr(config.inference, "replan_steps", 5))
-    if args.rtc_ac_accelerated and args.sampling_method != "rtc_ac":
+    if args.ac_stream_accelerated and args.sampling_method != "ac-stream":
         raise ValueError(
-            "--rtc-ac-accelerated requires sampling_method='rtc_ac'"
+            "--ac-stream-accelerated requires sampling_method='ac-stream'"
         )
-    if args.rtc_ac_accelerated and not str(args.device).startswith("cuda"):
-        raise ValueError("--rtc-ac-accelerated requires a CUDA device")
+    if args.ac_stream_accelerated and not str(args.device).startswith("cuda"):
+        raise ValueError("--ac-stream-accelerated requires a CUDA device")
     if args.sampling_method == "consistency" and args.replan_steps != 16:
         raise ValueError(
             f"Joint CD consistency rollout requires replan_steps=16, got {args.replan_steps}"
         )
-    if args.sampling_method == "rtc_ac":
-        if str(getattr(config.framework, "variant", "standard")) != "rtc_ac":
-            raise ValueError("sampling_method='rtc_ac' requires framework.variant='rtc_ac'")
-        backend = str(getattr(config.inference, "rtc_ac_backend", "eager")).strip().lower()
+    if args.sampling_method == "ac-stream":
+        if str(getattr(config.framework, "variant", "standard")) != "ac-stream":
+            raise ValueError("sampling_method='ac-stream' requires framework.variant='ac-stream'")
+        backend = str(getattr(config.inference, "ac_stream_backend", "eager")).strip().lower()
         if backend != "eager":
             raise ValueError(
-                f"This RTC-AC phase supports rtc_ac_backend='eager', got {backend!r}"
+                f"This AC-Stream phase supports ac_stream_backend='eager', got {backend!r}"
             )
-        validate_rtc_ac_geometry(
+        validate_ac_stream_geometry(
             action_horizon=int(config.framework.chunk_size),
-            stride=int(getattr(config.inference, "rtc_ac_stride", 16)),
-            delay=int(getattr(config.inference, "rtc_ac_delay", 8)),
+            stride=int(getattr(config.inference, "ac_stream_stride", 16)),
+            delay=int(getattr(config.inference, "ac_stream_delay", 8)),
             launch_after_steps=int(
-                getattr(config.inference, "rtc_ac_launch_after_steps", 8)
+                getattr(config.inference, "ac_stream_launch_after_steps", 8)
             ),
             num_video_frames=_sampled_video_frame_count(config),
             temporal_compress=4,
@@ -504,7 +504,7 @@ def _resolve_inference_args(config: Any, args: argparse.Namespace) -> None:
         )
         if args.replan_steps != 16:
             raise ValueError(
-                f"RTC-AC requires replan_steps=16, got {args.replan_steps}"
+                f"AC-Stream requires replan_steps=16, got {args.replan_steps}"
             )
     if not _uses_decoupled_action_steps(config):
         args.action_num_inference_steps = args.num_inference_steps
@@ -525,8 +525,8 @@ def _predict_action_chunk(
     sampling_method: str,
     checkpoint_format: str,
     seed: int | None,
-    rtc_prev_action_chunk: torch.Tensor | None = None,
-    rtc_inference_delay: int = 0,
+    ac_stream_prev_action_chunk: torch.Tensor | None = None,
+    ac_stream_inference_delay: int = 0,
     context_memory_cache: ContextMemoryCache | None = None,
 ) -> tuple[
     np.ndarray,
@@ -573,17 +573,17 @@ def _predict_action_chunk(
         infer_kwargs["rand_device"] = "cpu"
     if _uses_decoupled_action_steps(config):
         infer_kwargs["action_num_inference_steps"] = action_num_inference_steps
-    if sampling_method == "rtc_ac":
+    if sampling_method == "ac-stream":
         infer_kwargs.update(
             {
-                "rtc_prev_action_chunk": rtc_prev_action_chunk,
-                "rtc_inference_delay": int(rtc_inference_delay),
-                "rtc_ac_stride": int(getattr(config.inference, "rtc_ac_stride", 16)),
-                "rtc_ac_delay": int(getattr(config.inference, "rtc_ac_delay", 8)),
-                "rtc_ac_launch_after_steps": int(
-                    getattr(config.inference, "rtc_ac_launch_after_steps", 8)
+                "ac_stream_prev_action_chunk": ac_stream_prev_action_chunk,
+                "ac_stream_inference_delay": int(ac_stream_inference_delay),
+                "ac_stream_stride": int(getattr(config.inference, "ac_stream_stride", 16)),
+                "ac_stream_delay": int(getattr(config.inference, "ac_stream_delay", 8)),
+                "ac_stream_launch_after_steps": int(
+                    getattr(config.inference, "ac_stream_launch_after_steps", 8)
                 ),
-                "rtc_ac_context_key": task_description,
+                "ac_stream_context_key": task_description,
             }
         )
 
@@ -745,7 +745,7 @@ def _prewarm_sync_if_needed(
     prewarmed_tasks.add(task_key)
 
 
-def _prewarm_rtc_ac_if_needed(
+def _prewarm_ac_stream_if_needed(
     *,
     task_key: str,
     prewarmed_tasks: set[str],
@@ -753,7 +753,7 @@ def _prewarm_rtc_ac_if_needed(
     initial_state: Any,
     num_steps_wait: int,
     model: torch.nn.Module,
-    predict: Callable[[Any, torch.Tensor | None, int], RTCACPrediction],
+    predict: Callable[[Any, torch.Tensor | None, int], ACStreamPrediction],
     accelerated: bool,
 ) -> None:
     """Prepare task-specific D0/D8 paths without entering evaluation timing."""
@@ -768,17 +768,17 @@ def _prewarm_rtc_ac_if_needed(
             break
     d0 = predict(observation, None, 0)
     mark_prewarmed = accelerated and not bool(
-        getattr(model, "rtc_ac_prewarm_complete", False)
+        getattr(model, "ac_stream_prewarm_complete", False)
     )
     if mark_prewarmed:
-        model.mark_rtc_ac_prewarmed(0)
+        model.mark_ac_stream_prewarmed(0)
     predict(observation, d0.model_actions, 8)
     if mark_prewarmed:
-        model.mark_rtc_ac_prewarmed(8)
+        model.mark_ac_stream_prewarmed(8)
     prewarmed_tasks.add(task_key)
 
 
-def _rollout_rtc_ac_episode(
+def _rollout_ac_stream_episode(
     env: Any,
     initial_state: Any,
     task_description: str,
@@ -796,12 +796,12 @@ def _rollout_rtc_ac_episode(
     timing: GlobalTimingSummary,
     task_suite_name: str,
 ) -> tuple[bool, list[np.ndarray]]:
-    """Run the H32/s16/d8 RTC-AC controller against one LIBERO episode."""
+    """Run the H32/s16/d8 AC-Stream controller against one LIBERO episode."""
 
     frames: list[np.ndarray] = []
     done = False
     active_chunk = None
-    controller: RTCACController | None = None
+    controller: ACStreamController | None = None
     max_steps = int(args.max_steps or _max_steps(task_suite_name))
     inference_seed = (
         args.seed
@@ -813,7 +813,7 @@ def _rollout_rtc_ac_episode(
         observation: Any,
         previous_target: torch.Tensor | None,
         delay: int,
-    ) -> RTCACPrediction:
+    ) -> ACStreamPrediction:
         (
             env_actions,
             model_actions,
@@ -834,14 +834,14 @@ def _rollout_rtc_ac_episode(
             dtype=dtype,
             num_inference_steps=args.num_inference_steps,
             action_num_inference_steps=args.action_num_inference_steps,
-            sampling_method="rtc_ac",
+            sampling_method="ac-stream",
             checkpoint_format=args.checkpoint_format,
             seed=inference_seed,
-            rtc_prev_action_chunk=previous_target,
-            rtc_inference_delay=delay,
+            ac_stream_prev_action_chunk=previous_target,
+            ac_stream_inference_delay=delay,
             context_memory_cache=context_memory_cache,
         )
-        return RTCACPrediction(
+        return ACStreamPrediction(
             env_actions=env_actions,
             model_actions=model_actions,
             communication_ms=communication_ms,
@@ -851,7 +851,7 @@ def _rollout_rtc_ac_episode(
         )
 
     if args.checkpoint_format == "fastwam":
-        _prewarm_rtc_ac_if_needed(
+        _prewarm_ac_stream_if_needed(
             task_key=f"{task_suite_name}/{task_description}",
             prewarmed_tasks=prewarmed_tasks,
             env=env,
@@ -859,7 +859,7 @@ def _rollout_rtc_ac_episode(
             num_steps_wait=args.num_steps_wait,
             model=model,
             predict=predict,
-            accelerated=args.rtc_ac_accelerated,
+            accelerated=args.ac_stream_accelerated,
         )
     env.reset()
     obs = env.set_init_state(initial_state)
@@ -873,24 +873,24 @@ def _rollout_rtc_ac_episode(
 
             frames.append(_obs_to_images(obs, config)["concat"])
             if controller is None:
-                controller = RTCACController(
+                controller = ACStreamController(
                     predict,
                     block_on_miss=bool(
-                        getattr(config.inference, "rtc_ac_block_on_miss", True)
+                        getattr(config.inference, "ac_stream_block_on_miss", True)
                     ),
                 )
                 controller.start_episode(obs)
 
             action = controller.next_action(obs)
             for record in controller.pop_overlap_records():
-                timing.add_rtc_ac_overlap(record)
+                timing.add_ac_stream_overlap(record)
             for prediction in controller.pop_installed_predictions():
                 active_chunk = timing.add_chunk(
                     communication_ms=prediction.communication_ms,
                     inference_ms=prediction.inference_ms,
                 )
             if active_chunk is None:
-                raise RuntimeError("RTC-AC action execution has no installed chunk")
+                raise RuntimeError("AC-Stream action execution has no installed chunk")
             action_execution_start = time.perf_counter_ns()
             obs, _, done, _ = env.step(action.tolist())
             action_execution_completed = time.perf_counter_ns()
@@ -913,7 +913,7 @@ def _rollout_rtc_ac_episode(
                     inference_ms=pending_prediction.inference_ms,
                 )
             for record in controller.pop_overlap_records():
-                timing.add_rtc_ac_overlap(record)
+                timing.add_ac_stream_overlap(record)
     timing.add_episode_wall((episode_completed_ns - episode_start_ns) / 1e6)
     return bool(done), frames
 
@@ -951,7 +951,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--action-num-inference-steps", type=int, default=None)
     parser.add_argument(
         "--sampling-method",
-        choices=("euler", "consistency", "rtc_ac"),
+        choices=("euler", "consistency", "ac-stream"),
         default=None,
         help="Denoising update rule; defaults to inference.sampling_method from the recipe.",
     )
@@ -959,9 +959,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--fixed-seed", action="store_true", help="Use the same diffusion seed for every episode")
     parser.add_argument(
-        "--rtc-ac-accelerated",
+        "--ac-stream-accelerated",
         action="store_true",
-        help="Enable strict compiled/cached RTC-AC inference with D0/D8 prewarm.",
+        help="Enable strict compiled/cached AC-Stream inference with D0/D8 prewarm.",
     )
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--save-video", action="store_true")
@@ -1030,8 +1030,8 @@ def main() -> None:
         dtype = torch.float32
 
     _resolve_inference_args(config, args)
-    if args.sampling_method == "rtc_ac":
-        timing.enable_rtc_ac()
+    if args.sampling_method == "ac-stream":
+        timing.enable_ac_stream()
 
     logger.info("Config: %s", args.config)
     logger.info("Checkpoint: %s", checkpoint)
@@ -1053,16 +1053,16 @@ def main() -> None:
     meta = load_inference_checkpoint(model, checkpoint, checkpoint_format=args.checkpoint_format)
     model.eval()
     logger.info("Loaded checkpoint metadata: %s", meta)
-    if args.rtc_ac_accelerated:
-        enable_acceleration = getattr(model, "enable_rtc_ac_acceleration", None)
+    if args.ac_stream_accelerated:
+        enable_acceleration = getattr(model, "enable_ac_stream_acceleration", None)
         if not callable(enable_acceleration):
-            raise TypeError("Selected model does not support RTC-AC acceleration")
+            raise TypeError("Selected model does not support AC-Stream acceleration")
         enable_acceleration()
-        logger.info("RTC-AC acceleration enabled; D0/D8 prewarm pending")
+        logger.info("AC-Stream acceleration enabled; D0/D8 prewarm pending")
 
     task_cache = _build_task_cache_index(config)
     context_memory_cache = _new_context_memory_cache(
-        accelerated=args.rtc_ac_accelerated,
+        accelerated=args.ac_stream_accelerated,
     )
     prewarmed_tasks: set[str] = set()
     logger.info("Loaded %d task text embeddings from recipe dataset dirs", len(task_cache))
@@ -1121,10 +1121,11 @@ def main() -> None:
                         f"only {len(initial_states)} initial states exist"
                     )
                 rollout_episode = (
-                    _rollout_rtc_ac_episode
-                    if args.sampling_method == "rtc_ac"
+                    _rollout_ac_stream_episode
+                    if args.sampling_method == "ac-stream"
                     else _rollout_episode
                 )
+                episode_wall_count = len(timing.episode_wall_ms)
                 success, frames = rollout_episode(
                     env=env,
                     initial_state=initial_states[trial_idx],
@@ -1143,11 +1144,18 @@ def main() -> None:
                     timing=timing,
                     task_suite_name=task_suite_name,
                 )
+                if len(timing.episode_wall_ms) != episode_wall_count + 1:
+                    raise RuntimeError("Rollout did not record exactly one episode wall time")
+                episode_wall_ms = timing.episode_wall_ms[-1]
                 timing.trial_count += 1
                 task_success += int(success)
                 total_success += int(success)
                 total_trials += 1
-                record = {"trial": trial_idx, "success": bool(success)}
+                record = {
+                    "trial": trial_idx,
+                    "success": bool(success),
+                    "episode_wall_ms": episode_wall_ms,
+                }
                 task_records.append(record)
                 logger.info("Task %d trial %d success=%s", task_id, trial_idx, success)
                 if args.save_video:
@@ -1183,21 +1191,21 @@ def main() -> None:
     all_results["total_successes"] = total_success
     all_results["total_trials"] = total_trials
     all_results["success_rate"] = total_success / max(total_trials, 1)
-    if args.sampling_method == "rtc_ac":
-        status_fn = getattr(model, "rtc_ac_acceleration_status", None)
+    if args.sampling_method == "ac-stream":
+        status_fn = getattr(model, "ac_stream_acceleration_status", None)
         if not callable(status_fn):
-            raise TypeError("RTC-AC model does not expose acceleration status")
+            raise TypeError("AC-Stream model does not expose acceleration status")
         acceleration_status = status_fn()
-        if args.rtc_ac_accelerated and not (
+        if args.ac_stream_accelerated and not (
             acceleration_status.get("compile_active")
             and acceleration_status.get("prewarmed_d0")
             and acceleration_status.get("prewarmed_d8")
         ):
             raise RuntimeError(
-                "RTC-AC accelerated evaluation ended without active compile "
+                "AC-Stream accelerated evaluation ended without active compile "
                 f"and complete D0/D8 prewarm: {acceleration_status}"
             )
-        all_results["rtc_ac_acceleration"] = acceleration_status
+        all_results["ac_stream_acceleration"] = acceleration_status
     command_wall_ms = (time.perf_counter_ns() - command_start) / 1e6
     all_results["timing_summary"] = timing.as_dict(command_wall_ms=command_wall_ms)
     result_path = output_dir / "results.json"
@@ -1206,10 +1214,10 @@ def main() -> None:
     logger.info("Total success_rate=%.4f (%d/%d)", all_results["success_rate"], total_success, total_trials)
     logger.info("Saved rollout results to %s", result_path)
     if not args.suppress_final_summary:
-        if "rtc_ac_acceleration" in all_results:
+        if "ac_stream_acceleration" in all_results:
             logger.info(
-                "RTC-AC acceleration: %s",
-                all_results["rtc_ac_acceleration"],
+                "AC-Stream acceleration: %s",
+                all_results["ac_stream_acceleration"],
             )
         logger.info("\n%s", timing.format_summary(command_wall_ms=command_wall_ms))
 

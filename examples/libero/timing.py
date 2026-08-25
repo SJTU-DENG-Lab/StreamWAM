@@ -20,7 +20,7 @@ from typing import Any
 
 import numpy as np
 
-from streamwam.inference.rtc_ac import RTCACOverlapRecord
+from streamwam.inference.ac_stream import ACStreamOverlapRecord
 
 
 @dataclass
@@ -42,17 +42,17 @@ class GlobalTimingSummary:
     task_count: int = 0
     trial_count: int = 0
     chunks: list[ChunkTiming] = field(default_factory=list)
-    rtc_ac_enabled: bool = False
-    rtc_ac_overlap_records: list[RTCACOverlapRecord] = field(default_factory=list)
+    ac_stream_enabled: bool = False
+    ac_stream_overlap_records: list[ACStreamOverlapRecord] = field(default_factory=list)
     episode_wall_ms: list[float] = field(default_factory=list)
 
-    def enable_rtc_ac(self) -> None:
-        self.rtc_ac_enabled = True
+    def enable_ac_stream(self) -> None:
+        self.ac_stream_enabled = True
 
-    def add_rtc_ac_overlap(self, record: RTCACOverlapRecord) -> None:
-        if not self.rtc_ac_enabled:
-            raise RuntimeError("Enable RTC-AC timing before adding overlap records")
-        self.rtc_ac_overlap_records.append(record)
+    def add_ac_stream_overlap(self, record: ACStreamOverlapRecord) -> None:
+        if not self.ac_stream_enabled:
+            raise RuntimeError("Enable AC-Stream timing before adding overlap records")
+        self.ac_stream_overlap_records.append(record)
 
     def add_episode_wall(self, elapsed_ms: float) -> None:
         self.episode_wall_ms.append(float(elapsed_ms))
@@ -65,8 +65,8 @@ class GlobalTimingSummary:
         self.chunks.append(chunk)
         return chunk
 
-    def _rtc_ac_overlap_dict(self) -> dict[str, int | float]:
-        records = self.rtc_ac_overlap_records
+    def _ac_stream_overlap_dict(self) -> dict[str, int | float]:
+        records = self.ac_stream_overlap_records
         boundary_records = [
             record for record in records if record.ready_before_boundary is not None
         ]
@@ -158,8 +158,8 @@ class GlobalTimingSummary:
             "evaluation_workload_wall_ms": sum(self.episode_wall_ms),
             "command_wall_ms": float(command_wall_ms),
         }
-        if self.rtc_ac_enabled:
-            summary["rtc_ac_overlap"] = self._rtc_ac_overlap_dict()
+        if self.ac_stream_enabled:
+            summary["ac_stream_overlap"] = self._ac_stream_overlap_dict()
         return summary
 
     def format_summary(self, *, command_wall_ms: float) -> str:
@@ -184,12 +184,12 @@ class GlobalTimingSummary:
             f"complete command wall time     : {summary['command_wall_ms'] / 1000.0:.2f} s",
             "===========================================",
         ]
-        if self.rtc_ac_enabled:
-            overlap = summary["rtc_ac_overlap"]
+        if self.ac_stream_enabled:
+            overlap = summary["ac_stream_overlap"]
             boundary_count = overlap["boundary_evaluated_inferences"]
             lines.extend(
                 [
-                    "========== RTC-AC Async Overlap ==========",
+                    "========== AC-Stream Async Overlap ==========",
                     "async D8 inferences             : "
                     f"{overlap['async_d8_inferences']}",
                     "ready before chunk boundary     : "

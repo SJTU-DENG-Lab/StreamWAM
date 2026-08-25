@@ -24,7 +24,8 @@ class SchedulerConfig:
 @dataclass
 class FrameworkConfig:
     type: str = "mot"  # StreamWAM first functional path: mot
-    variant: str = "standard"  # standard | rtc_ac
+    variant: str = "standard"  # standard | ac-stream
+    ac_stream_architecture: str = "fastwam_stage2_selfatt_z1"
     action_dim: int = 7
     action_gripper_dim: int = -1
     chunk_size: int = 16
@@ -156,12 +157,12 @@ class InferenceConfig:
     sampling_method: str = "euler"
     replan_steps: int = 5
     seed: int = 42
-    rtc_ac_horizon: int = 32
-    rtc_ac_stride: int = 16
-    rtc_ac_delay: int = 8
-    rtc_ac_launch_after_steps: int = 8
-    rtc_ac_block_on_miss: bool = True
-    rtc_ac_backend: str = "eager"
+    ac_stream_horizon: int = 32
+    ac_stream_stride: int = 16
+    ac_stream_delay: int = 8
+    ac_stream_launch_after_steps: int = 8
+    ac_stream_block_on_miss: bool = True
+    ac_stream_backend: str = "eager"
 
 
 @dataclass

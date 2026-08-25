@@ -77,3 +77,9 @@ def eval(TASK_ENV: Any, model: Any, observation: Optional[Dict[str, Any]]) -> No
 
 def reset_model(model: Any) -> None:
     model.reset()
+
+
+def _finish_episode(model: Any) -> None:
+    finish = getattr(model, "finish_episode", None)
+    if callable(finish):
+        finish(success=None)

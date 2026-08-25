@@ -12,18 +12,20 @@ import torch.nn.functional as F
 import pytest
 import triton
 
-from streamwam.inference import rtc_ac as rtc_ac_inference
+from streamwam.inference import ac_stream as ac_stream_inference
 from streamwam.backbone.base import BackboneInfo
 from streamwam.backbone.wan22 import Wan22Dit
-from streamwam.inference.rtc_ac import RTCACAccelerationRuntime
+from streamwam.inference.ac_stream import ACStreamAccelerationRuntime
 from streamwam.modules.action_dit import ActionDiT
-from streamwam.modules.rtc_ac import (
-    RTCACMoT,
-    build_rtc_ac_condition_mask,
-    build_rtc_ac_policy_mask,
+from streamwam.modules.ac_stream import (
+    ACStreamMoT,
+    build_ac_stream_condition_mask,
+    build_ac_stream_policy_mask,
+    build_starwam_rtc_condition_mask,
+    build_starwam_rtc_policy_mask,
 )
 from streamwam.modules.wan_block import DiTBlock, precompute_freqs_cis_1d
-from streamwam.wam import rtc_ac_wam
+from streamwam.wam import ac_stream_wam
 
 
 @pytest.mark.parametrize(
@@ -32,7 +34,7 @@ from streamwam.wam import rtc_ac_wam
         ({}, "set BACKBONE_PATH=/path/to/Wan2.2-TI2V-5B"),
         (
             {"BACKBONE_PATH": "/tmp/backbone"},
-            "set CHECKPOINT_PATH=/path/to/rtc_ac_checkpoint.pt",
+            "set CHECKPOINT_PATH=/path/to/ac_stream_checkpoint.pt",
         ),
         (
             {
@@ -51,7 +53,7 @@ from streamwam.wam import rtc_ac_wam
         ),
     ],
 )
-def test_rtc_ac_launcher_requires_public_paths(
+def test_ac_stream_launcher_requires_public_paths(
     provided: dict[str, str],
     expected_error: str,
 ) -> None:
@@ -69,7 +71,7 @@ def test_rtc_ac_launcher_requires_public_paths(
     environment["PYTHON_BIN"] = "/bin/false"
 
     result = subprocess.run(
-        ["bash", "examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh"],
+        ["bash", "examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh"],
         cwd=repo_root,
         env=environment,
         capture_output=True,
@@ -81,7 +83,7 @@ def test_rtc_ac_launcher_requires_public_paths(
     assert expected_error in result.stderr
 
 
-def test_rtc_ac_launcher_accepts_libero_home_fallback() -> None:
+def test_ac_stream_launcher_accepts_libero_home_fallback() -> None:
     repo_root = Path(__file__).resolve().parents[1]
     environment = os.environ.copy()
     environment.pop("LIBERO_HOME_PATH", None)
@@ -96,7 +98,7 @@ def test_rtc_ac_launcher_accepts_libero_home_fallback() -> None:
     )
 
     result = subprocess.run(
-        ["bash", "examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh"],
+        ["bash", "examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh"],
         cwd=repo_root,
         env=environment,
         capture_output=True,
@@ -204,10 +206,19 @@ def _wan22_5b_contract_expert(dtype: torch.dtype = torch.bfloat16) -> Wan22Dit:
 
 
 def test_accelerated_contract_accepts_wan22_5b_bf16_batch_one() -> None:
-    rtc_ac_wam.validate_rtc_ac_accelerated_contract(
+    ac_stream_wam.validate_ac_stream_accelerated_contract(
         input_image=torch.zeros((1, 3, 224, 448), dtype=torch.bfloat16),
         video_expert=_wan22_5b_contract_expert(),
         action_expert=_TinyExpert().to(dtype=torch.bfloat16),
+    )
+
+
+def test_accelerated_contract_accepts_robotwin_image_shape() -> None:
+    ac_stream_wam.validate_ac_stream_accelerated_contract(
+        input_image=torch.zeros((1, 3, 384, 320), dtype=torch.bfloat16),
+        video_expert=_wan22_5b_contract_expert(),
+        action_expert=_TinyExpert().to(dtype=torch.bfloat16),
+        expected_image_shape=(3, 384, 320),
     )
 
 
@@ -259,7 +270,7 @@ def test_accelerated_contract_rejects_unsupported_runtime(
     message: str,
 ) -> None:
     with pytest.raises(ValueError, match=message):
-        rtc_ac_wam.validate_rtc_ac_accelerated_contract(
+        ac_stream_wam.validate_ac_stream_accelerated_contract(
             input_image=input_image,
             video_expert=video_expert,
             action_expert=action_expert,
@@ -277,13 +288,13 @@ def _expert_state(sequence: int, context: torch.Tensor) -> dict[str, torch.Tenso
 
 
 @pytest.mark.parametrize("known_prefix_length", [0, 8])
-def test_reference_shaped_accelerated_rtc_mot_matches_eager(
+def test_reference_shaped_accelerated_ac_stream_mot_matches_eager(
     known_prefix_length: int,
 ) -> None:
     torch.manual_seed(23)
     video = _TinyExpert().eval()
     action = _TinyExpert().eval()
-    mot = RTCACMoT(
+    mot = ACStreamMoT(
         experts={"video": video, "action": action},
         checkpoint_mixed_attn=False,
     ).eval()
@@ -294,14 +305,14 @@ def test_reference_shaped_accelerated_rtc_mot_matches_eager(
         "action": _expert_state(32, action_context),
         "condition": _expert_state(16, action_context),
     }
-    policy_mask = build_rtc_ac_policy_mask(
+    policy_mask = build_ac_stream_policy_mask(
         video_seq_len=6,
         action_seq_len=32,
         video_tokens_per_frame=2,
         known_prefix_length=known_prefix_length,
         device=torch.device("cpu"),
     )
-    condition_mask = build_rtc_ac_condition_mask(
+    condition_mask = build_ac_stream_condition_mask(
         video_seq_len=6,
         condition_seq_len=16,
         video_tokens_per_frame=2,
@@ -312,7 +323,7 @@ def test_reference_shaped_accelerated_rtc_mot_matches_eager(
         name: {key: value.clone() for key, value in state.items()}
         for name, state in states.items()
     }
-    eager = mot.forward_rtc_ac(
+    eager = mot.forward_ac_stream(
         eager_states,
         policy_attention_mask=policy_mask,
         condition_attention_mask=condition_mask,
@@ -336,7 +347,7 @@ def test_reference_shaped_accelerated_rtc_mot_matches_eager(
             for block in action.blocks
         ),
     }
-    accelerated = mot.forward_rtc_ac_accelerated(
+    accelerated = mot.forward_ac_stream_accelerated(
         tokens_all={name: state["tokens"] for name, state in states.items()},
         freqs_all={name: state["freqs"] for name, state in states.items()},
         t_mod_all={name: state["t_mod"] for name, state in states.items()},
@@ -358,11 +369,99 @@ def test_reference_shaped_accelerated_rtc_mot_matches_eager(
     )
 
     torch.testing.assert_close(accelerated["video"], eager["video"], rtol=1e-5, atol=1e-6)
+
+
+@pytest.mark.parametrize("known_prefix_length", [0, 8])
+def test_accelerated_starwam_rtc_mot_matches_eager(known_prefix_length: int) -> None:
+    torch.manual_seed(29)
+    video = _TinyExpert().eval()
+    action = _TinyExpert().eval()
+    mot = ACStreamMoT(
+        experts={"video": video, "action": action},
+        checkpoint_mixed_attn=False,
+    ).eval()
+    video_context = torch.randn(1, 5, 8)
+    action_context = torch.randn(1, 5, 8)
+    states = {
+        "video": _expert_state(6, video_context),
+        "action": _expert_state(32, action_context),
+        "condition": _expert_state(16, action_context),
+    }
+    video_mask = torch.ones((6, 6), dtype=torch.bool)
+    video_mask[:2, 2:] = False
+    policy_mask = build_starwam_rtc_policy_mask(
+        batch_size=1,
+        video_seq_len=6,
+        policy_seq_len=32,
+        video_tokens_per_frame=2,
+        known_prefix_length=known_prefix_length,
+        device=torch.device("cpu"),
+    )
+    condition_mask = build_starwam_rtc_condition_mask(
+        batch_size=1,
+        condition_seq_len=16,
+        video_tokens_per_frame=2,
+        known_prefix_length=known_prefix_length,
+        device=torch.device("cpu"),
+    )
+    active = torch.tensor([known_prefix_length > 0])
+    eager = mot.forward_starwam_rtc(
+        {
+            name: {key: value.clone() for key, value in state.items()}
+            for name, state in states.items()
+        },
+        video_attention_mask=video_mask,
+        policy_attention_mask=policy_mask,
+        condition_attention_mask=condition_mask,
+        video_tokens_per_frame=2,
+        action_condition_active=active,
+    )
+    static_kv = {
+        "video": tuple(
+            (
+                block.cross_attn.norm_k(block.cross_attn.k(video_context[:, :4])),
+                block.cross_attn.v(video_context[:, :4]),
+            )
+            for block in video.blocks
+        ),
+        "action": tuple(
+            (
+                block.cross_attn.norm_k(block.cross_attn.k(action_context[:, :4])),
+                block.cross_attn.v(action_context[:, :4]),
+            )
+            for block in action.blocks
+        ),
+    }
+
+    accelerated = mot.forward_starwam_rtc_accelerated(
+        tokens_all={name: state["tokens"] for name, state in states.items()},
+        freqs_all={name: state["freqs"] for name, state in states.items()},
+        t_mod_all={name: state["t_mod"] for name, state in states.items()},
+        context_all={
+            name: {
+                "context": state["context"],
+                "mask": state["context_mask"],
+                "static_cross_attention_kv": static_kv[
+                    "video" if name == "video" else "action"
+                ],
+                "static_context_length": 4,
+            }
+            for name, state in states.items()
+        },
+        video_attention_mask=video_mask,
+        policy_attention_mask=policy_mask,
+        condition_attention_mask=condition_mask,
+        video_tokens_per_frame=2,
+        action_condition_active=active,
+    )
+
+    torch.testing.assert_close(accelerated["video"], eager["video"], rtol=1e-5, atol=1e-6)
+    torch.testing.assert_close(accelerated["action"], eager["action"], rtol=1e-5, atol=1e-6)
     torch.testing.assert_close(accelerated["action"], eager["action"], rtol=1e-5, atol=1e-6)
 
 
 def test_acceleration_runtime_reuses_masks_and_schedules() -> None:
-    runtime = RTCACAccelerationRuntime()
+    runtime = ACStreamAccelerationRuntime()
     mask_builds = 0
     schedule_builds = 0
 
@@ -389,7 +488,7 @@ def test_acceleration_runtime_reuses_masks_and_schedules() -> None:
 
 
 def test_acceleration_status_reports_actual_runtime_identity() -> None:
-    runtime = RTCACAccelerationRuntime()
+    runtime = ACStreamAccelerationRuntime()
 
     status = runtime.status()
 
@@ -414,12 +513,12 @@ def test_acceleration_status_reports_scoped_compiler_counter_deltas(
         ]
     )
     monkeypatch.setattr(
-        rtc_ac_inference,
+        ac_stream_inference,
         "_read_compiler_counters",
         lambda: next(snapshots),
         raising=False,
     )
-    runtime = RTCACAccelerationRuntime()
+    runtime = ACStreamAccelerationRuntime()
     runtime._compile_active = True
 
     status = runtime.status()
@@ -431,7 +530,7 @@ def test_acceleration_status_reports_scoped_compiler_counter_deltas(
 
 def test_acceleration_runtime_refreshes_static_kv_in_place() -> None:
     torch.manual_seed(31)
-    runtime = RTCACAccelerationRuntime()
+    runtime = ACStreamAccelerationRuntime()
     video = _TinyExpert().eval()
     action = _TinyExpert().eval()
     first_text = torch.randn(1, 5, 8)
@@ -464,12 +563,12 @@ def test_acceleration_runtime_refreshes_static_kv_in_place() -> None:
 
 
 def test_acceleration_runtime_compiles_fullgraph_static(monkeypatch) -> None:
-    runtime = RTCACAccelerationRuntime()
+    runtime = ACStreamAccelerationRuntime()
     calls = []
 
     class _Mot:
         @staticmethod
-        def forward_rtc_ac_accelerated(*, value: torch.Tensor) -> torch.Tensor:
+        def forward_ac_stream_accelerated(*, value: torch.Tensor) -> torch.Tensor:
             return value + 1
 
     def fake_compile(function, **kwargs):
@@ -493,12 +592,35 @@ def test_acceleration_runtime_compiles_fullgraph_static(monkeypatch) -> None:
     }
 
 
-def test_acceleration_runtime_does_not_fallback_after_compile_error(monkeypatch) -> None:
-    runtime = RTCACAccelerationRuntime()
+def test_acceleration_runtime_selects_starwam_rtc_compiled_core(monkeypatch) -> None:
+    runtime = ACStreamAccelerationRuntime()
 
     class _Mot:
         @staticmethod
-        def forward_rtc_ac_accelerated(*, value: torch.Tensor) -> torch.Tensor:
+        def forward_ac_stream_accelerated(*, value: torch.Tensor) -> torch.Tensor:
+            return value + 1
+
+        @staticmethod
+        def forward_starwam_rtc_accelerated(*, value: torch.Tensor) -> torch.Tensor:
+            return value + 2
+
+    monkeypatch.setattr(torch, "compile", lambda function, **kwargs: function)
+
+    result = runtime.run_mot(
+        _Mot(),
+        architecture="starwam_rtc_h32_s16_d8_z1_method3_v2",
+        value=torch.tensor([2.0]),
+    )
+
+    torch.testing.assert_close(result, torch.tensor([4.0]))
+
+
+def test_acceleration_runtime_does_not_fallback_after_compile_error(monkeypatch) -> None:
+    runtime = ACStreamAccelerationRuntime()
+
+    class _Mot:
+        @staticmethod
+        def forward_ac_stream_accelerated(*, value: torch.Tensor) -> torch.Tensor:
             return value
 
     def fake_compile(function, **kwargs):

@@ -16,7 +16,9 @@ inference, and the replan action queue.
 from __future__ import annotations
 
 from collections import deque
+from dataclasses import dataclass
 from pathlib import Path
+import time
 from typing import Any, Optional
 
 import numpy as np
@@ -64,6 +66,13 @@ def _denormalize_action(action: torch.Tensor, mode: str, stats: dict[str, torch.
     raise ValueError(f"Unsupported norm mode: {mode!r}")
 
 
+@dataclass(frozen=True)
+class PolicyChunkPrediction:
+    env_actions: np.ndarray
+    model_actions: torch.Tensor
+    inference_ms: float
+
+
 class StreamWAMPolicy:
     """Loads a StreamWAM recipe/checkpoint and runs closed-loop action inference.
 
@@ -85,6 +94,7 @@ class StreamWAMPolicy:
         replan_steps: int = 8,
         seed: Optional[int] = None,
         checkpoint_format: str = "streamwam",
+        inference_mode: str = "baseline",
     ) -> None:
         from streamwam import build_framework
         from streamwam.utils.config_cli import apply_overrides
@@ -95,6 +105,7 @@ class StreamWAMPolicy:
         config = prepare_inference_config(config, checkpoint_format)
         self.config = config
         self.checkpoint_format = checkpoint_format
+        self.inference_mode = self._normalize_inference_mode(inference_mode)
 
         self.device = torch.device(device if torch.cuda.is_available() or not device.startswith("cuda") else "cpu")
         mp = (config.training.mixed_precision or "no").lower()
@@ -103,7 +114,12 @@ class StreamWAMPolicy:
             self.dtype = torch.float32
 
         self.model = build_framework(config, device=str(self.device), dtype=self.dtype).to(self.device)
-        report = load_inference_checkpoint(self.model, checkpoint, checkpoint_format=checkpoint_format)
+        report = load_inference_checkpoint(
+            self.model,
+            checkpoint,
+            checkpoint_format=checkpoint_format,
+            inference_mode=self.inference_mode,
+        )
         print(f"[StreamWAMPolicy] loaded checkpoint: {report}")
         self.model.eval()
 
@@ -126,6 +142,16 @@ class StreamWAMPolicy:
         self._text_cache: dict[str, tuple[torch.Tensor, torch.Tensor]] = {}
         self._text_encoder = None
         self.pending_actions: deque[np.ndarray] = deque()
+
+    @staticmethod
+    def _normalize_inference_mode(inference_mode: str) -> str:
+        normalized = str(inference_mode).strip().lower()
+        if normalized not in {"baseline", "cd", "ac-stream"}:
+            raise ValueError(
+                f"Unsupported inference mode {inference_mode!r}; expected "
+                "'baseline', 'cd', or 'ac-stream'"
+            )
+        return normalized
 
     # -- stats -------------------------------------------------------------- #
     def _load_stats(self, key: str) -> Optional[dict[str, torch.Tensor]]:
@@ -184,8 +210,10 @@ class StreamWAMPolicy:
         return len(range(0, num, step))
 
     @torch.no_grad()
-    def predict_chunk(self, image: torch.Tensor, state: Optional[np.ndarray], instruction: str) -> np.ndarray:
-        """Return a denormalized action chunk ``[T, action_dim]`` (numpy)."""
+    def predict_chunk_prediction(
+        self, image: torch.Tensor, state: Optional[np.ndarray], instruction: str
+    ) -> PolicyChunkPrediction:
+        """Return a synchronous chunk and CUDA-synchronized model-core time."""
         image = image.to(device=self.device, dtype=self.dtype)
         context, context_mask = self._encode_context(instruction)
 
@@ -197,6 +225,15 @@ class StreamWAMPolicy:
                 proprio_t = _normalize_vector(proprio_t, self.config.data.state_norm_mode, self._state_stats)
             proprio = proprio_t.to(device=self.device, dtype=self.dtype)
 
+        inference_mode = self._normalize_inference_mode(self.inference_mode)
+        sampling_method = {
+            "baseline": "euler",
+            "cd": "consistency",
+            "ac-stream": "ac-stream",
+        }[inference_mode]
+        if self.device.type == "cuda":
+            torch.cuda.synchronize(self.device)
+        started = time.perf_counter_ns()
         pred = self.model.infer_action(
             input_image=image,
             context=context,
@@ -207,15 +244,105 @@ class StreamWAMPolicy:
             seed=self.seed,
             proprio=proprio,
             num_video_frames=self._sampled_video_frame_count(),
+            sampling_method=sampling_method,
+            consistency_teacher_steps=int(
+                getattr(self.config.inference, "consistency_teacher_steps", 4)
+            ),
         )
+        if self.device.type == "cuda":
+            torch.cuda.synchronize(self.device)
+        inference_ms = (time.perf_counter_ns() - started) / 1e6
 
-        action = pred.detach().float().cpu()
+        model_actions = pred.detach().float().cpu()
+        if model_actions.ndim == 3:
+            model_actions = model_actions[0]
+        action = model_actions
         if self._action_stats is not None:
             action = _denormalize_action(action, self.config.data.action_norm_mode, self._action_stats)
         out = action.numpy()
-        if out.ndim == 3:
-            out = out[0]
-        return out.astype(np.float32)
+        return PolicyChunkPrediction(
+            env_actions=out.astype(np.float32),
+            model_actions=model_actions,
+            inference_ms=float(inference_ms),
+        )
+
+    @torch.no_grad()
+    def predict_chunk(self, image: torch.Tensor, state: Optional[np.ndarray], instruction: str) -> np.ndarray:
+        """Return a denormalized action chunk ``[T, action_dim]`` (numpy)."""
+        return self.predict_chunk_prediction(image, state, instruction).env_actions
+
+    @torch.no_grad()
+    def predict_ac_stream_chunk(
+        self,
+        image: torch.Tensor,
+        state: Optional[np.ndarray],
+        instruction: str,
+        *,
+        previous_action_chunk: torch.Tensor | None,
+        inference_delay: int,
+    ) -> PolicyChunkPrediction:
+        """Return normalized and environment AC-Stream chunks plus model time."""
+
+        if self._normalize_inference_mode(self.inference_mode) != "ac-stream":
+            raise ValueError("predict_ac_stream_chunk requires inference_mode='ac-stream'")
+        image = image.to(device=self.device, dtype=self.dtype)
+        context, context_mask = self._encode_context(instruction)
+        proprio = None
+        if getattr(self.config.framework, "proprio_dim", None) and state is not None:
+            proprio_dim = int(self.config.framework.proprio_dim)
+            proprio_t = torch.as_tensor(
+                np.asarray(state, dtype=np.float32)[:proprio_dim]
+            ).view(1, proprio_dim)
+            if self._state_stats is not None:
+                proprio_t = _normalize_vector(
+                    proprio_t,
+                    self.config.data.state_norm_mode,
+                    self._state_stats,
+                )
+            proprio = proprio_t.to(device=self.device, dtype=self.dtype)
+
+        if self.device.type == "cuda":
+            torch.cuda.synchronize(self.device)
+        started = time.perf_counter_ns()
+        pred = self.model.infer_action(
+            input_image=image,
+            context=context,
+            context_mask=context_mask,
+            action_horizon=self.action_horizon,
+            num_inference_steps=self.num_inference_steps,
+            action_num_inference_steps=self.action_num_inference_steps,
+            seed=self.seed,
+            proprio=proprio,
+            num_video_frames=self._sampled_video_frame_count(),
+            sampling_method="ac-stream",
+            ac_stream_prev_action_chunk=previous_action_chunk,
+            ac_stream_inference_delay=int(inference_delay),
+            ac_stream_stride=int(getattr(self.config.inference, "ac_stream_stride", 16)),
+            ac_stream_delay=int(getattr(self.config.inference, "ac_stream_delay", 8)),
+            ac_stream_launch_after_steps=int(
+                getattr(self.config.inference, "ac_stream_launch_after_steps", 8)
+            ),
+            ac_stream_context_key=instruction,
+        )
+        if self.device.type == "cuda":
+            torch.cuda.synchronize(self.device)
+        inference_ms = (time.perf_counter_ns() - started) / 1e6
+
+        model_actions = pred.detach().float().cpu()
+        if model_actions.ndim == 3:
+            model_actions = model_actions[0]
+        env_actions = model_actions
+        if self._action_stats is not None:
+            env_actions = _denormalize_action(
+                env_actions,
+                self.config.data.action_norm_mode,
+                self._action_stats,
+            )
+        return PolicyChunkPrediction(
+            env_actions=env_actions.numpy().astype(np.float32),
+            model_actions=model_actions,
+            inference_ms=float(inference_ms),
+        )
 
     # -- replan queue ------------------------------------------------------- #
     def needs_observation(self) -> bool:

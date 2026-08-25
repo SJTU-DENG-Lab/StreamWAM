@@ -5,7 +5,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 GPU_IDS="${GPU_IDS:-0,1,2,3}"
 PYTHON_BIN="${PYTHON_BIN:-python}"
 BACKBONE_PATH="${BACKBONE_PATH:?set BACKBONE_PATH=/path/to/Wan2.2-TI2V-5B}"
-CHECKPOINT_PATH="${CHECKPOINT_PATH:?set CHECKPOINT_PATH=/path/to/rtc_ac_checkpoint.pt}"
+CHECKPOINT_PATH="${CHECKPOINT_PATH:?set CHECKPOINT_PATH=/path/to/ac_stream_checkpoint.pt}"
 STATS_PATH="${STATS_PATH:?set STATS_PATH=/path/to/dataset_stats.json}"
 LIBERO_HOME_PATH="${LIBERO_HOME_PATH:-${LIBERO_HOME:-}}"
 : "${LIBERO_HOME_PATH:?set LIBERO_HOME_PATH=/path/to/LIBERO or LIBERO_HOME=/path/to/LIBERO}"
@@ -23,28 +23,17 @@ elif ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
 fi
 
 "$PYTHON_BIN" -c '
-import platform
-import sys
 import torch
 import triton
 import streamwam
 import examples.libero.multigpu_rollout
-print(
-    "RTC-AC runtime: "
-    f"python={sys.executable} "
-    f"python_version={platform.python_version()} "
-    f"torch={torch.__version__} "
-    f"triton={triton.__version__} "
-    f"cuda={torch.version.cuda}",
-    flush=True,
-)
 '
 
 "$PYTHON_BIN" examples/libero/multigpu_rollout.py \
   --gpus "$GPU_IDS" \
   --suites libero_spatial,libero_object,libero_goal,libero_10 \
   --num-trials 1 \
-  --config examples/libero/configs/recipes/streamwam_libero_rtc_ac_wan22_5b.yaml \
+  --config examples/libero/configs/recipes/streamwam_libero_ac_stream_wan22_5b.yaml \
   --checkpoint-format fastwam \
   --checkpoint "$CHECKPOINT_PATH" \
   --backbone-path "$BACKBONE_PATH" \
@@ -53,7 +42,7 @@ print(
   --num-steps-wait 30 \
   --replan-steps 16 \
   --num-inference-steps 1 \
-  --sampling-method rtc_ac \
+  --sampling-method ac-stream \
   --fixed-seed \
   --mujoco-gl egl \
   --save-video \

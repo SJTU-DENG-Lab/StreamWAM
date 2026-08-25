@@ -8,7 +8,7 @@ import torch
 from torch import nn
 
 from streamwam.checkpointing import load_inference_checkpoint, load_inference_stats
-from streamwam.modules.rtc_ac import RTCACSlotEncoder
+from streamwam.modules.ac_stream import ACStreamSlotEncoder
 
 
 class TinyExpert(nn.Module):
@@ -37,12 +37,23 @@ class TinyWAM(nn.Module):
         self.proprio_encoder = nn.Linear(5, 2)
 
 
-class TinyRTCACWAM(TinyWAM):
-    inference_variant = "rtc_ac"
+class TinyACStreamWAM(TinyWAM):
+    inference_variant = "ac-stream"
 
     def __init__(self) -> None:
         super().__init__()
-        self.mot.experts["video"].rtc_1step_selfatt_z1_slot_encoder = RTCACSlotEncoder(1024)
+        self.mot.experts["video"].rtc_1step_selfatt_z1_slot_encoder = ACStreamSlotEncoder(1024)
+
+
+class TinyStarWAM(nn.Module):
+    taxonomy_model_family = "mot_wam"
+
+    def __init__(self, *, inference_variant: str = "standard") -> None:
+        super().__init__()
+        self.inference_variant = inference_variant
+        self.linear = nn.Linear(2, 3)
+        if inference_variant == "ac-stream":
+            self.rtc_slot_state_embedding = nn.Embedding(2, 4)
 
 
 def _filled_state(module: nn.Module, value: float) -> dict[str, torch.Tensor]:
@@ -68,7 +79,7 @@ def _fastwam_payload(model: TinyWAM) -> dict:
     }
 
 
-def _rtc_ac_payload(model: TinyRTCACWAM) -> dict:
+def _ac_stream_payload(model: TinyACStreamWAM) -> dict:
     payload = _fastwam_payload(model)
     payload.update(
         {
@@ -197,13 +208,13 @@ def test_fastwam_rejects_non_mot_model(tmp_path: Path) -> None:
         load_inference_checkpoint(model, path, checkpoint_format="fastwam")
 
 
-def test_rtc_ac_checkpoint_rejects_standard_wam_before_mutation(tmp_path: Path) -> None:
-    source = TinyRTCACWAM()
+def test_ac_stream_checkpoint_rejects_standard_wam_before_mutation(tmp_path: Path) -> None:
+    source = TinyACStreamWAM()
     model = TinyWAM()
     before = _snapshot_state(model)
-    path = _save_payload(tmp_path, _rtc_ac_payload(source))
+    path = _save_payload(tmp_path, _ac_stream_payload(source))
 
-    with pytest.raises(ValueError, match="requires an RTC-AC model variant"):
+    with pytest.raises(ValueError, match="requires an AC-Stream model variant"):
         load_inference_checkpoint(model, path, checkpoint_format="fastwam")
 
     _assert_state_unchanged(model, before)
@@ -216,15 +227,15 @@ def test_rtc_ac_checkpoint_rejects_standard_wam_before_mutation(tmp_path: Path) 
         ("training_rtc_architecture", "wrong", "architecture mismatch"),
     ],
 )
-def test_rtc_ac_checkpoint_metadata_mismatch_fails_before_mutation(
+def test_ac_stream_checkpoint_metadata_mismatch_fails_before_mutation(
     tmp_path: Path,
     field: str,
     value: str,
     message: str,
 ) -> None:
-    model = TinyRTCACWAM()
+    model = TinyACStreamWAM()
     before = _snapshot_state(model)
-    payload = _rtc_ac_payload(model)
+    payload = _ac_stream_payload(model)
     payload[field] = value
     path = _save_payload(tmp_path, payload)
 
@@ -234,9 +245,9 @@ def test_rtc_ac_checkpoint_metadata_mismatch_fails_before_mutation(
     _assert_state_unchanged(model, before)
 
 
-def test_rtc_ac_checkpoint_loads_slot_encoder_and_reports_metadata(tmp_path: Path) -> None:
-    model = TinyRTCACWAM()
-    payload = _rtc_ac_payload(model)
+def test_ac_stream_checkpoint_loads_slot_encoder_and_reports_metadata(tmp_path: Path) -> None:
+    model = TinyACStreamWAM()
+    payload = _ac_stream_payload(model)
     slot_key = (
         "mixtures.video.rtc_1step_selfatt_z1_slot_encoder.state_embedding.weight"
     )
@@ -249,8 +260,8 @@ def test_rtc_ac_checkpoint_loads_slot_encoder_and_reports_metadata(tmp_path: Pat
         model.mot.experts["video"].rtc_1step_selfatt_z1_slot_encoder.state_embedding.weight,
         torch.full((2, 1024), 9.0),
     )
-    assert report["training_rtc_phase"] == "stage2_1step_selfatt_z1"
-    assert report["training_rtc_architecture"].endswith("policy_stream_v1")
+    assert report["training_ac_stream_phase"] == "stage2_1step_selfatt_z1"
+    assert report["training_ac_stream_architecture"].endswith("policy_stream_v1")
 
 
 def test_standard_checkpoint_loading_remains_supported(tmp_path: Path) -> None:
@@ -265,6 +276,87 @@ def test_standard_checkpoint_loading_remains_supported(tmp_path: Path) -> None:
         torch.testing.assert_close(tensor, torch.full_like(tensor, 6.0))
     assert report["step"] == 42
     assert report["checkpoint_format"] == "streamwam"
+
+
+def test_starwam_loads_original_top_level_state_dict_strictly(tmp_path: Path) -> None:
+    source = TinyStarWAM()
+    expected = _filled_state(source, 4.0)
+    path = _save_payload(tmp_path, expected, name="starwam.pt")
+    target = TinyStarWAM()
+
+    report = load_inference_checkpoint(
+        target,
+        path,
+        checkpoint_format="starwam",
+        inference_mode="baseline",
+    )
+
+    for tensor in target.state_dict().values():
+        torch.testing.assert_close(tensor, torch.full_like(tensor, 4.0))
+    assert report["checkpoint_file"] == str(path)
+    assert report["checkpoint_format"] == "starwam"
+    assert report["inference_mode"] == "baseline"
+    assert report["model_tensors"] == len(expected)
+
+
+def test_starwam_resolves_deepspeed_checkpoint_directory(tmp_path: Path) -> None:
+    source = TinyStarWAM()
+    state = _filled_state(source, 5.0)
+    checkpoint_dir = tmp_path / "checkpoint-2000"
+    model_dir = checkpoint_dir / "pytorch_model"
+    model_dir.mkdir(parents=True)
+    checkpoint_file = model_dir / "mp_rank_00_model_states.pt"
+    torch.save({"module": state, "global_steps": 2000}, checkpoint_file)
+    target = TinyStarWAM()
+
+    report = load_inference_checkpoint(
+        target,
+        checkpoint_dir,
+        checkpoint_format="starwam",
+        inference_mode="cd",
+    )
+
+    assert report["checkpoint_file"] == str(checkpoint_file)
+    assert report["step"] == 2000
+    assert report["inference_mode"] == "cd"
+
+
+def test_starwam_ac_stream_requires_rtc_slot_before_mutation(tmp_path: Path) -> None:
+    source = TinyStarWAM(inference_variant="ac-stream")
+    state = _filled_state(source, 6.0)
+    del state["rtc_slot_state_embedding.weight"]
+    path = _save_payload(tmp_path, {"module": state}, name="rtc.pt")
+    target = TinyStarWAM(inference_variant="ac-stream")
+    before = _snapshot_state(target)
+
+    with pytest.raises(ValueError, match="rtc_slot_state_embedding.weight"):
+        load_inference_checkpoint(
+            target,
+            path,
+            checkpoint_format="starwam",
+            inference_mode="ac-stream",
+        )
+
+    _assert_state_unchanged(target, before)
+
+
+def test_starwam_shape_mismatch_fails_before_mutation(tmp_path: Path) -> None:
+    source = TinyStarWAM()
+    state = _filled_state(source, 7.0)
+    state["linear.weight"] = torch.ones(4, 2)
+    path = _save_payload(tmp_path, state, name="bad.pt")
+    target = TinyStarWAM()
+    before = _snapshot_state(target)
+
+    with pytest.raises(ValueError, match="shape mismatch"):
+        load_inference_checkpoint(
+            target,
+            path,
+            checkpoint_format="starwam",
+            inference_mode="baseline",
+        )
+
+    _assert_state_unchanged(target, before)
 
 
 def test_fastwam_stats_are_canonicalized_in_memory(tmp_path: Path) -> None:

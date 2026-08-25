@@ -23,9 +23,11 @@ from __future__ import annotations
 
 import argparse
 import pickle
+import platform
 import socket
 import struct
 import sys
+import time
 import traceback
 from pathlib import Path
 
@@ -39,6 +41,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 from streamwam.data.lerobot import _resize_frames  # noqa: E402
 from streamwam.eval.policy import StreamWAMPolicy  # noqa: E402
+from examples.robotwin.runtime import resolve_inference_runtime  # noqa: E402
 
 
 # Length-prefixed pickle framing (stdlib only; mirrored by client_policy.py).
@@ -92,18 +95,110 @@ def _build_robotwin_image(head, left, right, device, dtype) -> torch.Tensor:
     return frame.to(device=device, dtype=dtype)
 
 
+def _runtime_metadata(policy: StreamWAMPolicy) -> dict:
+    try:
+        import triton
+        triton_version = triton.__version__
+    except ImportError:
+        triton_version = None
+    runtime = {
+        "python_executable": sys.executable,
+        "python_version": platform.python_version(),
+        "torch_version": torch.__version__,
+        "triton_version": triton_version,
+        "cuda_version": torch.version.cuda,
+    }
+    status = getattr(policy.model, "ac_stream_acceleration_status", None)
+    if policy.inference_mode == "ac-stream" and callable(status):
+        metadata = dict(status())
+        metadata["runtime"] = {**runtime, **dict(metadata.get("runtime", {}))}
+        return metadata
+    return {
+        "backend": "eager",
+        "compile_active": False,
+        "runtime": runtime,
+    }
+
+
+def handle_request(policy: StreamWAMPolicy, req: dict) -> dict:
+    """Execute one validated protocol request and return a structured response."""
+
+    request_id = req.get("request_id")
+    cmd = req.get("cmd", "infer")
+    if cmd == "reset":
+        policy.reset()
+        return {"ok": True, "request_id": request_id}
+    if cmd != "infer":
+        raise ValueError(f"unsupported policy command {cmd!r}")
+    server_started_ns = time.perf_counter_ns()
+    image = _build_robotwin_image(
+        req["head"],
+        req["left"],
+        req["right"],
+        policy.device,
+        policy.dtype,
+    )
+    state = np.asarray(req["state"], dtype=np.float32)
+    instruction = str(req["instruction"])
+    if policy.inference_mode == "ac-stream":
+        previous = req.get("previous_action_chunk")
+        previous_tensor = (
+            None
+            if previous is None
+            else torch.as_tensor(np.asarray(previous, dtype=np.float32))
+        )
+        prediction = policy.predict_ac_stream_chunk(
+            image,
+            state,
+            instruction,
+            previous_action_chunk=previous_tensor,
+            inference_delay=int(req.get("inference_delay", 0)),
+        )
+        response = {
+            "request_id": request_id,
+            "action": np.asarray(prediction.env_actions, dtype=np.float32),
+            "model_action": prediction.model_actions.detach().cpu().numpy().astype(np.float32),
+            "model_inference_ms": float(prediction.inference_ms),
+        }
+    else:
+        prediction = policy.predict_chunk_prediction(image, state, instruction)
+        response = {
+        "request_id": request_id,
+        "action": np.asarray(prediction.env_actions, dtype=np.float32),
+        "model_inference_ms": float(prediction.inference_ms),
+        }
+    response["server_total_ms"] = max(
+        float(response["model_inference_ms"]),
+        (time.perf_counter_ns() - server_started_ns) / 1e6,
+    )
+    response["warmup"] = bool(req.get("warmup", False))
+    metadata = _runtime_metadata(policy)
+    response["backend"] = metadata.get("backend", "eager")
+    response["compile_active"] = bool(metadata.get("compile_active", False))
+    response["runtime"] = metadata.get("runtime", {})
+    return response
+
+
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="StreamWAM RoboTwin policy inference server")
     parser.add_argument("--config", required=True)
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument(
         "--checkpoint-format",
-        choices=("streamwam", "fastwam"),
+        choices=("streamwam", "fastwam", "starwam"),
         default="streamwam",
         help="Source checkpoint/stats format (default: streamwam).",
     )
     parser.add_argument("--override", nargs="*", default=[])
     parser.add_argument("--device", default="cuda:0")
+    parser.add_argument(
+        "--inference-mode",
+        choices=("baseline", "cd", "ac-stream"),
+        default="baseline",
+    )
+    backend = parser.add_mutually_exclusive_group()
+    backend.add_argument("--ac-stream-accelerated", action="store_true")
+    backend.add_argument("--ac-stream-eager", action="store_true")
     parser.add_argument(
         "--num-inference-steps",
         type=int,
@@ -124,6 +219,11 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = _build_arg_parser().parse_args()
+    runtime = resolve_inference_runtime(
+        args.inference_mode,
+        accelerated=args.ac_stream_accelerated,
+        eager=args.ac_stream_eager,
+    )
 
     policy = StreamWAMPolicy(
         config_path=args.config,
@@ -134,7 +234,10 @@ def main() -> None:
         action_num_inference_steps=args.action_num_inference_steps,
         seed=args.seed,
         checkpoint_format=args.checkpoint_format,
+        inference_mode=runtime.inference_mode,
     )
+    if runtime.accelerated:
+        policy.model.enable_ac_stream_acceleration()
     print(f"[streamwam_robotwin_server] model ready on {args.device}; listening on {args.host}:{args.port}", flush=True)
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -160,18 +263,8 @@ def main() -> None:
                     break
                 if req is None:
                     break
-                cmd = req.get("cmd", "infer")
                 try:
-                    if cmd == "reset":
-                        policy.reset()
-                        send_msg(conn, {"ok": True})
-                        continue
-                    image = _build_robotwin_image(
-                        req["head"], req["left"], req["right"], policy.device, policy.dtype
-                    )
-                    state = np.asarray(req["state"], dtype=np.float32)
-                    chunk = policy.predict_chunk(image, state, str(req["instruction"]))
-                    send_msg(conn, {"action": np.asarray(chunk, dtype=np.float32)})
+                    send_msg(conn, handle_request(policy, req))
                 except (ConnectionError, OSError):
                     # Peer closed while we were replying; abandon this client.
                     break

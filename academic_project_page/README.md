@@ -5,10 +5,15 @@ The page is organized as an editable research story rather than a fixed paper te
 
 ## Editing the story
 
-The public article follows `motivation`, `overlap`, `method`, `execution`, `testbed`, `experiments`,
-`discussion`, and `resources`. Keep these IDs stable because the table of contents and external links
-use them. Put ordinary prose inside `.reading-column`; use `.breakout` only for the method figure,
-execution timeline, or benchmark tables that need more width.
+The public article opens with three continuous editorial acts: `act-wam`, `act-async`, and
+`act-streamwam`, followed by `experiments`, `discussion`, and `resources`. Keep these IDs stable
+because the table of contents and external links use them. The three acts intentionally use compact
+labels and opening sentences instead of display-sized section headings. Put ordinary prose inside
+`.reading-column`; use `.breakout` only for the method figure or benchmark tables that need more width.
+
+The asynchronous-strategy discussion links to the relevant primary source and distinguishes action
+prefix conditioning from action-conditioned future-video generation. Preserve that distinction when
+editing the method narrative or the `w/o Action Conditioning` ablation description.
 
 All three benchmark tables are intentionally visible in source order. Do not hide scientific content
 behind tabs or require JavaScript to read the article. JavaScript is limited to the mobile header menu.

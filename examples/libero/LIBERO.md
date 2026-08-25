@@ -8,7 +8,7 @@ The generic StreamWAM package documentation is in the repository root [README.md
 
 The root `pyproject.toml` is the canonical environment definition. It selects
 Python 3.10 and pins the PyTorch 2.7.1/cu128 and Triton 3.3.1 stack used by the
-accelerated RTC-AC benchmark.
+accelerated AC-Stream benchmark.
 
 ```bash
 python -m pip install -U uv
@@ -16,7 +16,7 @@ uv sync --extra train
 source .venv/bin/activate
 ```
 
-The root README uses plain `uv sync` for RTC-AC rollout. This detailed guide
+The root README uses plain `uv sync` for AC-Stream rollout. This detailed guide
 also covers training, so it installs the `train` extra. Activating `.venv`
 keeps the `python` and `accelerate` commands below in the locked environment.
 
@@ -665,22 +665,22 @@ Select different GPUs without editing Python:
 GPU_IDS=2,3,6,7 bash examples/libero/scripts/launch_streamwam_libero_joint_cd_4gpu.sh
 ```
 
-RTC-AC has one launcher and one implementation. Set the four public asset
+AC-Stream has one launcher and one implementation. Set the four public asset
 paths once, then run eager mode without an extra option or append
-`--rtc-ac-accelerated` for the compiler/cache path:
+`--ac-stream-accelerated` for the compiler/cache path:
 
 ```bash
 export BACKBONE_PATH=/path/to/Wan2.2-TI2V-5B
 export LIBERO_HOME_PATH=/path/to/LIBERO
-export CHECKPOINT_PATH=/path/to/rtc_ac_checkpoint.pt
+export CHECKPOINT_PATH=/path/to/ac_stream_checkpoint.pt
 export STATS_PATH=/path/to/dataset_stats.json
 
 GPU_IDS=0,1,2,3 \
-  bash examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh
+  bash examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh
 
 GPU_IDS=0,1,2,3 \
-  bash examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh \
-  --rtc-ac-accelerated
+  bash examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh \
+  --ac-stream-accelerated
 ```
 
 The accelerated run uses strict full-graph/static `torch.compile` with
@@ -700,10 +700,10 @@ PYTHON_BIN=.venv/bin/python \
 GPU_IDS=0,1,2,3 \
 BACKBONE_PATH=/path/to/Wan2.2-TI2V-5B \
 LIBERO_HOME_PATH=/path/to/LIBERO \
-CHECKPOINT_PATH=/path/to/rtc_ac_checkpoint.pt \
+CHECKPOINT_PATH=/path/to/ac_stream_checkpoint.pt \
 STATS_PATH=/path/to/dataset_stats.json \
-  bash examples/libero/scripts/launch_streamwam_libero_rtc_ac_4gpu.sh \
-  --rtc-ac-accelerated
+  bash examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh \
+  --ac-stream-accelerated
 ```
 
 The validated H100 target is approximately 40–46 ms per steady-state D8 chunk.

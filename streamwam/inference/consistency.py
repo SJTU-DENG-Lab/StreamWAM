@@ -1,7 +1,7 @@
 """Consistency-distillation boundary functions.
 
 These functions contain no scheduler or model state so the same equations can
-be shared by direct CD and future RTC samplers.
+be shared by direct CD and AC-Stream sampling.
 """
 
 import torch
@@ -50,13 +50,12 @@ def normalize_sampling_method(sampling_method: str) -> str:
         "consistency": "consistency",
         "cd": "consistency",
         "lcm": "consistency",
-        "rtc_ac": "rtc_ac",
-        "rtc-ac": "rtc_ac",
+        "ac-stream": "ac-stream",
     }
     if method not in aliases:
         raise ValueError(
             f"Unsupported sampling_method={sampling_method!r}; expected "
-            "'euler', 'consistency', or 'rtc_ac'"
+            "'euler', 'consistency', or 'ac-stream'"
         )
     return aliases[method]
 
