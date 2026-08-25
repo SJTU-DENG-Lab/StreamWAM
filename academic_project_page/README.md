@@ -7,9 +7,11 @@ The page is organized as an editable research story rather than a fixed paper te
 
 The public article opens with three continuous editorial acts: `act-wam`, `act-async`, and
 `act-streamwam`, followed by `experiments`, `discussion`, and `resources`. Keep these IDs stable
-because the table of contents and external links use them. The three acts intentionally use compact
-labels and opening sentences instead of display-sized section headings. Put ordinary prose inside
-`.reading-column`; use `.breakout` only for the method figure or benchmark tables that need more width.
+because the table of contents and external links use them. These sections intentionally have no
+visible numbered labels or display-sized headings; their accessible names live on the section
+elements. Only the compact `LIBERO`, `RoboCasa`, and `RoboTwin 2.0` headings identify the result
+tables. Put ordinary prose inside `.reading-column`; use `.breakout` only for the method figure or
+benchmark tables that need more width.
 
 The asynchronous-strategy discussion links to the relevant primary source and distinguishes action
 prefix conditioning from action-conditioned future-video generation. Preserve that distinction when

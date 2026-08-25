@@ -61,7 +61,6 @@
 
       <article class="longform" id="article">
         <div class="article-header reading-column">
-          <p class="article-label">Research notes · August 2026</p>
           <h2>A streaming model should know what the robot is already doing.</h2>
           <p class="article-dek">World-action models connect visual prediction and action generation. StreamWAM asks what happens when that loop is reorganized around continuous robot execution—and why scheduling alone is not enough.</p>
           <p>This page is a research preview rather than a substitute for the technical report. It develops the central motivation, explains the action-conditioned streaming design, and places the current results in context using the evidence available in the repository today.</p>
@@ -71,9 +70,8 @@
           </nav>
         </div>
 
-        <section class="editorial-act reading-column" id="act-wam" aria-labelledby="act-wam-opening">
-          <p class="act-label">01 · The deployment problem</p>
-          <p class="act-opening" id="act-wam-opening" role="heading" aria-level="2">Why capable world-action models still make robots wait.</p>
+        <section class="editorial-act reading-column" id="act-wam" aria-label="The deployment problem">
+          <p class="act-opening">Why capable world-action models still make robots wait.</p>
           <p>World-action models (WAMs) offer something richer than a policy that maps the latest image directly to a motor command. By generating future video together with future actions, a WAM can represent both what the scene may look like and what the robot should do to bring that future about. The visual prediction makes the intended evolution of a manipulation task explicit, while an action chunk gives the controller a temporally structured plan rather than a sequence of isolated reflexes.</p>
           <p>That joint prediction is especially attractive for long-horizon manipulation. A generated future can carry information about object motion, contact, and progress toward a goal across several control steps. The action stream is therefore grounded in an imagined trajectory of the scene, and the two outputs can be trained as parts of the same generative process.</p>
           <p>The same design is expensive at deployment time. Producing video and actions through iterative generation is substantially heavier than emitting a single low-dimensional command. On a real robot, the relevant delay is not just one reported model kernel: it includes image capture, preprocessing and transfer, world-action inference, command dispatch, and the interpolation needed to execute a chunk safely.</p>
@@ -82,9 +80,8 @@
           <p>This is the practical reason for streaming. The goal is not merely to lower an offline latency number, but to reorganize the loop so that useful prediction happens during useful motion. The robot should continue executing the plan it already has while the model thinks ahead about the chunk that comes next.</p>
         </section>
 
-        <section class="editorial-act reading-column" id="act-async" aria-labelledby="act-async-opening">
-          <p class="act-label">02 · The asynchronous boundary</p>
-          <p class="act-opening" id="act-async-opening" role="heading" aria-level="2">Asynchrony removes the wait, but exposes a boundary.</p>
+        <section class="editorial-act reading-column" id="act-async" aria-label="The asynchronous boundary">
+          <p class="act-opening">Asynchrony removes the wait, but exposes a boundary.</p>
           <p>The direct way to hide inference latency is to overlap it with execution. Once a current action chunk begins, the model starts preparing the next one instead of waiting for the robot to finish. When inference fits inside the execution window, compute is moved off the critical path and the controller can approach continuous motion even when generation itself is not instantaneous.</p>
           <p>But overlap changes the information available at a handoff. The next chunk is predicted from an earlier observation while the current chunk is actively moving the arm and changing the scene. Two neighboring predictions may therefore disagree over the portion of time they both describe. Switching from one independently generated chunk to the next can produce a jump in position, velocity, or direction—the characteristic boundary discontinuity of naive asynchronous execution.</p>
           <p>This is partly a temporal-alignment problem. The controller must determine how far execution will have advanced by the time a new prediction becomes usable and then select the matching suffix of that prediction. Alignment prevents the system from replaying commands for moments that have already passed. It does not, by itself, guarantee that two independently generated trajectories agree where they meet.</p>
@@ -94,10 +91,9 @@
           <p>A WAM, however, predicts more than actions. If the action continuation is conditioned on the executed prefix while future video is still generated without explicitly knowing what motion is underway, the two output streams are conditioned on different accounts of the same interval. This is the gap isolated by our <em>w/o Action Conditioning</em> row: it retains prefix-conditioned action continuation, but removes the executed action from future-video generation. The remaining question is therefore WAM-specific: can the world prediction itself be made aware of the action that is already changing the world?</p>
         </section>
 
-        <section class="editorial-act" id="act-streamwam" aria-labelledby="act-streamwam-opening">
+        <section class="editorial-act" id="act-streamwam" aria-label="Action-conditioned streaming">
           <div class="reading-column">
-            <p class="act-label">03 · Action-conditioned streaming</p>
-            <p class="act-opening" id="act-streamwam-opening" role="heading" aria-level="2">StreamWAM conditions the visual future on the action already underway.</p>
+            <p class="act-opening">StreamWAM conditions the visual future on the action already underway.</p>
             <p>StreamWAM couples execution and generation at the model level. During asynchronous rollout, the robot continues to execute the current chunk, and the committed action prefix is fed back into the world model. That prefix records the intervention being applied between the observation that launched inference and the future state for which the next chunk is needed.</p>
             <p>The key design choice is where this information goes. StreamWAM uses the executing prefix to condition future-video generation, so the predicted visual trajectory reflects the motion already in progress. If the gripper is closing, the arm is approaching an object, or a contact is being maintained, the generated future is asked to remain consistent with that action context rather than extrapolating from the initial image alone.</p>
             <p>The next action chunk is then generated together with this action-conditioned visual future. In other words, the model does not first imagine an action-agnostic scene and attach a continuation afterward. Its future video and future action are produced from a shared account of what the robot has already committed to doing.</p>
@@ -118,10 +114,8 @@
           </div>
         </section>
 
-        <section class="article-section experiments" id="experiments" aria-labelledby="experiments-title">
+        <section class="article-section experiments" id="experiments" aria-label="Current results">
           <div class="reading-column">
-            <p class="section-number">04 · Evidence</p>
-            <h2 id="experiments-title">What the Current Results Show</h2>
             <p class="lead">Task success and control time are reported together. This matters because a streaming system that is fast but unreliable, or accurate but unable to keep pace with execution, does not resolve the original control problem.</p>
             <p>StreamWAM models are initialized from FastWAM-Joint and further trained. The RoboCasa study builds on X-WAM, while the RoboTwin study builds on StarWAM. These lineages make the streaming comparison part of existing world-action-model families rather than a detached controller.</p>
             <p>The tables below preserve the current reported values. They are shown in full—without interactive tabs—so the evidence remains readable as one continuous argument.</p>
@@ -129,7 +123,7 @@
 
           <section class="benchmark breakout" id="benchmark-libero" aria-labelledby="libero-title">
             <div class="benchmark-intro">
-              <p class="benchmark-label">Benchmark 01</p><h3 id="libero-title">LIBERO</h3>
+              <h3 id="libero-title">LIBERO</h3>
               <p>LIBERO evaluation covers four suites with 10 tasks per suite and 50 trials per task. Success is averaged across LIBERO-10, Spatial, Goal, and Object; episode time is reported for long and short tasks.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable LIBERO results table">
@@ -151,7 +145,7 @@
 
           <section class="benchmark breakout" id="benchmark-robocasa" aria-labelledby="robocasa-title">
             <div class="benchmark-intro">
-              <p class="benchmark-label">Benchmark 02</p><h3 id="robocasa-title">RoboCasa</h3>
+              <h3 id="robocasa-title">RoboCasa</h3>
               <p>The RoboCasa target benchmark evaluates 50 target tasks with 50 trials per task and reports average task success, chunk time, and total time.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable RoboCasa results table">
@@ -170,7 +164,7 @@
 
           <section class="benchmark breakout" id="benchmark-robotwin" aria-labelledby="robotwin-title">
             <div class="benchmark-intro">
-              <p class="benchmark-label">Benchmark 03</p><h3 id="robotwin-title">RoboTwin 2.0</h3>
+              <h3 id="robotwin-title">RoboTwin 2.0</h3>
               <p>RoboTwin 2.0 evaluates 50 tasks with 100 rollout episodes per task. Clean reports the easy setting and Random reports the hard domain-randomization setting.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable RoboTwin results table">
@@ -188,18 +182,14 @@
           </section>
         </section>
 
-        <section class="article-section reading-column" id="discussion" aria-labelledby="discussion-title">
-          <p class="section-number">05 · Discussion</p>
-          <h2 id="discussion-title">Where This Leaves Us</h2>
+        <section class="article-section reading-column" id="discussion" aria-label="Discussion">
           <p class="lead">StreamWAM reframes streaming as a relationship between execution and prediction, not only as a way to schedule the same computation earlier.</p>
           <p>The first provisional conclusion is that action conditioning provides a direct link between the robot motion underway and the visual future used for its next decision. It gives asynchronous prediction a model-level account of what execution is doing during inference.</p>
           <p>The second is that streaming performance needs to be read jointly with control success. Chunk time, end-to-end time, and task outcomes describe different parts of the system; none alone establishes that a robot can act continuously and successfully.</p>
           <p>The third is about the scope of this preview. The technical report will carry the broader analysis, limitations, and failure cases. Until then, this page presents the method motivation, released artifacts, evaluation protocols, and current tables without filling those missing sections with speculative claims.</p>
         </section>
 
-        <section class="article-section resources reading-column" id="resources" aria-labelledby="resources-title">
-          <p class="section-number">Resources</p>
-          <h2 id="resources-title">Read, run, and revisit.</h2>
+        <section class="article-section resources reading-column" id="resources" aria-label="Project resources">
           <p>Code and models are available now. The public repository contains StreamWAM inference and training code, the accelerated action-conditioned runtime, and LIBERO and RoboTwin recipes; released FastWAM-Joint-CD and StreamWAM checkpoints are available on Hugging Face.</p>
           <p class="resource-links"><a href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Code ↗</a><a href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Models ↗</a><span>Paper · Coming Soon</span><span>Rollout film · Coming Soon</span></p>
           <p><strong>Model lineage.</strong> StreamWAM models are initialized from FastWAM-Joint and further trained. RoboCasa builds on X-WAM, and RoboTwin builds on StarWAM.</p>

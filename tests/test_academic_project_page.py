@@ -33,8 +33,10 @@ class PageParser(HTMLParser):
         self.section_stack: list[str] = []
         self.act_heading_tags: list[str] = []
         self.act_body_paragraph_count = 0
-        self.act_opening_ids: set[str] = set()
         self.act_body_paragraph_text: list[str] | None = None
+        self.current_h3_id: str | None = None
+        self.current_h3_text: list[str] = []
+        self.h3_text_by_id: dict[str, str] = {}
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         normalized = {name: value or "" for name, value in attrs}
@@ -57,12 +59,13 @@ class PageParser(HTMLParser):
             if any(section_id.startswith("act-") for section_id in self.section_stack):
                 if "act-label" not in classes and "act-opening" not in classes:
                     self.act_body_paragraph_text = []
-                if "act-opening" in classes and normalized.get("id"):
-                    self.act_opening_ids.add(normalized["id"])
         if tag in {"h1", "h2", "h3", "h4", "h5", "h6"} and any(
             section_id.startswith("act-") for section_id in self.section_stack
         ):
             self.act_heading_tags.append(tag)
+        if tag == "h3" and normalized.get("id"):
+            self.current_h3_id = normalized["id"]
+            self.current_h3_text = []
 
     def handle_endtag(self, tag: str) -> None:
         if tag == "article":
@@ -71,12 +74,18 @@ class PageParser(HTMLParser):
             if " ".join(self.act_body_paragraph_text).strip():
                 self.act_body_paragraph_count += 1
             self.act_body_paragraph_text = None
+        if tag == "h3" and self.current_h3_id is not None:
+            self.h3_text_by_id[self.current_h3_id] = " ".join(self.current_h3_text).strip()
+            self.current_h3_id = None
+            self.current_h3_text = []
         if tag == "section":
             self.section_stack.pop()
 
     def handle_data(self, data: str) -> None:
         if self.act_body_paragraph_text is not None:
             self.act_body_paragraph_text.append(data)
+        if self.current_h3_id is not None:
+            self.current_h3_text.append(data)
         if stripped := data.strip():
             self.text_parts.append(stripped)
 
@@ -331,8 +340,62 @@ def test_article_opens_with_three_detailed_editorial_acts() -> None:
     assert all("editorial-act" in section.get("class", "").split() for section in act_sections)
     assert parser.act_body_paragraph_count >= 18
     assert parser.act_heading_tags == []
-    assert {section.get("aria-labelledby") for section in act_sections} == parser.act_opening_ids
+    assert [section.get("aria-label") for section in act_sections] == [
+        "The deployment problem",
+        "The asynchronous boundary",
+        "Action-conditioned streaming",
+    ]
     assert "https://arxiv.org/abs/2608.01880" in links
+
+
+def test_article_uses_a_continuous_editorial_hierarchy() -> None:
+    parser, _ = parse_page()
+    visible_text = " ".join(parser.text_parts)
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    removed_display_copy = (
+        "Research notes · August 2026",
+        "01 · The deployment problem",
+        "02 · The asynchronous boundary",
+        "03 · Action-conditioned streaming",
+        "04 · Evidence",
+        "What the Current Results Show",
+        "05 · Discussion",
+        "Where This Leaves Us",
+        "Read, run, and revisit.",
+        "Benchmark 01",
+        "Benchmark 02",
+        "Benchmark 03",
+    )
+    section_labels = {
+        attrs.get("id"): attrs.get("aria-label")
+        for tag, attrs in parser.attributes
+        if tag == "section" and attrs.get("id") in {"experiments", "discussion", "resources"}
+    }
+    benchmark_heading_ids = {
+        attrs["id"]: attrs.get("aria-labelledby")
+        for tag, attrs in parser.attributes
+        if tag == "section" and attrs.get("id", "").startswith("benchmark-")
+    }
+
+    assert not any(copy in visible_text for copy in removed_display_copy)
+    assert section_labels == {
+        "experiments": "Current results",
+        "discussion": "Discussion",
+        "resources": "Project resources",
+    }
+    assert len(set(benchmark_heading_ids.values())) == 3
+    assert {
+        section_id: parser.h3_text_by_id[heading_id]
+        for section_id, heading_id in benchmark_heading_ids.items()
+        if heading_id is not None
+    } == {
+        "benchmark-libero": "LIBERO",
+        "benchmark-robocasa": "RoboCasa",
+        "benchmark-robotwin": "RoboTwin 2.0",
+    }
+    compact_heading_rule = re.search(r"\.benchmark-intro h3\s*\{([^}]*)\}", css)
+    assert compact_heading_rule is not None
+    assert re.search(r"font-size:\s*clamp\([^;]*1\.4rem\s*\)", compact_heading_rule.group(1))
 
 
 def test_all_benchmark_tables_are_visible_without_tabs() -> None:
