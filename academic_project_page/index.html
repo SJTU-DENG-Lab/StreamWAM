@@ -38,8 +38,7 @@
       <section class="hero shell" id="overview" aria-labelledby="hero-title">
         <div class="hero-copy">
           <p class="eyebrow"><span>00 · Abstract</span> · Research preview</p>
-          <h1 id="hero-title">StreamWAM</h1>
-          <p class="hero-subtitle">Streaming World-Action Models for Robotic Manipulation</p>
+          <h1 id="hero-title"><span class="hero-name">StreamWAM:</span><span class="hero-tagline">Streaming World-Action Models for Robotic Manipulation</span></h1>
           <p class="hero-summary">StreamWAM is a research framework and unified testbed for systematically studying streaming strategies in world-action-model-based robot control.</p>
           <p class="hero-detail">Its <strong>action-conditioned streaming</strong> formulation feeds the action prefix currently being executed back into the world model, so future video generation reflects robot motion already underway while the next world-action chunk is inferred asynchronously.</p>
           <div class="hero-actions" aria-label="Project resources">
@@ -116,7 +115,7 @@
 
         <section class="article-section experiments" id="experiments" aria-label="Current results">
           <div class="reading-column">
-            <p class="lead">Task success and control time are reported together. This matters because a streaming system that is fast but unreliable, or accurate but unable to keep pace with execution, does not resolve the original control problem.</p>
+            <p class="lead"><strong>Task performance.</strong> Success is reported independently from runtime so that control quality can be compared without mixing units or execution protocols into the same table.</p>
             <p>StreamWAM models are initialized from FastWAM-Joint and further trained. The RoboCasa study builds on X-WAM, while the RoboTwin study builds on StarWAM. These lineages make the streaming comparison part of existing world-action-model families rather than a detached controller.</p>
             <p>The tables below preserve the current reported values. They are shown in full—without interactive tabs—so the evidence remains readable as one continuous argument.</p>
           </div>
@@ -124,42 +123,42 @@
           <section class="benchmark breakout" id="benchmark-libero" aria-labelledby="libero-title">
             <div class="benchmark-intro">
               <h3 id="libero-title">LIBERO</h3>
-              <p>LIBERO evaluation covers four suites with 10 tasks per suite and 50 trials per task. Success is averaged across LIBERO-10, Spatial, Goal, and Object; episode time is reported for long and short tasks.</p>
+              <p>LIBERO evaluation covers four suites with 10 tasks per suite and 50 trials per task. Success is averaged across LIBERO-10, Spatial, Goal, and Object; latency for long and short tasks is reported separately below.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable LIBERO results table">
               <table>
-                <caption>LIBERO success and latency results</caption>
-                <thead><tr><th scope="col">Method</th><th scope="col">LIBERO-10</th><th scope="col">Spatial</th><th scope="col">Goal</th><th scope="col">Object</th><th scope="col">Average ↑</th><th scope="col">Chunk time ↓</th><th scope="col">Episode time ↓<small>Long / Short</small></th></tr></thead>
+                <caption>LIBERO success results</caption>
+                <thead><tr><th scope="col">Method</th><th scope="col">LIBERO-10</th><th scope="col">Spatial</th><th scope="col">Goal</th><th scope="col">Object</th><th scope="col">Average ↑</th></tr></thead>
                 <tbody>
-                  <tr><th scope="row">FastWAM</th><td>96.20</td><td>96.20</td><td>94.20</td><td>96.20</td><td>95.70</td><td>493.0 ms</td><td>16.31 / 8.25 s</td></tr>
-                  <tr><th scope="row">FastWAM-Joint-CD</th><td>97.20</td><td>99.60</td><td>98.60</td><td>100.00</td><td>98.85</td><td>114.2 ms</td><td>6.89 / 3.74 s</td></tr>
-                  <tr><th scope="row">FastWAM-RTC</th><td>58.40</td><td>76.20</td><td>77.00</td><td>83.40</td><td>73.75</td><td>142.3 ms</td><td>6.23 / 3.20 s</td></tr>
-                  <tr><th scope="row">StreamWAM</th><td>96.60</td><td>98.80</td><td>97.40</td><td>100.00</td><td>98.20</td><td>41.0 ms</td><td>5.36 / 3.15 s</td></tr>
-                  <tr><th scope="row">w/o Action Conditioning</th><td>94.40</td><td>96.40</td><td>96.60</td><td>97.60</td><td>96.25</td><td>35.1 ms</td><td>5.20 / 2.92 s</td></tr>
-                  <tr><th scope="row">w/o Slot Encoder</th><td>95.60</td><td>98.40</td><td>96.80</td><td>99.80</td><td>97.65</td><td>36.3 ms</td><td>5.31 / 3.01 s</td></tr>
+                  <tr><th scope="row">FastWAM</th><td>96.20</td><td>96.20</td><td>94.20</td><td>96.20</td><td>95.70</td></tr>
+                  <tr><th scope="row">FastWAM-Joint-CD</th><td>97.20</td><td>99.60</td><td>98.60</td><td>100.00</td><td>98.85</td></tr>
+                  <tr><th scope="row">FastWAM-RTC</th><td>58.40</td><td>76.20</td><td>77.00</td><td>83.40</td><td>73.75</td></tr>
+                  <tr><th scope="row">StreamWAM</th><td>96.60</td><td>98.80</td><td>97.40</td><td>100.00</td><td>98.20</td></tr>
+                  <tr><th scope="row">w/o Action Conditioning</th><td>94.40</td><td>96.40</td><td>96.60</td><td>97.60</td><td>96.25</td></tr>
+                  <tr><th scope="row">w/o Slot Encoder</th><td>95.60</td><td>98.40</td><td>96.80</td><td>99.80</td><td>97.65</td></tr>
                 </tbody>
               </table>
             </div>
-            <p class="benchmark-reading">StreamWAM reaches 98.20% average success and a 41.0 ms chunk time. The action-conditioning ablation is faster at 35.1 ms, but its average success is lower at 96.25%, illustrating why timing and control performance should be read together.</p>
+            <p class="benchmark-reading">StreamWAM reaches 98.20% average success. The action-conditioning ablation reaches 96.25%, showing the control-quality contribution of conditioning future video on the action underway.</p>
           </section>
 
           <section class="benchmark breakout" id="benchmark-robocasa" aria-labelledby="robocasa-title">
             <div class="benchmark-intro">
               <h3 id="robocasa-title">RoboCasa</h3>
-              <p>The RoboCasa target benchmark evaluates 50 target tasks with 50 trials per task and reports average task success, chunk time, and total time.</p>
+              <p>The RoboCasa target benchmark evaluates 50 target tasks with 50 trials per task and reports average task success.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable RoboCasa results table">
               <table>
                 <caption>RoboCasa target benchmark results</caption>
-                <thead><tr><th scope="col">Method</th><th scope="col">Accuracy ↑</th><th scope="col">Chunk time ↓</th><th scope="col">Total time ↓</th></tr></thead>
+                <thead><tr><th scope="col">Method</th><th scope="col">Accuracy ↑</th></tr></thead>
                 <tbody>
-                  <tr><th scope="row">X-WAM</th><td>75.42%</td><td>504.00 ms</td><td>37.31 s</td></tr>
-                  <tr><th scope="row">X-WAM-CD</th><td>75.83%</td><td>135.21 ms</td><td>33.60 s</td></tr>
-                  <tr><th scope="row">StreamWAM</th><td>75.35%</td><td>136.76 ms</td><td>11.76 s</td></tr>
+                  <tr><th scope="row">X-WAM</th><td>75.42%</td></tr>
+                  <tr><th scope="row">X-WAM-CD</th><td>75.83%</td></tr>
+                  <tr><th scope="row">StreamWAM</th><td>75.35%</td></tr>
                 </tbody>
               </table>
             </div>
-            <p class="benchmark-reading">StreamWAM reports 75.35% average task success with 136.76 ms chunk time and 11.76 s total time. Its accuracy remains close to the two X-WAM references while the reported total time is substantially shorter.</p>
+            <p class="benchmark-reading">StreamWAM reports 75.35% average task success, remaining close to the two X-WAM reference models.</p>
           </section>
 
           <section class="benchmark breakout" id="benchmark-robotwin" aria-labelledby="robotwin-title">
@@ -170,16 +169,76 @@
             <div class="table-scroll" tabindex="0" aria-label="Scrollable RoboTwin results table">
               <table>
                 <caption>RoboTwin 2.0 clean and randomized results</caption>
-                <thead><tr><th scope="col">Method</th><th scope="col">Clean ↑</th><th scope="col">Random ↑</th><th scope="col">Total ↑</th><th scope="col">Chunk time ↓</th><th scope="col">Total time ↓</th></tr></thead>
+                <thead><tr><th scope="col">Method</th><th scope="col">Clean ↑</th><th scope="col">Random ↑</th><th scope="col">Total ↑</th></tr></thead>
                 <tbody>
-                  <tr><th scope="row">StarWAM</th><td>84.8</td><td>86.0</td><td>85.4</td><td>189.3 ms</td><td>—</td></tr>
-                  <tr><th scope="row">StarWAM-CD</th><td>79.0</td><td>79.2</td><td>79.1</td><td>81.6 ms</td><td>—</td></tr>
-                  <tr><th scope="row">StreamWAM</th><td>87.2</td><td>88.8</td><td>87.6</td><td>—</td><td>112.2 s</td></tr>
+                  <tr><th scope="row">StarWAM-Joint</th><td>84.8</td><td>86.0</td><td>85.4</td></tr>
+                  <tr><th scope="row">StarWAM-CD</th><td>79.0</td><td>79.2</td><td>79.1</td></tr>
+                  <tr><th scope="row">StreamWAM</th><td>87.2</td><td>88.8</td><td>87.6</td></tr>
                 </tbody>
               </table>
             </div>
-            <p class="benchmark-reading">StreamWAM reaches 87.6 total success, with 87.2 on Clean and 88.8 on Random. These are the highest success values in the current RoboTwin table; the reported total time is 112.2 s.</p>
+            <p class="benchmark-reading">StreamWAM reaches 87.6 total success, with 87.2 on Clean and 88.8 on Random—the highest success values in the current RoboTwin table.</p>
           </section>
+
+          <div class="efficiency-intro reading-column">
+            <p><strong>Inference efficiency.</strong> Chunk latency and end-to-end control time are separated from task success below. Every bar is labeled with its reported value; lower is better.</p>
+          </div>
+          <figure class="latency-figure breakout" aria-labelledby="latency-caption">
+            <div class="latency-benchmark-group">
+              <p class="latency-benchmark">LIBERO</p>
+              <div class="latency-chart" role="group" aria-labelledby="libero-chunk-title">
+                <p class="latency-chart-title" id="libero-chunk-title">Chunk time <span>ms ↓</span></p>
+                <div class="latency-row"><span class="latency-method">FastWAM</span><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="libero" data-metric="chunk" data-method="FastWAM" data-series="" data-value="493.0" data-unit="ms"></span></span><strong>493.0 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">FastWAM-Joint-CD</span><span class="latency-track"><span class="latency-bar" style="--bar:23.16%" data-benchmark="libero" data-metric="chunk" data-method="FastWAM-Joint-CD" data-series="" data-value="114.2" data-unit="ms"></span></span><strong>114.2 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">FastWAM-RTC</span><span class="latency-track"><span class="latency-bar" style="--bar:28.86%" data-benchmark="libero" data-metric="chunk" data-method="FastWAM-RTC" data-series="" data-value="142.3" data-unit="ms"></span></span><strong>142.3 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">StreamWAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:8.32%" data-benchmark="libero" data-metric="chunk" data-method="StreamWAM" data-series="" data-value="41.0" data-unit="ms"></span></span><strong>41.0 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">w/o Action Cond.</span><span class="latency-track"><span class="latency-bar is-ablation" style="--bar:7.12%" data-benchmark="libero" data-metric="chunk" data-method="w/o Action Conditioning" data-series="" data-value="35.1" data-unit="ms"></span></span><strong>35.1 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">w/o Slot Encoder</span><span class="latency-track"><span class="latency-bar is-ablation" style="--bar:7.36%" data-benchmark="libero" data-metric="chunk" data-method="w/o Slot Encoder" data-series="" data-value="36.3" data-unit="ms"></span></span><strong>36.3 ms</strong></div>
+              </div>
+              <div class="latency-chart" role="group" aria-labelledby="libero-total-title">
+                <p class="latency-chart-title" id="libero-total-title">Episode time <span>seconds ↓ · L / S</span></p>
+                <div class="latency-pair-row"><span class="latency-method">FastWAM</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="libero" data-metric="total" data-method="FastWAM" data-series="long" data-value="16.31" data-unit="s"></span></span><strong>16.31 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-short" style="--bar:100%" data-benchmark="libero" data-metric="total" data-method="FastWAM" data-series="short" data-value="8.25" data-unit="s"></span></span><strong>8.25 s</strong></div></div></div>
+                <div class="latency-pair-row"><span class="latency-method">FastWAM-Joint-CD</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar" style="--bar:42.24%" data-benchmark="libero" data-metric="total" data-method="FastWAM-Joint-CD" data-series="long" data-value="6.89" data-unit="s"></span></span><strong>6.89 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-short" style="--bar:45.33%" data-benchmark="libero" data-metric="total" data-method="FastWAM-Joint-CD" data-series="short" data-value="3.74" data-unit="s"></span></span><strong>3.74 s</strong></div></div></div>
+                <div class="latency-pair-row"><span class="latency-method">FastWAM-RTC</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar" style="--bar:38.20%" data-benchmark="libero" data-metric="total" data-method="FastWAM-RTC" data-series="long" data-value="6.23" data-unit="s"></span></span><strong>6.23 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-short" style="--bar:38.79%" data-benchmark="libero" data-metric="total" data-method="FastWAM-RTC" data-series="short" data-value="3.20" data-unit="s"></span></span><strong>3.20 s</strong></div></div></div>
+                <div class="latency-pair-row"><span class="latency-method">StreamWAM</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:32.86%" data-benchmark="libero" data-metric="total" data-method="StreamWAM" data-series="long" data-value="5.36" data-unit="s"></span></span><strong>5.36 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-streamwam is-short" style="--bar:38.18%" data-benchmark="libero" data-metric="total" data-method="StreamWAM" data-series="short" data-value="3.15" data-unit="s"></span></span><strong>3.15 s</strong></div></div></div>
+                <div class="latency-pair-row"><span class="latency-method">w/o Action Cond.</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar is-ablation" style="--bar:31.88%" data-benchmark="libero" data-metric="total" data-method="w/o Action Conditioning" data-series="long" data-value="5.20" data-unit="s"></span></span><strong>5.20 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-ablation is-short" style="--bar:35.39%" data-benchmark="libero" data-metric="total" data-method="w/o Action Conditioning" data-series="short" data-value="2.92" data-unit="s"></span></span><strong>2.92 s</strong></div></div></div>
+                <div class="latency-pair-row"><span class="latency-method">w/o Slot Encoder</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar is-ablation" style="--bar:32.56%" data-benchmark="libero" data-metric="total" data-method="w/o Slot Encoder" data-series="long" data-value="5.31" data-unit="s"></span></span><strong>5.31 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-ablation is-short" style="--bar:36.48%" data-benchmark="libero" data-metric="total" data-method="w/o Slot Encoder" data-series="short" data-value="3.01" data-unit="s"></span></span><strong>3.01 s</strong></div></div></div>
+              </div>
+            </div>
+
+            <div class="latency-benchmark-group">
+              <p class="latency-benchmark">RoboCasa</p>
+              <div class="latency-chart" role="group" aria-labelledby="robocasa-chunk-title">
+                <p class="latency-chart-title" id="robocasa-chunk-title">Chunk time <span>ms ↓</span></p>
+                <div class="latency-row"><span class="latency-method">X-WAM</span><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="robocasa" data-metric="chunk" data-method="X-WAM" data-series="" data-value="504.00" data-unit="ms"></span></span><strong>504.00 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">X-WAM-CD</span><span class="latency-track"><span class="latency-bar" style="--bar:26.83%" data-benchmark="robocasa" data-metric="chunk" data-method="X-WAM-CD" data-series="" data-value="135.21" data-unit="ms"></span></span><strong>135.21 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">StreamWAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:27.13%" data-benchmark="robocasa" data-metric="chunk" data-method="StreamWAM" data-series="" data-value="136.76" data-unit="ms"></span></span><strong>136.76 ms</strong></div>
+              </div>
+              <div class="latency-chart" role="group" aria-labelledby="robocasa-total-title">
+                <p class="latency-chart-title" id="robocasa-total-title">Total time <span>seconds ↓</span></p>
+                <div class="latency-row"><span class="latency-method">X-WAM</span><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="robocasa" data-metric="total" data-method="X-WAM" data-series="" data-value="37.31" data-unit="s"></span></span><strong>37.31 s</strong></div>
+                <div class="latency-row"><span class="latency-method">X-WAM-CD</span><span class="latency-track"><span class="latency-bar" style="--bar:90.06%" data-benchmark="robocasa" data-metric="total" data-method="X-WAM-CD" data-series="" data-value="33.60" data-unit="s"></span></span><strong>33.60 s</strong></div>
+                <div class="latency-row"><span class="latency-method">StreamWAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:31.52%" data-benchmark="robocasa" data-metric="total" data-method="StreamWAM" data-series="" data-value="11.76" data-unit="s"></span></span><strong>11.76 s</strong></div>
+              </div>
+            </div>
+
+            <div class="latency-benchmark-group">
+              <p class="latency-benchmark">RoboTwin 2.0</p>
+              <div class="latency-chart" role="group" aria-labelledby="robotwin-chunk-title">
+                <p class="latency-chart-title" id="robotwin-chunk-title">Chunk time <span>ms ↓</span></p>
+                <div class="latency-row"><span class="latency-method">StarWAM-Joint</span><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="robotwin" data-metric="chunk" data-method="StarWAM-Joint" data-series="" data-value="190.17" data-unit="ms"></span></span><strong>190.17 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">StarWAM-CD</span><span class="latency-track"><span class="latency-bar" style="--bar:42.70%" data-benchmark="robotwin" data-metric="chunk" data-method="StarWAM-CD" data-series="" data-value="81.21" data-unit="ms"></span></span><strong>81.21 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">StreamWAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:24.76%" data-benchmark="robotwin" data-metric="chunk" data-method="StreamWAM" data-series="" data-value="47.09" data-unit="ms"></span></span><strong>47.09 ms</strong></div>
+              </div>
+              <div class="latency-chart" role="group" aria-labelledby="robotwin-total-title">
+                <p class="latency-chart-title" id="robotwin-total-title">Total time <span>seconds ↓</span></p>
+                <div class="latency-row"><span class="latency-method">StarWAM-Joint</span><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="robotwin" data-metric="total" data-method="StarWAM-Joint" data-series="" data-value="110.22" data-unit="s"></span></span><strong>110.22 s</strong></div>
+                <div class="latency-row"><span class="latency-method">StarWAM-CD</span><span class="latency-track"><span class="latency-bar" style="--bar:93.08%" data-benchmark="robotwin" data-metric="total" data-method="StarWAM-CD" data-series="" data-value="102.59" data-unit="s"></span></span><strong>102.59 s</strong></div>
+                <div class="latency-row"><span class="latency-method">StreamWAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:70.29%" data-benchmark="robotwin" data-metric="total" data-method="StreamWAM" data-series="" data-value="77.48" data-unit="s"></span></span><strong>77.48 s</strong></div>
+              </div>
+            </div>
+            <figcaption id="latency-caption">Latency comparison across LIBERO, RoboCasa, and RoboTwin 2.0. LIBERO episode time reports Long (L) and Short (S) tasks separately.</figcaption>
+          </figure>
         </section>
 
         <section class="article-section reading-column" id="discussion" aria-label="Discussion">

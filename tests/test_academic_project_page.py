@@ -39,6 +39,8 @@ class PageParser(HTMLParser):
         self.h3_text_by_id: dict[str, str] = {}
         self.hero_title_text: list[str] | None = None
         self.hero_title = ""
+        self.caption_text: list[str] | None = None
+        self.captions: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         normalized = {name: value or "" for name, value in attrs}
@@ -70,6 +72,8 @@ class PageParser(HTMLParser):
             self.current_h3_text = []
         if tag == "h1" and normalized.get("id") == "hero-title":
             self.hero_title_text = []
+        if tag == "caption":
+            self.caption_text = []
 
     def handle_endtag(self, tag: str) -> None:
         if tag == "article":
@@ -85,6 +89,9 @@ class PageParser(HTMLParser):
         if tag == "h1" and self.hero_title_text is not None:
             self.hero_title = " ".join(self.hero_title_text).strip()
             self.hero_title_text = None
+        if tag == "caption" and self.caption_text is not None:
+            self.captions.append(" ".join(self.caption_text).strip())
+            self.caption_text = None
         if tag == "section":
             self.section_stack.pop()
 
@@ -95,6 +102,8 @@ class PageParser(HTMLParser):
             self.current_h3_text.append(data)
         if self.hero_title_text is not None:
             self.hero_title_text.append(data)
+        if self.caption_text is not None:
+            self.caption_text.append(data)
         if stripped := data.strip():
             self.text_parts.append(stripped)
 
@@ -165,7 +174,7 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
         "discussion",
         "resources",
     } <= parser.ids
-    assert parser.hero_title == "StreamWAM"
+    assert parser.hero_title == "StreamWAM: Streaming World-Action Models for Robotic Manipulation"
     assert "Think ahead. Act now." not in visible_text
     assert "Streaming World-Action Models for Robotic Manipulation" in visible_text
     assert "action-conditioned" in visible_text.lower()
@@ -198,6 +207,12 @@ def test_page_publishes_the_current_benchmark_results() -> None:
         "100.00",
         "75.35%",
         "136.76 ms",
+        "190.17 ms",
+        "81.21 ms",
+        "47.09 ms",
+        "110.22 s",
+        "102.59 s",
+        "77.48 s",
         "87.2",
         "88.8",
         "87.6",
@@ -300,7 +315,8 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
     assert "inference-time RTC" in visible_text
     assert "prefix-conditioned" in visible_text
     assert "00 · Abstract" in visible_text
-    assert "Task success and control time are reported together" in visible_text
+    assert "Task performance." in visible_text
+    assert "Inference efficiency." in visible_text
     assert "StreamWAM reaches 98.20% average success" in visible_text
     assert "StreamWAM reports 75.35% average task success" in visible_text
     assert "StreamWAM reaches 87.6 total success" in visible_text
@@ -418,6 +434,11 @@ def test_all_benchmark_tables_are_visible_without_tabs() -> None:
 
     assert benchmark_ids == {"benchmark-libero", "benchmark-robocasa", "benchmark-robotwin"}
     assert parser.tags.count("table") == 3
+    assert parser.captions == [
+        "LIBERO success results",
+        "RoboCasa target benchmark results",
+        "RoboTwin 2.0 clean and randomized results",
+    ]
     assert "data-tabs" not in html
     assert "data-panel" not in html
     assert 'role="tab"' not in html
@@ -428,25 +449,25 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
 
     assert parsed.rows == {
         "benchmark-libero": [
-            ["Method", "LIBERO-10", "Spatial", "Goal", "Object", "Average ↑", "Chunk time ↓", "Episode time ↓ Long / Short"],
-            ["FastWAM", "96.20", "96.20", "94.20", "96.20", "95.70", "493.0 ms", "16.31 / 8.25 s"],
-            ["FastWAM-Joint-CD", "97.20", "99.60", "98.60", "100.00", "98.85", "114.2 ms", "6.89 / 3.74 s"],
-            ["FastWAM-RTC", "58.40", "76.20", "77.00", "83.40", "73.75", "142.3 ms", "6.23 / 3.20 s"],
-            ["StreamWAM", "96.60", "98.80", "97.40", "100.00", "98.20", "41.0 ms", "5.36 / 3.15 s"],
-            ["w/o Action Conditioning", "94.40", "96.40", "96.60", "97.60", "96.25", "35.1 ms", "5.20 / 2.92 s"],
-            ["w/o Slot Encoder", "95.60", "98.40", "96.80", "99.80", "97.65", "36.3 ms", "5.31 / 3.01 s"],
+            ["Method", "LIBERO-10", "Spatial", "Goal", "Object", "Average ↑"],
+            ["FastWAM", "96.20", "96.20", "94.20", "96.20", "95.70"],
+            ["FastWAM-Joint-CD", "97.20", "99.60", "98.60", "100.00", "98.85"],
+            ["FastWAM-RTC", "58.40", "76.20", "77.00", "83.40", "73.75"],
+            ["StreamWAM", "96.60", "98.80", "97.40", "100.00", "98.20"],
+            ["w/o Action Conditioning", "94.40", "96.40", "96.60", "97.60", "96.25"],
+            ["w/o Slot Encoder", "95.60", "98.40", "96.80", "99.80", "97.65"],
         ],
         "benchmark-robocasa": [
-            ["Method", "Accuracy ↑", "Chunk time ↓", "Total time ↓"],
-            ["X-WAM", "75.42%", "504.00 ms", "37.31 s"],
-            ["X-WAM-CD", "75.83%", "135.21 ms", "33.60 s"],
-            ["StreamWAM", "75.35%", "136.76 ms", "11.76 s"],
+            ["Method", "Accuracy ↑"],
+            ["X-WAM", "75.42%"],
+            ["X-WAM-CD", "75.83%"],
+            ["StreamWAM", "75.35%"],
         ],
         "benchmark-robotwin": [
-            ["Method", "Clean ↑", "Random ↑", "Total ↑", "Chunk time ↓", "Total time ↓"],
-            ["StarWAM", "84.8", "86.0", "85.4", "189.3 ms", "—"],
-            ["StarWAM-CD", "79.0", "79.2", "79.1", "81.6 ms", "—"],
-            ["StreamWAM", "87.2", "88.8", "87.6", "—", "112.2 s"],
+            ["Method", "Clean ↑", "Random ↑", "Total ↑"],
+            ["StarWAM-Joint", "84.8", "86.0", "85.4"],
+            ["StarWAM-CD", "79.0", "79.2", "79.1"],
+            ["StreamWAM", "87.2", "88.8", "87.6"],
         ],
     }
 
@@ -454,3 +475,61 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
     assert all(fragment in section_text["benchmark-libero"] for fragment in ("four suites", "10 tasks per suite", "50 trials per task", "long and short tasks"))
     assert all(fragment in section_text["benchmark-robocasa"] for fragment in ("50 target tasks", "50 trials per task", "average task success"))
     assert all(fragment in section_text["benchmark-robotwin"] for fragment in ("50 tasks", "100 rollout episodes per task", "Clean", "Random", "domain-randomization"))
+
+
+def test_latency_charts_match_the_authoritative_efficiency_results() -> None:
+    parser, _ = parse_page()
+    charts = [
+        attrs
+        for _, attrs in parser.attributes
+        if "latency-chart" in attrs.get("class", "").split()
+    ]
+    bars = [
+        (
+            attrs.get("data-benchmark"),
+            attrs.get("data-metric"),
+            attrs.get("data-method"),
+            attrs.get("data-series"),
+            attrs.get("data-value"),
+            attrs.get("data-unit"),
+        )
+        for _, attrs in parser.attributes
+        if "latency-bar" in attrs.get("class", "").split()
+    ]
+
+    assert len(charts) == 6
+    assert all(chart.get("role") == "group" for chart in charts)
+    assert len({chart.get("aria-labelledby") for chart in charts}) == 6
+    assert all(chart.get("aria-labelledby") in parser.ids for chart in charts)
+    assert bars == [
+        ("libero", "chunk", "FastWAM", "", "493.0", "ms"),
+        ("libero", "chunk", "FastWAM-Joint-CD", "", "114.2", "ms"),
+        ("libero", "chunk", "FastWAM-RTC", "", "142.3", "ms"),
+        ("libero", "chunk", "StreamWAM", "", "41.0", "ms"),
+        ("libero", "chunk", "w/o Action Conditioning", "", "35.1", "ms"),
+        ("libero", "chunk", "w/o Slot Encoder", "", "36.3", "ms"),
+        ("libero", "total", "FastWAM", "long", "16.31", "s"),
+        ("libero", "total", "FastWAM", "short", "8.25", "s"),
+        ("libero", "total", "FastWAM-Joint-CD", "long", "6.89", "s"),
+        ("libero", "total", "FastWAM-Joint-CD", "short", "3.74", "s"),
+        ("libero", "total", "FastWAM-RTC", "long", "6.23", "s"),
+        ("libero", "total", "FastWAM-RTC", "short", "3.20", "s"),
+        ("libero", "total", "StreamWAM", "long", "5.36", "s"),
+        ("libero", "total", "StreamWAM", "short", "3.15", "s"),
+        ("libero", "total", "w/o Action Conditioning", "long", "5.20", "s"),
+        ("libero", "total", "w/o Action Conditioning", "short", "2.92", "s"),
+        ("libero", "total", "w/o Slot Encoder", "long", "5.31", "s"),
+        ("libero", "total", "w/o Slot Encoder", "short", "3.01", "s"),
+        ("robocasa", "chunk", "X-WAM", "", "504.00", "ms"),
+        ("robocasa", "chunk", "X-WAM-CD", "", "135.21", "ms"),
+        ("robocasa", "chunk", "StreamWAM", "", "136.76", "ms"),
+        ("robocasa", "total", "X-WAM", "", "37.31", "s"),
+        ("robocasa", "total", "X-WAM-CD", "", "33.60", "s"),
+        ("robocasa", "total", "StreamWAM", "", "11.76", "s"),
+        ("robotwin", "chunk", "StarWAM-Joint", "", "190.17", "ms"),
+        ("robotwin", "chunk", "StarWAM-CD", "", "81.21", "ms"),
+        ("robotwin", "chunk", "StreamWAM", "", "47.09", "ms"),
+        ("robotwin", "total", "StarWAM-Joint", "", "110.22", "s"),
+        ("robotwin", "total", "StarWAM-CD", "", "102.59", "s"),
+        ("robotwin", "total", "StreamWAM", "", "77.48", "s"),
+    ]
