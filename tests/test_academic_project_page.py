@@ -46,7 +46,16 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
     assert parser.tags.count("header") == 1
     assert parser.tags.count("main") == 1
     assert parser.tags.count("footer") == 1
-    assert {"overview", "method", "results", "gallery", "resources"} <= parser.ids
+    assert {
+        "overview",
+        "motivation",
+        "testbed",
+        "method",
+        "execution",
+        "experiments",
+        "discussion",
+        "resources",
+    } <= parser.ids
     assert "Think ahead. Act now." in visible_text
     assert "Streaming World-Action Models for Robotic Manipulation" in visible_text
     assert "action-conditioned" in visible_text.lower()
@@ -139,19 +148,25 @@ def test_no_javascript_navigation_remains_usable() -> None:
 
 def test_small_dim_text_meets_wcag_aa_contrast() -> None:
     css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
-    dim_match = re.search(r"--dim:\s*(#[0-9a-fA-F]{6})", css)
-    background_match = re.search(r"--bg:\s*(#[0-9a-fA-F]{6})", css)
-    assert dim_match and background_match
+    colors = dict(re.findall(r"--([\w-]+):\s*(#[0-9a-fA-F]{6})", css))
 
     def luminance(hex_color: str) -> float:
         channels = [int(hex_color[index : index + 2], 16) / 255 for index in (1, 3, 5)]
         linear = [value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4 for value in channels]
         return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
 
-    foreground = luminance(dim_match.group(1))
-    background = luminance(background_match.group(1))
-    contrast = (max(foreground, background) + 0.05) / (min(foreground, background) + 0.05)
-    assert contrast >= 4.5
+    for foreground_name, background_name in (
+        ("dim", "bg"),
+        ("dim", "paper"),
+        ("orange", "orange-soft"),
+        ("teal-deep", "teal-soft"),
+        ("teal-deep", "results-bg"),
+        ("teal-deep", "resources-bg"),
+    ):
+        foreground = luminance(colors[foreground_name])
+        background = luminance(colors[background_name])
+        contrast = (max(foreground, background) + 0.05) / (min(foreground, background) + 0.05)
+        assert contrast >= 4.5, f"{foreground_name} on {background_name}: {contrast:.2f}"
 
 
 def test_social_metadata_uses_absolute_project_urls() -> None:
@@ -164,3 +179,54 @@ def test_social_metadata_uses_absolute_project_urls() -> None:
 
     assert metadata["og:url"] == "https://sjtu-deng-lab.github.io/StreamWAM/"
     assert metadata["og:image"] == "https://sjtu-deng-lab.github.io/StreamWAM/assets/streamwam-social-preview.jpg"
+
+
+def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> None:
+    parser, html = parse_page()
+    visible_text = " ".join(parser.text_parts)
+    chapter_links = {
+        attrs["href"]
+        for tag, attrs in parser.attributes
+        if tag == "a" and "chapter-link" in attrs.get("class", "")
+    }
+    theme_colors = [
+        attrs.get("content")
+        for tag, attrs in parser.attributes
+        if tag == "meta" and attrs.get("name") == "theme-color"
+    ]
+
+    assert chapter_links == {
+        "#motivation",
+        "#testbed",
+        "#method",
+        "#execution",
+        "#experiments",
+        "#discussion",
+        "#resources",
+    }
+    assert "Why Streaming WAM?" in visible_text
+    assert "A Unified Streaming Testbed" in visible_text
+    assert "Action-Conditioned Streaming" in visible_text
+    assert "Streaming While Acting" in visible_text
+    assert "Sequential WAM" in visible_text
+    assert "Execution overlap" in visible_text
+    assert "Key idea" in visible_text
+    assert "Quantitative latency breakdown" in visible_text
+    assert "Qualitative rollout film" in visible_text
+    assert "00 · Abstract" in visible_text
+    assert "Task success and control time are reported together" in visible_text
+    assert "StreamWAM reaches 98.20% average success" in visible_text
+    assert "StreamWAM reports 75.35% average task success" in visible_text
+    assert "StreamWAM reaches 87.6 total success" in visible_text
+    assert "broader analysis, limitations, and failure cases" in visible_text
+    assert "Model lineage." in visible_text
+    assert "Code and models are available now" in visible_text
+    assert "Successful LIBERO rollout frames." in visible_text
+    assert theme_colors == ["#f7f5ef"]
+    assert not any(token in html.casefold() for token in ("todo", "tbd", "lorem ipsum"))
+
+
+def test_hidden_mobile_menu_remains_hidden_without_javascript() -> None:
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+
+    assert ".menu-toggle[hidden]{display:none!important}" in css

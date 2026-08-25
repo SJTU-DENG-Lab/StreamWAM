@@ -1,5 +1,18 @@
 # StreamWAM academic project page
 
+This directory contains the dependency-free, long-form research preview published with GitHub Pages.
+The page is organized as an editable research story rather than a fixed paper template.
+
+## Editing the story
+
+The seven public chapters in `index.html` are `motivation`, `testbed`, `method`, `execution`,
+`experiments`, `discussion`, and `resources`. Keep these IDs stable because the sticky chapter index
+and external links use them. Put ordinary prose inside `.story-copy`; use `.wide-figure` for diagrams,
+tables, or media that should break out beyond the reading column.
+
+The page intentionally uses only local HTML, CSS, JavaScript, and media. Paper and rollout-video
+entries should remain non-interactive `Coming Soon` notices until real public URLs are available.
+
 This directory is a dependency-free preview site for StreamWAM. GitHub Pages publishes this directory as-is.
 
 ## Preview locally

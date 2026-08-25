@@ -80,3 +80,27 @@ document.querySelectorAll("[data-tabs]").forEach((tabsRoot) => {
 
   activateTab(tabs.find((tab) => tab.getAttribute("aria-selected") === "true") || tabs[0], false);
 });
+
+const chapterLinks = [...document.querySelectorAll(".chapter-link")];
+const chapters = chapterLinks
+  .map((link) => document.querySelector(link.getAttribute("href")))
+  .filter(Boolean);
+
+function markCurrentChapter(chapter) {
+  chapterLinks.forEach((link) => {
+    const current = link.getAttribute("href") === `#${chapter.id}`;
+    link.classList.toggle("is-current", current);
+    if (current) link.setAttribute("aria-current", "location");
+    else link.removeAttribute("aria-current");
+  });
+}
+
+if (chapters.length && "IntersectionObserver" in window) {
+  const visibleChapters = new Map();
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => visibleChapters.set(entry.target, entry.isIntersecting));
+    const current = chapters.find((chapter) => visibleChapters.get(chapter));
+    if (current) markCurrentChapter(current);
+  }, { rootMargin: "-18% 0px -67% 0px" });
+  chapters.forEach((chapter) => observer.observe(chapter));
+}
