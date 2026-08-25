@@ -8,7 +8,8 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="StreamWAM — Think ahead. Act now.">
     <meta property="og:description" content="Streaming World-Action Models for Robotic Manipulation">
-    <meta property="og:image" content="assets/streamwam-social-preview.jpg">
+    <meta property="og:url" content="https://sjtu-deng-lab.github.io/StreamWAM/">
+    <meta property="og:image" content="https://sjtu-deng-lab.github.io/StreamWAM/assets/streamwam-social-preview.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
@@ -25,7 +26,7 @@
           <span class="wordmark-mark" aria-hidden="true"></span>
           StreamWAM
         </a>
-        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" hidden>
           <span class="sr-only">Open navigation</span>
           <span aria-hidden="true"></span><span aria-hidden="true"></span>
         </button>
@@ -173,13 +174,13 @@
           </div>
 
           <div class="result-tabs reveal" data-tabs>
-            <div class="tab-list" role="tablist" aria-label="Benchmark results">
-              <button id="tab-libero" role="tab" aria-selected="true" aria-controls="panel-libero" data-tab="libero">LIBERO</button>
-              <button id="tab-robocasa" role="tab" aria-selected="false" aria-controls="panel-robocasa" data-tab="robocasa">RoboCasa</button>
-              <button id="tab-robotwin" role="tab" aria-selected="false" aria-controls="panel-robotwin" data-tab="robotwin">RoboTwin</button>
+            <div class="tab-list" aria-label="Benchmark results">
+              <a id="tab-libero" href="#panel-libero" data-tab="libero">LIBERO</a>
+              <a id="tab-robocasa" href="#panel-robocasa" data-tab="robocasa">RoboCasa</a>
+              <a id="tab-robotwin" href="#panel-robotwin" data-tab="robotwin">RoboTwin</a>
             </div>
 
-            <section class="result-panel" id="panel-libero" role="tabpanel" aria-labelledby="tab-libero" data-panel="libero">
+            <section class="result-panel" id="panel-libero" data-panel="libero">
               <div class="protocol">
                 <span>4 suites</span><span>10 tasks per suite</span><span>50 trials per task</span>
               </div>
@@ -200,7 +201,7 @@
               <p class="table-note">Success rates are percentages. Average is the arithmetic mean across the four suites.</p>
             </section>
 
-            <section class="result-panel" id="panel-robocasa" role="tabpanel" aria-labelledby="tab-robocasa" data-panel="robocasa">
+            <section class="result-panel" id="panel-robocasa" data-panel="robocasa">
               <div class="protocol">
                 <span>Target benchmark</span><span>50 target tasks</span><span>50 trials per task</span><span>Average task success</span>
               </div>
@@ -217,7 +218,7 @@
               </div>
             </section>
 
-            <section class="result-panel" id="panel-robotwin" role="tabpanel" aria-labelledby="tab-robotwin" data-panel="robotwin">
+            <section class="result-panel" id="panel-robotwin" data-panel="robotwin">
               <div class="protocol">
                 <span>RoboTwin 2.0</span><span>50 tasks</span><span>100 rollout episodes per task</span><span>Clean / Random</span>
               </div>

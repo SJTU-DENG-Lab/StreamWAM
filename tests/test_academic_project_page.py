@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 from pathlib import Path
+import re
 from urllib.parse import urlparse
 
 
@@ -119,3 +120,47 @@ def test_pages_workflow_deploys_only_the_project_page() -> None:
     assert "actions/deploy-pages@v4" in workflow
     assert "path: ./academic_project_page" in workflow
     assert "path: ./" not in {line.strip() for line in workflow.splitlines()}
+
+
+def test_no_javascript_navigation_remains_usable() -> None:
+    parser, _ = parse_page()
+    menu_buttons = [attrs for tag, attrs in parser.attributes if tag == "button" and "menu-toggle" in attrs.get("class", "")]
+    result_links = [attrs for tag, attrs in parser.attributes if tag == "a" and attrs.get("data-tab")]
+
+    assert len(menu_buttons) == 1
+    assert "hidden" in menu_buttons[0]
+    assert {link["href"] for link in result_links} == {
+        "#panel-libero",
+        "#panel-robocasa",
+        "#panel-robotwin",
+    }
+    assert all("role" not in link and "aria-selected" not in link for link in result_links)
+
+
+def test_small_dim_text_meets_wcag_aa_contrast() -> None:
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    dim_match = re.search(r"--dim:\s*(#[0-9a-fA-F]{6})", css)
+    background_match = re.search(r"--bg:\s*(#[0-9a-fA-F]{6})", css)
+    assert dim_match and background_match
+
+    def luminance(hex_color: str) -> float:
+        channels = [int(hex_color[index : index + 2], 16) / 255 for index in (1, 3, 5)]
+        linear = [value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4 for value in channels]
+        return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+    foreground = luminance(dim_match.group(1))
+    background = luminance(background_match.group(1))
+    contrast = (max(foreground, background) + 0.05) / (min(foreground, background) + 0.05)
+    assert contrast >= 4.5
+
+
+def test_social_metadata_uses_absolute_project_urls() -> None:
+    parser, _ = parse_page()
+    metadata = {
+        attrs.get("property"): attrs.get("content")
+        for tag, attrs in parser.attributes
+        if tag == "meta" and attrs.get("property")
+    }
+
+    assert metadata["og:url"] == "https://sjtu-deng-lab.github.io/StreamWAM/"
+    assert metadata["og:image"] == "https://sjtu-deng-lab.github.io/StreamWAM/assets/streamwam-social-preview.jpg"

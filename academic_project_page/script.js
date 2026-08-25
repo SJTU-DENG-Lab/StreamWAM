@@ -10,6 +10,7 @@ function closeMenu() {
 }
 
 if (menuButton && menu) {
+  menuButton.hidden = false;
   menuButton.addEventListener("click", () => {
     const nextOpen = menuButton.getAttribute("aria-expanded") !== "true";
     menuButton.setAttribute("aria-expanded", String(nextOpen));
@@ -25,7 +26,7 @@ if (menuButton && menu) {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
+    if (event.key === "Escape" && menuButton.getAttribute("aria-expanded") === "true") {
       closeMenu();
       menuButton.focus();
     }
@@ -33,8 +34,20 @@ if (menuButton && menu) {
 }
 
 document.querySelectorAll("[data-tabs]").forEach((tabsRoot) => {
-  const tabs = [...tabsRoot.querySelectorAll('[role="tab"]')];
-  const panels = [...tabsRoot.querySelectorAll('[role="tabpanel"]')];
+  const tabList = tabsRoot.querySelector(".tab-list");
+  const tabs = [...tabsRoot.querySelectorAll("[data-tab]")];
+  const panels = [...tabsRoot.querySelectorAll("[data-panel]")];
+
+  tabList.setAttribute("role", "tablist");
+  tabs.forEach((tab, index) => {
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-controls", `panel-${tab.dataset.tab}`);
+    tab.setAttribute("aria-selected", String(index === 0));
+  });
+  panels.forEach((panel) => {
+    panel.setAttribute("role", "tabpanel");
+    panel.setAttribute("aria-labelledby", `tab-${panel.dataset.panel}`);
+  });
 
   function activateTab(selectedTab, moveFocus = true) {
     tabs.forEach((tab) => {
@@ -49,7 +62,10 @@ document.querySelectorAll("[data-tabs]").forEach((tabsRoot) => {
   }
 
   tabs.forEach((tab, index) => {
-    tab.addEventListener("click", () => activateTab(tab, false));
+    tab.addEventListener("click", (event) => {
+      event.preventDefault();
+      activateTab(tab, false);
+    });
     tab.addEventListener("keydown", (event) => {
       let targetIndex;
       if (event.key === "ArrowRight") targetIndex = (index + 1) % tabs.length;

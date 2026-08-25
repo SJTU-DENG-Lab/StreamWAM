@@ -16,7 +16,7 @@ Then open `http://localhost:8000`.
 
 - Update public copy, links, benchmark values, and task captions in `index.html`.
 - Update colors, typography, spacing, and responsive layout in `styles.css`.
-- Update navigation, result tabs, or reveal behavior in `script.js`.
+- Update mobile navigation or result-tab behavior in `script.js`.
 - Replace rollout posters in `assets/` while keeping their existing filenames, or update the corresponding `src` and social metadata in `index.html`.
 
 The page intentionally uses only local assets and system fonts, so no package installation or build command is required.
