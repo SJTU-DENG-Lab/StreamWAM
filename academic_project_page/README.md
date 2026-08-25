@@ -1,4 +1,4 @@
-# StreamWAM academic project page
+# Stream-WAM academic project page
 
 This directory contains the dependency-free, long-form research preview published with GitHub Pages.
 The page is organized as an editable research story rather than a fixed paper template.
@@ -23,7 +23,7 @@ behind tabs or require JavaScript to read the article. JavaScript is limited to 
 The page intentionally uses only local HTML, CSS, JavaScript, and media. Paper and rollout-video
 entries should remain non-interactive `Coming Soon` notices until real public URLs are available.
 
-This directory is a dependency-free preview site for StreamWAM. GitHub Pages publishes this directory as-is.
+This directory is a dependency-free preview site for Stream-WAM. GitHub Pages publishes this directory as-is.
 
 ## Preview locally
 

@@ -121,19 +121,29 @@ class BenchmarkParser(HTMLParser):
         self.current_benchmark: str | None = None
         self.current_cell: list[str] | None = None
         self.current_row: list[str] | None = None
+        self.current_row_styles: list[str] = []
         self.rows: dict[str, list[list[str]]] = {}
+        self.cell_styles: dict[str, list[list[str]]] = {}
         self.section_text: dict[str, list[str]] = {}
+        self.current_cell_style = ""
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         normalized = {name: value or "" for name, value in attrs}
         if tag == "section" and normalized.get("id", "").startswith("benchmark-"):
             self.current_benchmark = normalized["id"]
             self.rows[self.current_benchmark] = []
+            self.cell_styles[self.current_benchmark] = []
             self.section_text[self.current_benchmark] = []
         elif self.current_benchmark and tag == "tr":
             self.current_row = []
+            self.current_row_styles = []
         elif self.current_row is not None and tag in {"th", "td"}:
             self.current_cell = []
+            self.current_cell_style = ""
+        elif self.current_cell is not None and tag == "strong":
+            self.current_cell_style = "best"
+        elif self.current_cell is not None and tag == "u":
+            self.current_cell_style = "second"
 
     def handle_data(self, data: str) -> None:
         if self.current_benchmark and data.strip():
@@ -144,9 +154,11 @@ class BenchmarkParser(HTMLParser):
     def handle_endtag(self, tag: str) -> None:
         if tag in {"th", "td"} and self.current_cell is not None and self.current_row is not None:
             self.current_row.append(" ".join(self.current_cell))
+            self.current_row_styles.append(self.current_cell_style)
             self.current_cell = None
         elif tag == "tr" and self.current_row is not None and self.current_benchmark:
             self.rows[self.current_benchmark].append(self.current_row)
+            self.cell_styles[self.current_benchmark].append(self.current_row_styles)
             self.current_row = None
         elif tag == "section" and self.current_benchmark:
             self.current_benchmark = None
@@ -174,7 +186,7 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
         "discussion",
         "resources",
     } <= parser.ids
-    assert parser.hero_title == "StreamWAM: Streaming World-Action Models for Robotic Manipulation"
+    assert parser.hero_title == "Stream-WAM: Streaming World-Action Models for Robotic Manipulation"
     assert "Think ahead. Act now." not in visible_text
     assert "Streaming World-Action Models for Robotic Manipulation" in visible_text
     assert "action-conditioned" in visible_text.lower()
@@ -191,6 +203,7 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
     assert "RTC-AC" not in html
     assert "AC-StreamWAM" not in html
     assert "Ours" not in html
+    assert "StreamWAM" not in visible_text
 
 
 def test_page_publishes_the_current_benchmark_results() -> None:
@@ -311,15 +324,15 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
 
     assert "Why capable world-action models still make robots wait" in visible_text
     assert "Asynchrony removes the wait, but exposes a boundary" in visible_text
-    assert "StreamWAM conditions the visual future on the action already underway" in visible_text
+    assert "Stream-WAM conditions the visual future on the action already underway" in visible_text
     assert "inference-time RTC" in visible_text
     assert "prefix-conditioned" in visible_text
     assert "00 · Abstract" in visible_text
     assert "Task performance." in visible_text
     assert "Inference efficiency." in visible_text
-    assert "StreamWAM reaches 98.20% average success" in visible_text
-    assert "StreamWAM reports 75.35% average task success" in visible_text
-    assert "StreamWAM reaches 87.6 total success" in visible_text
+    assert "Stream-WAM reaches 98.20% average success" in visible_text
+    assert "Stream-WAM reports 75.35% average task success" in visible_text
+    assert "Stream-WAM reaches 87.6 total success" in visible_text
     assert "broader analysis, limitations, and failure cases" in visible_text
     assert "Model lineage." in visible_text
     assert "Code and models are available now" in visible_text
@@ -450,10 +463,15 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
     assert parsed.rows == {
         "benchmark-libero": [
             ["Method", "LIBERO-10", "Spatial", "Goal", "Object", "Average ↑"],
-            ["FastWAM", "96.20", "96.20", "94.20", "96.20", "95.70"],
+            ["OpenVLA", "53.7", "84.7", "79.2", "88.4", "76.5"],
+            ["π₀", "85.2", "96.8", "95.8", "98.8", "94.1"],
+            ["π₀.₅", "92.4", "98.8", "98.0", "98.2", "96.9"],
+            ["LingBot-VA", "98.5", "98.5", "97.2", "99.6", "98.5"],
+            ["Motus", "97.6", "96.8", "96.6", "99.8", "97.7"],
+            ["Fast-WAM", "95.2", "98.2", "97.0", "100.0", "97.6"],
             ["FastWAM-Joint-CD", "97.20", "99.60", "98.60", "100.00", "98.85"],
             ["FastWAM-RTC", "58.40", "76.20", "77.00", "83.40", "73.75"],
-            ["StreamWAM", "96.60", "98.80", "97.40", "100.00", "98.20"],
+            ["Stream-WAM", "96.60", "98.80", "97.40", "100.00", "98.20"],
             ["w/o Action Conditioning", "94.40", "96.40", "96.60", "97.60", "96.25"],
             ["w/o Slot Encoder", "95.60", "98.40", "96.80", "99.80", "97.65"],
         ],
@@ -461,13 +479,56 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
             ["Method", "Accuracy ↑"],
             ["X-WAM", "75.42%"],
             ["X-WAM-CD", "75.83%"],
-            ["StreamWAM", "75.35%"],
+            ["Stream-WAM", "75.35%"],
         ],
         "benchmark-robotwin": [
             ["Method", "Clean ↑", "Random ↑", "Total ↑"],
+            ["π₀", "65.92", "58.40", "62.2"],
+            ["π₀.₅", "82.74", "76.76", "79.8"],
+            ["Motus", "88.66", "87.02", "87.8"],
+            ["Motus from WAN2.2", "77.56", "77.00", "77.3"],
+            ["LingBot-VA", "92.90", "91.50", "92.2"],
+            ["LingBot-VA from WAN2.2", "80.60", "--", "80.6"],
+            ["Fast-WAM", "91.88", "91.78", "91.8"],
             ["StarWAM-Joint", "84.8", "86.0", "85.4"],
             ["StarWAM-CD", "79.0", "79.2", "79.1"],
-            ["StreamWAM", "87.2", "88.8", "87.6"],
+            ["Stream-WAM", "87.2", "88.8", "87.6"],
+        ],
+    }
+
+    assert parsed.cell_styles == {
+        "benchmark-libero": [
+            ["", "", "", "", "", ""],
+            ["", "", "", "", "", ""],
+            ["", "", "", "", "", ""],
+            ["", "", "second", "second", "", ""],
+            ["", "best", "", "", "", "second"],
+            ["", "second", "", "", "second", ""],
+            ["", "", "", "", "best", ""],
+            ["", "", "best", "best", "best", "best"],
+            ["", "", "", "", "", ""],
+            ["", "", "second", "", "best", ""],
+            ["", "", "", "", "", ""],
+            ["", "", "", "", "second", ""],
+        ],
+        "benchmark-robocasa": [
+            ["", ""],
+            ["", "second"],
+            ["", "best"],
+            ["", ""],
+        ],
+        "benchmark-robotwin": [
+            ["", "", "", ""],
+            ["", "", "", ""],
+            ["", "", "", ""],
+            ["", "", "", ""],
+            ["", "", "", ""],
+            ["", "best", "second", "best"],
+            ["", "", "", ""],
+            ["", "second", "best", "second"],
+            ["", "", "", ""],
+            ["", "", "", ""],
+            ["", "", "", ""],
         ],
     }
 
@@ -497,15 +558,22 @@ def test_latency_charts_match_the_authoritative_efficiency_results() -> None:
         if "latency-bar" in attrs.get("class", "").split()
     ]
 
+    column_titles = [
+        attrs
+        for _, attrs in parser.attributes
+        if "latency-column-title" in attrs.get("class", "").split()
+    ]
+
+    assert len(column_titles) == 2
     assert len(charts) == 6
     assert all(chart.get("role") == "group" for chart in charts)
     assert len({chart.get("aria-labelledby") for chart in charts}) == 6
     assert all(chart.get("aria-labelledby") in parser.ids for chart in charts)
-    assert bars == [
+    assert sorted(bars) == sorted([
         ("libero", "chunk", "FastWAM", "", "493.0", "ms"),
         ("libero", "chunk", "FastWAM-Joint-CD", "", "114.2", "ms"),
         ("libero", "chunk", "FastWAM-RTC", "", "142.3", "ms"),
-        ("libero", "chunk", "StreamWAM", "", "41.0", "ms"),
+        ("libero", "chunk", "Stream-WAM", "", "41.0", "ms"),
         ("libero", "chunk", "w/o Action Conditioning", "", "35.1", "ms"),
         ("libero", "chunk", "w/o Slot Encoder", "", "36.3", "ms"),
         ("libero", "total", "FastWAM", "long", "16.31", "s"),
@@ -514,22 +582,27 @@ def test_latency_charts_match_the_authoritative_efficiency_results() -> None:
         ("libero", "total", "FastWAM-Joint-CD", "short", "3.74", "s"),
         ("libero", "total", "FastWAM-RTC", "long", "6.23", "s"),
         ("libero", "total", "FastWAM-RTC", "short", "3.20", "s"),
-        ("libero", "total", "StreamWAM", "long", "5.36", "s"),
-        ("libero", "total", "StreamWAM", "short", "3.15", "s"),
+        ("libero", "total", "Stream-WAM", "long", "5.36", "s"),
+        ("libero", "total", "Stream-WAM", "short", "3.15", "s"),
         ("libero", "total", "w/o Action Conditioning", "long", "5.20", "s"),
         ("libero", "total", "w/o Action Conditioning", "short", "2.92", "s"),
         ("libero", "total", "w/o Slot Encoder", "long", "5.31", "s"),
         ("libero", "total", "w/o Slot Encoder", "short", "3.01", "s"),
         ("robocasa", "chunk", "X-WAM", "", "504.00", "ms"),
         ("robocasa", "chunk", "X-WAM-CD", "", "135.21", "ms"),
-        ("robocasa", "chunk", "StreamWAM", "", "136.76", "ms"),
+        ("robocasa", "chunk", "Stream-WAM", "", "136.76", "ms"),
         ("robocasa", "total", "X-WAM", "", "37.31", "s"),
         ("robocasa", "total", "X-WAM-CD", "", "33.60", "s"),
-        ("robocasa", "total", "StreamWAM", "", "11.76", "s"),
+        ("robocasa", "total", "Stream-WAM", "", "11.76", "s"),
         ("robotwin", "chunk", "StarWAM-Joint", "", "190.17", "ms"),
         ("robotwin", "chunk", "StarWAM-CD", "", "81.21", "ms"),
-        ("robotwin", "chunk", "StreamWAM", "", "47.09", "ms"),
+        ("robotwin", "chunk", "Stream-WAM", "", "47.09", "ms"),
         ("robotwin", "total", "StarWAM-Joint", "", "110.22", "s"),
         ("robotwin", "total", "StarWAM-CD", "", "102.59", "s"),
-        ("robotwin", "total", "StreamWAM", "", "77.48", "s"),
-    ]
+        ("robotwin", "total", "Stream-WAM", "", "77.48", "s"),
+    ])
+
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    track_rule = re.search(r"\.latency-track\s*\{([^}]*)\}", css)
+    assert track_rule is not None
+    assert re.search(r"height:\s*(?:2[2-9]|[3-9]\d)px", track_rule.group(1))

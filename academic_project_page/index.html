@@ -4,16 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f7f5ef">
-    <meta name="description" content="StreamWAM is a research framework for studying streaming world-action models for robotic manipulation.">
+    <meta name="description" content="Stream-WAM is a research framework for studying streaming world-action models for robotic manipulation.">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="StreamWAM — Think ahead. Act now.">
+    <meta property="og:title" content="Stream-WAM: Streaming World-Action Models for Robotic Manipulation">
     <meta property="og:description" content="Streaming World-Action Models for Robotic Manipulation">
     <meta property="og:url" content="https://sjtu-deng-lab.github.io/StreamWAM/">
     <meta property="og:image" content="https://sjtu-deng-lab.github.io/StreamWAM/assets/streamwam-social-preview.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
-    <title>StreamWAM — Streaming World-Action Models</title>
+    <title>Stream-WAM — Streaming World-Action Models</title>
     <link rel="stylesheet" href="styles.css">
     <script src="script.js" defer></script>
   </head>
@@ -22,7 +22,7 @@
 
     <header class="site-header">
       <nav class="site-nav shell" aria-label="Primary navigation">
-        <a class="wordmark" href="#overview" aria-label="StreamWAM home"><span class="wordmark-mark" aria-hidden="true"></span>StreamWAM</a>
+        <a class="wordmark" href="#overview" aria-label="Stream-WAM home"><span class="wordmark-mark" aria-hidden="true"></span>Stream-WAM</a>
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" hidden>
           <span class="sr-only">Open navigation</span><span aria-hidden="true"></span><span aria-hidden="true"></span>
         </button>
@@ -38,8 +38,8 @@
       <section class="hero shell" id="overview" aria-labelledby="hero-title">
         <div class="hero-copy">
           <p class="eyebrow"><span>00 · Abstract</span> · Research preview</p>
-          <h1 id="hero-title"><span class="hero-name">StreamWAM:</span><span class="hero-tagline">Streaming World-Action Models for Robotic Manipulation</span></h1>
-          <p class="hero-summary">StreamWAM is a research framework and unified testbed for systematically studying streaming strategies in world-action-model-based robot control.</p>
+          <h1 id="hero-title"><span class="hero-name">Stream-WAM:</span><span class="hero-tagline">Streaming World-Action Models for Robotic Manipulation</span></h1>
+          <p class="hero-summary">Stream-WAM is a research framework and unified testbed for systematically studying streaming strategies in world-action-model-based robot control.</p>
           <p class="hero-detail">Its <strong>action-conditioned streaming</strong> formulation feeds the action prefix currently being executed back into the world model, so future video generation reflects robot motion already underway while the next world-action chunk is inferred asynchronously.</p>
           <div class="hero-actions" aria-label="Project resources">
             <a class="button button-primary" href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">View code ↗</a>
@@ -61,7 +61,7 @@
       <article class="longform" id="article">
         <div class="article-header reading-column">
           <h2>A streaming model should know what the robot is already doing.</h2>
-          <p class="article-dek">World-action models connect visual prediction and action generation. StreamWAM asks what happens when that loop is reorganized around continuous robot execution—and why scheduling alone is not enough.</p>
+          <p class="article-dek">World-action models connect visual prediction and action generation. Stream-WAM asks what happens when that loop is reorganized around continuous robot execution—and why scheduling alone is not enough.</p>
           <p>This page is a research preview rather than a substitute for the technical report. It develops the central motivation, explains the action-conditioned streaming design, and places the current results in context using the evidence available in the repository today.</p>
           <nav class="article-toc" aria-label="Article contents">
             <span>In this article</span>
@@ -86,15 +86,15 @@
           <p>This is partly a temporal-alignment problem. The controller must determine how far execution will have advanced by the time a new prediction becomes usable and then select the matching suffix of that prediction. Alignment prevents the system from replaying commands for moments that have already passed. It does not, by itself, guarantee that two independently generated trajectories agree where they meet.</p>
           <p>Existing work explores several ways to repair that disagreement. <a href="https://arxiv.org/abs/2608.01880" target="_blank" rel="noopener noreferrer"><cite>World Action Models in Real Time</cite></a> studies inference-time real-time chunking (RTC), which guides the new sample toward the trajectory already being executed, often by adding a consistency objective during iterative generation. This can impose continuity without retraining the base model, but it adds work to the inference procedure and its effectiveness depends on whether the guidance can reliably constrain the committed region.</p>
           <p>That empirical study compares naive overlap, blending, inference-time RTC, and prefix-conditioned generation in a common setting. On that particular platform, the authors report that their RTC velocity guidance did not reliably constrain the delayed region, whereas prefix-conditioned methods provided the strongest overall precision–smoothness trade-off. Those findings are platform-specific rather than a universal verdict, but they make an important point: continuity is a modeling constraint, not a scheduling detail.</p>
-          <p>Prefix-conditioned generation addresses the boundary more directly by treating the committed action prefix as known context and generating a continuation after it. It requires the model to be trained for that conditioning pattern, but it does not add the same guidance loop at inference time. For action continuity, this is a strong and principled baseline—not something StreamWAM is meant to dismiss.</p>
+          <p>Prefix-conditioned generation addresses the boundary more directly by treating the committed action prefix as known context and generating a continuation after it. It requires the model to be trained for that conditioning pattern, but it does not add the same guidance loop at inference time. For action continuity, this is a strong and principled baseline—not something Stream-WAM is meant to dismiss.</p>
           <p>A WAM, however, predicts more than actions. If the action continuation is conditioned on the executed prefix while future video is still generated without explicitly knowing what motion is underway, the two output streams are conditioned on different accounts of the same interval. This is the gap isolated by our <em>w/o Action Conditioning</em> row: it retains prefix-conditioned action continuation, but removes the executed action from future-video generation. The remaining question is therefore WAM-specific: can the world prediction itself be made aware of the action that is already changing the world?</p>
         </section>
 
         <section class="editorial-act" id="act-streamwam" aria-label="Action-conditioned streaming">
           <div class="reading-column">
-            <p class="act-opening">StreamWAM conditions the visual future on the action already underway.</p>
-            <p>StreamWAM couples execution and generation at the model level. During asynchronous rollout, the robot continues to execute the current chunk, and the committed action prefix is fed back into the world model. That prefix records the intervention being applied between the observation that launched inference and the future state for which the next chunk is needed.</p>
-            <p>The key design choice is where this information goes. StreamWAM uses the executing prefix to condition future-video generation, so the predicted visual trajectory reflects the motion already in progress. If the gripper is closing, the arm is approaching an object, or a contact is being maintained, the generated future is asked to remain consistent with that action context rather than extrapolating from the initial image alone.</p>
+            <p class="act-opening">Stream-WAM conditions the visual future on the action already underway.</p>
+            <p>Stream-WAM couples execution and generation at the model level. During asynchronous rollout, the robot continues to execute the current chunk, and the committed action prefix is fed back into the world model. That prefix records the intervention being applied between the observation that launched inference and the future state for which the next chunk is needed.</p>
+            <p>The key design choice is where this information goes. Stream-WAM uses the executing prefix to condition future-video generation, so the predicted visual trajectory reflects the motion already in progress. If the gripper is closing, the arm is approaching an object, or a contact is being maintained, the generated future is asked to remain consistent with that action context rather than extrapolating from the initial image alone.</p>
             <p>The next action chunk is then generated together with this action-conditioned visual future. In other words, the model does not first imagine an action-agnostic scene and attach a continuation afterward. Its future video and future action are produced from a shared account of what the robot has already committed to doing.</p>
             <p>This turns inference–execution overlap from a systems optimization into a coupled streaming process. The scheduler determines when the next prediction begins; temporal alignment determines which part of it belongs after the handoff; and action conditioning determines what future the WAM should imagine while the current action is being executed. Each component solves a different part of the same control problem.</p>
           </div>
@@ -104,11 +104,11 @@
             <div><span>2</span><strong>Action-conditioned visual future</strong><small>Generated video reflects the intervention already underway.</small></div>
             <i aria-hidden="true">→</i>
             <div><span>3</span><strong>Next world-action chunk</strong><small>The following decision is prepared before the handoff.</small></div>
-            <figcaption id="method-caption">StreamWAM feeds ongoing execution into future-video generation, then predicts the next world-action chunk asynchronously.</figcaption>
+            <figcaption id="method-caption">Stream-WAM feeds ongoing execution into future-video generation, then predicts the next world-action chunk asynchronously.</figcaption>
           </figure>
           <div class="reading-column">
             <p>The loop repeats at every boundary. A prepared chunk becomes the current command, the robot begins executing it, and its committed prefix becomes context for the following prediction. When inference remains within the available action window, the model thinks ahead without asking the robot to stop; when the scene changes unexpectedly, the method still depends on fresh observations and replanning rather than assuming that an old prefix is always sufficient.</p>
-            <p>StreamWAM is also the research framework used to separate these effects. It places synchronous WAM execution, pure asynchronous overlap, inference-time continuity methods, prefix-conditioned action generation, and action-conditioned world-action streaming behind a common evaluation interface. This makes it possible to compare task success, chunk latency, and end-to-end control time instead of treating any one of them as a complete measure of streaming quality.</p>
+            <p>Stream-WAM is also the research framework used to separate these effects. It places synchronous WAM execution, pure asynchronous overlap, inference-time continuity methods, prefix-conditioned action generation, and action-conditioned world-action streaming behind a common evaluation interface. This makes it possible to compare task success, chunk latency, and end-to-end control time instead of treating any one of them as a complete measure of streaming quality.</p>
             <p>The current study carries that comparison across LIBERO, RoboCasa, and RoboTwin, using FastWAM-Joint, X-WAM, and StarWAM model families as its respective foundations. The backbones and protocols differ, but the central test remains the same: can a WAM prepare its next decision while the robot acts, without losing the relationship between the action underway and the visual future it predicts?</p>
           </div>
         </section>
@@ -116,8 +116,8 @@
         <section class="article-section experiments" id="experiments" aria-label="Current results">
           <div class="reading-column">
             <p class="lead"><strong>Task performance.</strong> Success is reported independently from runtime so that control quality can be compared without mixing units or execution protocols into the same table.</p>
-            <p>StreamWAM models are initialized from FastWAM-Joint and further trained. The RoboCasa study builds on X-WAM, while the RoboTwin study builds on StarWAM. These lineages make the streaming comparison part of existing world-action-model families rather than a detached controller.</p>
-            <p>The tables below preserve the current reported values. They are shown in full—without interactive tabs—so the evidence remains readable as one continuous argument.</p>
+            <p>Stream-WAM models are initialized from FastWAM-Joint and further trained. The RoboCasa study builds on X-WAM, while the RoboTwin study builds on StarWAM. These lineages make the streaming comparison part of existing world-action-model families rather than a detached controller.</p>
+            <p>The LIBERO and RoboTwin comparison rows reproduce the published results from the <a href="https://yuantianyuan01.github.io/FastWAM/" target="_blank" rel="noopener noreferrer">Fast-WAM project page</a>; our streaming results and ablations are reported alongside them. Best results are <strong>bold</strong> and second-best results are <u>underlined</u>.</p>
           </div>
 
           <section class="benchmark breakout" id="benchmark-libero" aria-labelledby="libero-title">
@@ -130,16 +130,21 @@
                 <caption>LIBERO success results</caption>
                 <thead><tr><th scope="col">Method</th><th scope="col">LIBERO-10</th><th scope="col">Spatial</th><th scope="col">Goal</th><th scope="col">Object</th><th scope="col">Average ↑</th></tr></thead>
                 <tbody>
-                  <tr><th scope="row">FastWAM</th><td>96.20</td><td>96.20</td><td>94.20</td><td>96.20</td><td>95.70</td></tr>
-                  <tr><th scope="row">FastWAM-Joint-CD</th><td>97.20</td><td>99.60</td><td>98.60</td><td>100.00</td><td>98.85</td></tr>
+                  <tr><th scope="row">OpenVLA</th><td>53.7</td><td>84.7</td><td>79.2</td><td>88.4</td><td>76.5</td></tr>
+                  <tr><th scope="row">π₀</th><td>85.2</td><td>96.8</td><td>95.8</td><td>98.8</td><td>94.1</td></tr>
+                  <tr><th scope="row">π₀.₅</th><td>92.4</td><td><u>98.8</u></td><td><u>98.0</u></td><td>98.2</td><td>96.9</td></tr>
+                  <tr><th scope="row">LingBot-VA</th><td><strong>98.5</strong></td><td>98.5</td><td>97.2</td><td>99.6</td><td><u>98.5</u></td></tr>
+                  <tr><th scope="row">Motus</th><td><u>97.6</u></td><td>96.8</td><td>96.6</td><td><u>99.8</u></td><td>97.7</td></tr>
+                  <tr><th scope="row">Fast-WAM</th><td>95.2</td><td>98.2</td><td>97.0</td><td><strong>100.0</strong></td><td>97.6</td></tr>
+                  <tr><th scope="row">FastWAM-Joint-CD</th><td>97.20</td><td><strong>99.60</strong></td><td><strong>98.60</strong></td><td><strong>100.00</strong></td><td><strong>98.85</strong></td></tr>
                   <tr><th scope="row">FastWAM-RTC</th><td>58.40</td><td>76.20</td><td>77.00</td><td>83.40</td><td>73.75</td></tr>
-                  <tr><th scope="row">StreamWAM</th><td>96.60</td><td>98.80</td><td>97.40</td><td>100.00</td><td>98.20</td></tr>
+                  <tr><th scope="row">Stream-WAM</th><td>96.60</td><td><u>98.80</u></td><td>97.40</td><td><strong>100.00</strong></td><td>98.20</td></tr>
                   <tr><th scope="row">w/o Action Conditioning</th><td>94.40</td><td>96.40</td><td>96.60</td><td>97.60</td><td>96.25</td></tr>
-                  <tr><th scope="row">w/o Slot Encoder</th><td>95.60</td><td>98.40</td><td>96.80</td><td>99.80</td><td>97.65</td></tr>
+                  <tr><th scope="row">w/o Slot Encoder</th><td>95.60</td><td>98.40</td><td>96.80</td><td><u>99.80</u></td><td>97.65</td></tr>
                 </tbody>
               </table>
             </div>
-            <p class="benchmark-reading">StreamWAM reaches 98.20% average success. The action-conditioning ablation reaches 96.25%, showing the control-quality contribution of conditioning future video on the action underway.</p>
+            <p class="benchmark-reading">Stream-WAM reaches 98.20% average success. The action-conditioning ablation reaches 96.25%, showing the control-quality contribution of conditioning future video on the action underway.</p>
           </section>
 
           <section class="benchmark breakout" id="benchmark-robocasa" aria-labelledby="robocasa-title">
@@ -152,13 +157,13 @@
                 <caption>RoboCasa target benchmark results</caption>
                 <thead><tr><th scope="col">Method</th><th scope="col">Accuracy ↑</th></tr></thead>
                 <tbody>
-                  <tr><th scope="row">X-WAM</th><td>75.42%</td></tr>
-                  <tr><th scope="row">X-WAM-CD</th><td>75.83%</td></tr>
-                  <tr><th scope="row">StreamWAM</th><td>75.35%</td></tr>
+                  <tr><th scope="row">X-WAM</th><td><u>75.42%</u></td></tr>
+                  <tr><th scope="row">X-WAM-CD</th><td><strong>75.83%</strong></td></tr>
+                  <tr><th scope="row">Stream-WAM</th><td>75.35%</td></tr>
                 </tbody>
               </table>
             </div>
-            <p class="benchmark-reading">StreamWAM reports 75.35% average task success, remaining close to the two X-WAM reference models.</p>
+            <p class="benchmark-reading">Stream-WAM reports 75.35% average task success, remaining close to the two X-WAM reference models.</p>
           </section>
 
           <section class="benchmark breakout" id="benchmark-robotwin" aria-labelledby="robotwin-title">
@@ -171,36 +176,45 @@
                 <caption>RoboTwin 2.0 clean and randomized results</caption>
                 <thead><tr><th scope="col">Method</th><th scope="col">Clean ↑</th><th scope="col">Random ↑</th><th scope="col">Total ↑</th></tr></thead>
                 <tbody>
+                  <tr><th scope="row">π₀</th><td>65.92</td><td>58.40</td><td>62.2</td></tr>
+                  <tr><th scope="row">π₀.₅</th><td>82.74</td><td>76.76</td><td>79.8</td></tr>
+                  <tr><th scope="row">Motus</th><td>88.66</td><td>87.02</td><td>87.8</td></tr>
+                  <tr><th scope="row">Motus from WAN2.2</th><td>77.56</td><td>77.00</td><td>77.3</td></tr>
+                  <tr><th scope="row">LingBot-VA</th><td><strong>92.90</strong></td><td><u>91.50</u></td><td><strong>92.2</strong></td></tr>
+                  <tr><th scope="row">LingBot-VA from WAN2.2</th><td>80.60</td><td>--</td><td>80.6</td></tr>
+                  <tr><th scope="row">Fast-WAM</th><td><u>91.88</u></td><td><strong>91.78</strong></td><td><u>91.8</u></td></tr>
                   <tr><th scope="row">StarWAM-Joint</th><td>84.8</td><td>86.0</td><td>85.4</td></tr>
                   <tr><th scope="row">StarWAM-CD</th><td>79.0</td><td>79.2</td><td>79.1</td></tr>
-                  <tr><th scope="row">StreamWAM</th><td>87.2</td><td>88.8</td><td>87.6</td></tr>
+                  <tr><th scope="row">Stream-WAM</th><td>87.2</td><td>88.8</td><td>87.6</td></tr>
                 </tbody>
               </table>
             </div>
-            <p class="benchmark-reading">StreamWAM reaches 87.6 total success, with 87.2 on Clean and 88.8 on Random—the highest success values in the current RoboTwin table.</p>
+            <p class="benchmark-reading">Stream-WAM reaches 87.6 total success, with 87.2 on Clean and 88.8 on Random.</p>
           </section>
 
           <div class="efficiency-intro reading-column">
             <p><strong>Inference efficiency.</strong> Chunk latency and end-to-end control time are separated from task success below. Every bar is labeled with its reported value; lower is better.</p>
           </div>
           <figure class="latency-figure breakout" aria-labelledby="latency-caption">
+            <h4 class="latency-column-title">Chunk Time <span>ms ↓</span></h4>
+            <h4 class="latency-column-title">Total Time <span>seconds ↓</span></h4>
             <div class="latency-benchmark-group">
               <p class="latency-benchmark">LIBERO</p>
-              <div class="latency-chart" role="group" aria-labelledby="libero-chunk-title">
+              <div class="latency-chart" role="group" aria-labelledby="libero-chunk-title" data-benchmark-label="LIBERO">
                 <p class="latency-chart-title" id="libero-chunk-title">Chunk time <span>ms ↓</span></p>
                 <div class="latency-row"><span class="latency-method">FastWAM</span><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="libero" data-metric="chunk" data-method="FastWAM" data-series="" data-value="493.0" data-unit="ms"></span></span><strong>493.0 ms</strong></div>
                 <div class="latency-row"><span class="latency-method">FastWAM-Joint-CD</span><span class="latency-track"><span class="latency-bar" style="--bar:23.16%" data-benchmark="libero" data-metric="chunk" data-method="FastWAM-Joint-CD" data-series="" data-value="114.2" data-unit="ms"></span></span><strong>114.2 ms</strong></div>
                 <div class="latency-row"><span class="latency-method">FastWAM-RTC</span><span class="latency-track"><span class="latency-bar" style="--bar:28.86%" data-benchmark="libero" data-metric="chunk" data-method="FastWAM-RTC" data-series="" data-value="142.3" data-unit="ms"></span></span><strong>142.3 ms</strong></div>
-                <div class="latency-row"><span class="latency-method">StreamWAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:8.32%" data-benchmark="libero" data-metric="chunk" data-method="StreamWAM" data-series="" data-value="41.0" data-unit="ms"></span></span><strong>41.0 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">Stream-WAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:8.32%" data-benchmark="libero" data-metric="chunk" data-method="Stream-WAM" data-series="" data-value="41.0" data-unit="ms"></span></span><strong>41.0 ms</strong></div>
                 <div class="latency-row"><span class="latency-method">w/o Action Cond.</span><span class="latency-track"><span class="latency-bar is-ablation" style="--bar:7.12%" data-benchmark="libero" data-metric="chunk" data-method="w/o Action Conditioning" data-series="" data-value="35.1" data-unit="ms"></span></span><strong>35.1 ms</strong></div>
                 <div class="latency-row"><span class="latency-method">w/o Slot Encoder</span><span class="latency-track"><span class="latency-bar is-ablation" style="--bar:7.36%" data-benchmark="libero" data-metric="chunk" data-method="w/o Slot Encoder" data-series="" data-value="36.3" data-unit="ms"></span></span><strong>36.3 ms</strong></div>
               </div>
-              <div class="latency-chart" role="group" aria-labelledby="libero-total-title">
+              <div class="latency-chart" role="group" aria-labelledby="libero-total-title" data-benchmark-label="LIBERO · Long / Short">
                 <p class="latency-chart-title" id="libero-total-title">Episode time <span>seconds ↓ · L / S</span></p>
                 <div class="latency-pair-row"><span class="latency-method">FastWAM</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="libero" data-metric="total" data-method="FastWAM" data-series="long" data-value="16.31" data-unit="s"></span></span><strong>16.31 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-short" style="--bar:100%" data-benchmark="libero" data-metric="total" data-method="FastWAM" data-series="short" data-value="8.25" data-unit="s"></span></span><strong>8.25 s</strong></div></div></div>
                 <div class="latency-pair-row"><span class="latency-method">FastWAM-Joint-CD</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar" style="--bar:42.24%" data-benchmark="libero" data-metric="total" data-method="FastWAM-Joint-CD" data-series="long" data-value="6.89" data-unit="s"></span></span><strong>6.89 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-short" style="--bar:45.33%" data-benchmark="libero" data-metric="total" data-method="FastWAM-Joint-CD" data-series="short" data-value="3.74" data-unit="s"></span></span><strong>3.74 s</strong></div></div></div>
                 <div class="latency-pair-row"><span class="latency-method">FastWAM-RTC</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar" style="--bar:38.20%" data-benchmark="libero" data-metric="total" data-method="FastWAM-RTC" data-series="long" data-value="6.23" data-unit="s"></span></span><strong>6.23 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-short" style="--bar:38.79%" data-benchmark="libero" data-metric="total" data-method="FastWAM-RTC" data-series="short" data-value="3.20" data-unit="s"></span></span><strong>3.20 s</strong></div></div></div>
-                <div class="latency-pair-row"><span class="latency-method">StreamWAM</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:32.86%" data-benchmark="libero" data-metric="total" data-method="StreamWAM" data-series="long" data-value="5.36" data-unit="s"></span></span><strong>5.36 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-streamwam is-short" style="--bar:38.18%" data-benchmark="libero" data-metric="total" data-method="StreamWAM" data-series="short" data-value="3.15" data-unit="s"></span></span><strong>3.15 s</strong></div></div></div>
+                <div class="latency-pair-row"><span class="latency-method">Stream-WAM</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:32.86%" data-benchmark="libero" data-metric="total" data-method="Stream-WAM" data-series="long" data-value="5.36" data-unit="s"></span></span><strong>5.36 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-streamwam is-short" style="--bar:38.18%" data-benchmark="libero" data-metric="total" data-method="Stream-WAM" data-series="short" data-value="3.15" data-unit="s"></span></span><strong>3.15 s</strong></div></div></div>
                 <div class="latency-pair-row"><span class="latency-method">w/o Action Cond.</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar is-ablation" style="--bar:31.88%" data-benchmark="libero" data-metric="total" data-method="w/o Action Conditioning" data-series="long" data-value="5.20" data-unit="s"></span></span><strong>5.20 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-ablation is-short" style="--bar:35.39%" data-benchmark="libero" data-metric="total" data-method="w/o Action Conditioning" data-series="short" data-value="2.92" data-unit="s"></span></span><strong>2.92 s</strong></div></div></div>
                 <div class="latency-pair-row"><span class="latency-method">w/o Slot Encoder</span><div class="latency-pair-bars"><div><small>L</small><span class="latency-track"><span class="latency-bar is-ablation" style="--bar:32.56%" data-benchmark="libero" data-metric="total" data-method="w/o Slot Encoder" data-series="long" data-value="5.31" data-unit="s"></span></span><strong>5.31 s</strong></div><div><small>S</small><span class="latency-track"><span class="latency-bar is-ablation is-short" style="--bar:36.48%" data-benchmark="libero" data-metric="total" data-method="w/o Slot Encoder" data-series="short" data-value="3.01" data-unit="s"></span></span><strong>3.01 s</strong></div></div></div>
               </div>
@@ -208,33 +222,33 @@
 
             <div class="latency-benchmark-group">
               <p class="latency-benchmark">RoboCasa</p>
-              <div class="latency-chart" role="group" aria-labelledby="robocasa-chunk-title">
+              <div class="latency-chart" role="group" aria-labelledby="robocasa-chunk-title" data-benchmark-label="RoboCasa">
                 <p class="latency-chart-title" id="robocasa-chunk-title">Chunk time <span>ms ↓</span></p>
                 <div class="latency-row"><span class="latency-method">X-WAM</span><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="robocasa" data-metric="chunk" data-method="X-WAM" data-series="" data-value="504.00" data-unit="ms"></span></span><strong>504.00 ms</strong></div>
                 <div class="latency-row"><span class="latency-method">X-WAM-CD</span><span class="latency-track"><span class="latency-bar" style="--bar:26.83%" data-benchmark="robocasa" data-metric="chunk" data-method="X-WAM-CD" data-series="" data-value="135.21" data-unit="ms"></span></span><strong>135.21 ms</strong></div>
-                <div class="latency-row"><span class="latency-method">StreamWAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:27.13%" data-benchmark="robocasa" data-metric="chunk" data-method="StreamWAM" data-series="" data-value="136.76" data-unit="ms"></span></span><strong>136.76 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">Stream-WAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:27.13%" data-benchmark="robocasa" data-metric="chunk" data-method="Stream-WAM" data-series="" data-value="136.76" data-unit="ms"></span></span><strong>136.76 ms</strong></div>
               </div>
-              <div class="latency-chart" role="group" aria-labelledby="robocasa-total-title">
+              <div class="latency-chart" role="group" aria-labelledby="robocasa-total-title" data-benchmark-label="RoboCasa">
                 <p class="latency-chart-title" id="robocasa-total-title">Total time <span>seconds ↓</span></p>
                 <div class="latency-row"><span class="latency-method">X-WAM</span><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="robocasa" data-metric="total" data-method="X-WAM" data-series="" data-value="37.31" data-unit="s"></span></span><strong>37.31 s</strong></div>
                 <div class="latency-row"><span class="latency-method">X-WAM-CD</span><span class="latency-track"><span class="latency-bar" style="--bar:90.06%" data-benchmark="robocasa" data-metric="total" data-method="X-WAM-CD" data-series="" data-value="33.60" data-unit="s"></span></span><strong>33.60 s</strong></div>
-                <div class="latency-row"><span class="latency-method">StreamWAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:31.52%" data-benchmark="robocasa" data-metric="total" data-method="StreamWAM" data-series="" data-value="11.76" data-unit="s"></span></span><strong>11.76 s</strong></div>
+                <div class="latency-row"><span class="latency-method">Stream-WAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:31.52%" data-benchmark="robocasa" data-metric="total" data-method="Stream-WAM" data-series="" data-value="11.76" data-unit="s"></span></span><strong>11.76 s</strong></div>
               </div>
             </div>
 
             <div class="latency-benchmark-group">
               <p class="latency-benchmark">RoboTwin 2.0</p>
-              <div class="latency-chart" role="group" aria-labelledby="robotwin-chunk-title">
+              <div class="latency-chart" role="group" aria-labelledby="robotwin-chunk-title" data-benchmark-label="RoboTwin 2.0">
                 <p class="latency-chart-title" id="robotwin-chunk-title">Chunk time <span>ms ↓</span></p>
                 <div class="latency-row"><span class="latency-method">StarWAM-Joint</span><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="robotwin" data-metric="chunk" data-method="StarWAM-Joint" data-series="" data-value="190.17" data-unit="ms"></span></span><strong>190.17 ms</strong></div>
                 <div class="latency-row"><span class="latency-method">StarWAM-CD</span><span class="latency-track"><span class="latency-bar" style="--bar:42.70%" data-benchmark="robotwin" data-metric="chunk" data-method="StarWAM-CD" data-series="" data-value="81.21" data-unit="ms"></span></span><strong>81.21 ms</strong></div>
-                <div class="latency-row"><span class="latency-method">StreamWAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:24.76%" data-benchmark="robotwin" data-metric="chunk" data-method="StreamWAM" data-series="" data-value="47.09" data-unit="ms"></span></span><strong>47.09 ms</strong></div>
+                <div class="latency-row"><span class="latency-method">Stream-WAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:24.76%" data-benchmark="robotwin" data-metric="chunk" data-method="Stream-WAM" data-series="" data-value="47.09" data-unit="ms"></span></span><strong>47.09 ms</strong></div>
               </div>
-              <div class="latency-chart" role="group" aria-labelledby="robotwin-total-title">
+              <div class="latency-chart" role="group" aria-labelledby="robotwin-total-title" data-benchmark-label="RoboTwin 2.0">
                 <p class="latency-chart-title" id="robotwin-total-title">Total time <span>seconds ↓</span></p>
                 <div class="latency-row"><span class="latency-method">StarWAM-Joint</span><span class="latency-track"><span class="latency-bar" style="--bar:100%" data-benchmark="robotwin" data-metric="total" data-method="StarWAM-Joint" data-series="" data-value="110.22" data-unit="s"></span></span><strong>110.22 s</strong></div>
                 <div class="latency-row"><span class="latency-method">StarWAM-CD</span><span class="latency-track"><span class="latency-bar" style="--bar:93.08%" data-benchmark="robotwin" data-metric="total" data-method="StarWAM-CD" data-series="" data-value="102.59" data-unit="s"></span></span><strong>102.59 s</strong></div>
-                <div class="latency-row"><span class="latency-method">StreamWAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:70.29%" data-benchmark="robotwin" data-metric="total" data-method="StreamWAM" data-series="" data-value="77.48" data-unit="s"></span></span><strong>77.48 s</strong></div>
+                <div class="latency-row"><span class="latency-method">Stream-WAM</span><span class="latency-track"><span class="latency-bar is-streamwam" style="--bar:70.29%" data-benchmark="robotwin" data-metric="total" data-method="Stream-WAM" data-series="" data-value="77.48" data-unit="s"></span></span><strong>77.48 s</strong></div>
               </div>
             </div>
             <figcaption id="latency-caption">Latency comparison across LIBERO, RoboCasa, and RoboTwin 2.0. LIBERO episode time reports Long (L) and Short (S) tasks separately.</figcaption>
@@ -242,21 +256,21 @@
         </section>
 
         <section class="article-section reading-column" id="discussion" aria-label="Discussion">
-          <p class="lead">StreamWAM reframes streaming as a relationship between execution and prediction, not only as a way to schedule the same computation earlier.</p>
+          <p class="lead">Stream-WAM reframes streaming as a relationship between execution and prediction, not only as a way to schedule the same computation earlier.</p>
           <p>The first provisional conclusion is that action conditioning provides a direct link between the robot motion underway and the visual future used for its next decision. It gives asynchronous prediction a model-level account of what execution is doing during inference.</p>
           <p>The second is that streaming performance needs to be read jointly with control success. Chunk time, end-to-end time, and task outcomes describe different parts of the system; none alone establishes that a robot can act continuously and successfully.</p>
           <p>The third is about the scope of this preview. The technical report will carry the broader analysis, limitations, and failure cases. Until then, this page presents the method motivation, released artifacts, evaluation protocols, and current tables without filling those missing sections with speculative claims.</p>
         </section>
 
         <section class="article-section resources reading-column" id="resources" aria-label="Project resources">
-          <p>Code and models are available now. The public repository contains StreamWAM inference and training code, the accelerated action-conditioned runtime, and LIBERO and RoboTwin recipes; released FastWAM-Joint-CD and StreamWAM checkpoints are available on Hugging Face.</p>
+          <p>Code and models are available now. The public repository contains Stream-WAM inference and training code, the accelerated action-conditioned runtime, and LIBERO and RoboTwin recipes; released FastWAM-Joint-CD and Stream-WAM checkpoints are available on Hugging Face.</p>
           <p class="resource-links"><a href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Code ↗</a><a href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Models ↗</a><span>Paper · Coming Soon</span><span>Rollout film · Coming Soon</span></p>
-          <p><strong>Model lineage.</strong> StreamWAM models are initialized from FastWAM-Joint and further trained. RoboCasa builds on X-WAM, and RoboTwin builds on StarWAM.</p>
-          <p class="acknowledgements"><strong>Acknowledgements.</strong> StreamWAM builds on ideas and open-source work from <a href="https://github.com/yuantianyuan01/FastWAM" target="_blank" rel="noopener noreferrer">FastWAM</a>, <a href="https://github.com/shaohua-pan/StarWAM" target="_blank" rel="noopener noreferrer">StarWAM</a>, <a href="https://github.com/sharinka0715/X-WAM" target="_blank" rel="noopener noreferrer">X-WAM</a>, <a href="https://github.com/starVLA/starVLA" target="_blank" rel="noopener noreferrer">StarVLA</a>, <a href="https://github.com/dreamzero0/dreamzero" target="_blank" rel="noopener noreferrer">DreamZero</a>, <a href="https://github.com/Lifelong-Robot-Learning/LIBERO" target="_blank" rel="noopener noreferrer">LIBERO</a>, <a href="https://github.com/Wan-Video/Wan2.2" target="_blank" rel="noopener noreferrer">Wan2.2</a>, and <a href="https://github.com/nvidia-cosmos/cosmos-predict2" target="_blank" rel="noopener noreferrer">Cosmos-Predict2</a>.</p>
+          <p><strong>Model lineage.</strong> Stream-WAM models are initialized from FastWAM-Joint and further trained. RoboCasa builds on X-WAM, and RoboTwin builds on StarWAM.</p>
+          <p class="acknowledgements"><strong>Acknowledgements.</strong> Stream-WAM builds on ideas and open-source work from <a href="https://github.com/yuantianyuan01/FastWAM" target="_blank" rel="noopener noreferrer">FastWAM</a>, <a href="https://github.com/shaohua-pan/StarWAM" target="_blank" rel="noopener noreferrer">StarWAM</a>, <a href="https://github.com/sharinka0715/X-WAM" target="_blank" rel="noopener noreferrer">X-WAM</a>, <a href="https://github.com/starVLA/starVLA" target="_blank" rel="noopener noreferrer">StarVLA</a>, <a href="https://github.com/dreamzero0/dreamzero" target="_blank" rel="noopener noreferrer">DreamZero</a>, <a href="https://github.com/Lifelong-Robot-Learning/LIBERO" target="_blank" rel="noopener noreferrer">LIBERO</a>, <a href="https://github.com/Wan-Video/Wan2.2" target="_blank" rel="noopener noreferrer">Wan2.2</a>, and <a href="https://github.com/nvidia-cosmos/cosmos-predict2" target="_blank" rel="noopener noreferrer">Cosmos-Predict2</a>.</p>
         </section>
       </article>
     </main>
 
-    <footer class="site-footer"><div class="shell"><a class="wordmark" href="#overview"><span class="wordmark-mark" aria-hidden="true"></span>StreamWAM</a><p>Streaming World-Action Models for Robotic Manipulation</p><p>Research preview · 2026</p></div></footer>
+    <footer class="site-footer"><div class="shell"><a class="wordmark" href="#overview"><span class="wordmark-mark" aria-hidden="true"></span>Stream-WAM</a><p>Streaming World-Action Models for Robotic Manipulation</p><p>Research preview · 2026</p></div></footer>
   </body>
 </html>
