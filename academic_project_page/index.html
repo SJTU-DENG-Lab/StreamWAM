@@ -87,7 +87,7 @@
           <p>Existing work explores several ways to repair that disagreement. <a href="https://arxiv.org/abs/2608.01880" target="_blank" rel="noopener noreferrer"><cite>World Action Models in Real Time</cite></a> studies inference-time real-time chunking (RTC), which guides the new sample toward the trajectory already being executed, often by adding a consistency objective during iterative generation. This can impose continuity without retraining the base model, but it adds work to the inference procedure and its effectiveness depends on whether the guidance can reliably constrain the committed region.</p>
           <p>That empirical study compares naive overlap, blending, inference-time RTC, and prefix-conditioned generation in a common setting. On that particular platform, the authors report that their RTC velocity guidance did not reliably constrain the delayed region, whereas prefix-conditioned methods provided the strongest overall precision–smoothness trade-off. Those findings are platform-specific rather than a universal verdict, but they make an important point: continuity is a modeling constraint, not a scheduling detail.</p>
           <p>Prefix-conditioned generation addresses the boundary more directly by treating the committed action prefix as known context and generating a continuation after it. It requires the model to be trained for that conditioning pattern, but it does not add the same guidance loop at inference time. For action continuity, this is a strong and principled baseline—not something Stream-WAM is meant to dismiss.</p>
-          <p>A WAM, however, predicts more than actions. If the action continuation is conditioned on the executed prefix while future video is still generated without explicitly knowing what motion is underway, the two output streams are conditioned on different accounts of the same interval. This is the gap isolated by our <em>w/o Action Conditioning</em> row: it retains prefix-conditioned action continuation, but removes the executed action from future-video generation. The remaining question is therefore WAM-specific: can the world prediction itself be made aware of the action that is already changing the world?</p>
+          <p>A WAM, however, predicts more than actions. If the action continuation is conditioned on the executed prefix while future video is still generated without explicitly knowing what motion is underway, the two output streams are conditioned on different accounts of the same interval. This is the gap isolated by our <em>Stream-WAM w/o Action Conditioning</em> row: it retains prefix-conditioned action continuation, but removes the executed action from future-video generation. The remaining question is therefore WAM-specific: can the world prediction itself be made aware of the action that is already changing the world?</p>
         </section>
 
         <section class="editorial-act" id="act-streamwam" aria-label="Action-conditioned streaming">
@@ -138,8 +138,8 @@
                   <tr><th scope="row">FastWAM-Joint-CD</th><td><u>97.20</u></td><td><strong>99.60</strong></td><td><strong>98.60</strong></td><td><strong>100.00</strong></td><td><strong>98.85</strong></td></tr>
                   <tr><th scope="row">FastWAM-RTC</th><td>58.40</td><td>76.20</td><td>77.00</td><td>83.40</td><td>73.75</td></tr>
                   <tr><th scope="row">Stream-WAM</th><td>96.60</td><td><u>98.80</u></td><td>97.40</td><td><strong>100.00</strong></td><td><u>98.20</u></td></tr>
-                  <tr><th scope="row">w/o Action Conditioning</th><td>94.40</td><td>96.40</td><td>96.60</td><td>97.60</td><td>96.25</td></tr>
-                  <tr><th scope="row">w/o Slot Encoder</th><td>95.60</td><td>98.40</td><td>96.80</td><td><u>99.80</u></td><td>97.65</td></tr>
+                  <tr><th scope="row">Stream-WAM w/o Action Conditioning</th><td>94.40</td><td>96.40</td><td>96.60</td><td>97.60</td><td>96.25</td></tr>
+                  <tr><th scope="row">Stream-WAM w/o Slot Encoder</th><td>95.60</td><td>98.40</td><td>96.80</td><td><u>99.80</u></td><td>97.65</td></tr>
                 </tbody>
               </table>
             </div>
@@ -192,11 +192,21 @@
           <div class="efficiency-intro reading-column">
             <p><strong>Inference efficiency.</strong> Chunk latency and end-to-end control time are separated from task success below. Every bar is labeled with its reported value; lower is better.</p>
           </div>
-          <figure class="latency-figure breakout" aria-labelledby="latency-caption">
-            <a class="latency-image-link" href="assets/stream-wam-latency.png" target="_blank" rel="noopener noreferrer" aria-label="Open the full-resolution Stream-WAM latency figure">
-              <img class="latency-plot" src="assets/stream-wam-latency.png" alt="Vertical-bar comparisons of chunk time and episode time for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="1800" aria-describedby="latency-caption latency-data-caption">
-            </a>
-            <figcaption id="latency-caption">Latency comparison for LIBERO, RoboTwin 2.0, and RoboCasa. Chunk Time and Episode Time are reported separately; lower is better.</figcaption>
+          <figure class="latency-figure breakout" aria-labelledby="chunk-time-caption">
+            <div class="latency-viewport">
+              <a class="latency-image-link" href="assets/stream-wam-chunk-time.png" target="_blank" rel="noopener noreferrer" aria-label="Open the full-resolution Stream-WAM Chunk Time figure">
+                <img class="latency-plot" src="assets/stream-wam-chunk-time.png" alt="Chunk-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="chunk-time-caption latency-data-caption">
+              </a>
+            </div>
+            <figcaption id="chunk-time-caption">Chunk Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa. Each benchmark uses its own continuous scale; lower is better.</figcaption>
+          </figure>
+          <figure class="latency-figure breakout" aria-labelledby="episode-time-caption">
+            <div class="latency-viewport">
+              <a class="latency-image-link" href="assets/stream-wam-episode-time.png" target="_blank" rel="noopener noreferrer" aria-label="Open the full-resolution Stream-WAM Episode Time figure">
+                <img class="latency-plot" src="assets/stream-wam-episode-time.png" alt="Episode-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="episode-time-caption latency-data-caption">
+              </a>
+            </div>
+            <figcaption id="episode-time-caption">Episode Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa. LIBERO reports Long and Short tasks separately; lower is better.</figcaption>
             <div class="sr-only">
             <table class="latency-data">
               <caption id="latency-data-caption">Exact latency values shown in the figure</caption>
@@ -206,8 +216,8 @@
                 <tr><th scope="row">LIBERO</th><td>FastWAM-Joint-CD</td><td>114.2 ms</td><td>6.89 s Long / 3.74 s Short</td></tr>
                 <tr><th scope="row">LIBERO</th><td>FastWAM-RTC</td><td>142.3 ms</td><td>6.23 s Long / 3.20 s Short</td></tr>
                 <tr><th scope="row">LIBERO</th><td>Stream-WAM</td><td>41.0 ms</td><td>5.36 s Long / 3.15 s Short</td></tr>
-                <tr><th scope="row">LIBERO</th><td>w/o Action Conditioning</td><td>35.1 ms</td><td>5.20 s Long / 2.92 s Short</td></tr>
-                <tr><th scope="row">LIBERO</th><td>w/o Slot Encoder</td><td>36.3 ms</td><td>5.31 s Long / 3.01 s Short</td></tr>
+                <tr><th scope="row">LIBERO</th><td>Stream-WAM w/o Action Conditioning</td><td>35.1 ms</td><td>5.20 s Long / 2.92 s Short</td></tr>
+                <tr><th scope="row">LIBERO</th><td>Stream-WAM w/o Slot Encoder</td><td>36.3 ms</td><td>5.31 s Long / 3.01 s Short</td></tr>
                 <tr><th scope="row">RoboTwin 2.0</th><td>StarWAM-Joint</td><td>190.17 ms</td><td>110.22 s</td></tr>
                 <tr><th scope="row">RoboTwin 2.0</th><td>StarWAM-CD</td><td>81.21 ms</td><td>102.59 s</td></tr>
                 <tr><th scope="row">RoboTwin 2.0</th><td>Stream-WAM</td><td>47.09 ms</td><td>77.48 s</td></tr>

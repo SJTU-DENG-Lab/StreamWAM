@@ -8,6 +8,8 @@ import subprocess
 import sys
 from urllib.parse import urlparse
 
+from PIL import Image
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PAGE_ROOT = REPO_ROOT / "academic_project_page"
@@ -521,8 +523,8 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
             ["FastWAM-Joint-CD", "97.20", "99.60", "98.60", "100.00", "98.85"],
             ["FastWAM-RTC", "58.40", "76.20", "77.00", "83.40", "73.75"],
             ["Stream-WAM", "96.60", "98.80", "97.40", "100.00", "98.20"],
-            ["w/o Action Conditioning", "94.40", "96.40", "96.60", "97.60", "96.25"],
-            ["w/o Slot Encoder", "95.60", "98.40", "96.80", "99.80", "97.65"],
+            ["Stream-WAM w/o Action Conditioning", "94.40", "96.40", "96.60", "97.60", "96.25"],
+            ["Stream-WAM w/o Slot Encoder", "95.60", "98.40", "96.80", "99.80", "97.65"],
         ],
         "benchmark-robocasa": [
             ["Method", "Accuracy ↑"],
@@ -582,7 +584,7 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
     assert all(fragment in section_text["benchmark-robotwin"] for fragment in ("50 tasks", "100 rollout episodes per task", "Clean", "Random", "domain-randomization"))
 
 
-def test_page_embeds_one_static_latency_figure_for_all_three_benchmarks() -> None:
+def test_page_embeds_two_wide_latency_figures_for_all_three_benchmarks() -> None:
     parser, html = parse_page()
     visible_text = " ".join(parser.text_parts)
     latency_images = [
@@ -591,18 +593,30 @@ def test_page_embeds_one_static_latency_figure_for_all_three_benchmarks() -> Non
         if tag == "img" and "latency-plot" in attrs.get("class", "").split()
     ]
 
-    assert latency_images == [{
-        "class": "latency-plot",
-        "src": "assets/stream-wam-latency.png",
-        "alt": "Vertical-bar comparisons of chunk time and episode time for LIBERO, RoboTwin 2.0, and RoboCasa.",
-        "width": "2400",
-        "height": "1800",
-        "aria-describedby": "latency-caption latency-data-caption",
-    }]
+    assert latency_images == [
+        {
+            "class": "latency-plot",
+            "src": "assets/stream-wam-chunk-time.png",
+            "alt": "Chunk-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa.",
+            "width": "2400",
+            "height": "900",
+            "aria-describedby": "chunk-time-caption latency-data-caption",
+        },
+        {
+            "class": "latency-plot",
+            "src": "assets/stream-wam-episode-time.png",
+            "alt": "Episode-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa.",
+            "width": "2400",
+            "height": "900",
+            "aria-describedby": "episode-time-caption latency-data-caption",
+        },
+    ]
     assert "Episode Time" in visible_text
     assert "Total Time" not in visible_text
     assert "latency-bar" not in html
-    assert "Latency comparison for LIBERO, RoboTwin 2.0, and RoboCasa" in visible_text
+    assert "Chunk Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa" in visible_text
+    assert "Episode Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa" in visible_text
+    assert html.count('class="latency-viewport"') == 2
 
 
 def test_static_latency_figure_has_an_accessible_exact_data_table() -> None:
@@ -615,8 +629,8 @@ def test_static_latency_figure_has_an_accessible_exact_data_table() -> None:
         ["LIBERO", "FastWAM-Joint-CD", "114.2 ms", "6.89 s Long / 3.74 s Short"],
         ["LIBERO", "FastWAM-RTC", "142.3 ms", "6.23 s Long / 3.20 s Short"],
         ["LIBERO", "Stream-WAM", "41.0 ms", "5.36 s Long / 3.15 s Short"],
-        ["LIBERO", "w/o Action Conditioning", "35.1 ms", "5.20 s Long / 2.92 s Short"],
-        ["LIBERO", "w/o Slot Encoder", "36.3 ms", "5.31 s Long / 3.01 s Short"],
+        ["LIBERO", "Stream-WAM w/o Action Conditioning", "35.1 ms", "5.20 s Long / 2.92 s Short"],
+        ["LIBERO", "Stream-WAM w/o Slot Encoder", "36.3 ms", "5.31 s Long / 3.01 s Short"],
         ["RoboTwin 2.0", "StarWAM-Joint", "190.17 ms", "110.22 s"],
         ["RoboTwin 2.0", "StarWAM-CD", "81.21 ms", "102.59 s"],
         ["RoboTwin 2.0", "Stream-WAM", "47.09 ms", "77.48 s"],
@@ -626,18 +640,23 @@ def test_static_latency_figure_has_an_accessible_exact_data_table() -> None:
     ]
 
 
-def test_latency_generator_writes_a_nonempty_png(tmp_path: Path) -> None:
-    output = tmp_path / "latency.png"
-
+def test_latency_generator_writes_two_wide_nonempty_pngs(tmp_path: Path) -> None:
     subprocess.run(
-        [sys.executable, str(LATENCY_GENERATOR_PATH), "--output", str(output)],
+        [sys.executable, str(LATENCY_GENERATOR_PATH), "--output-dir", str(tmp_path)],
         check=True,
         cwd=REPO_ROOT,
     )
 
-    contents = output.read_bytes()
-    assert contents.startswith(b"\x89PNG\r\n\x1a\n")
-    assert len(contents) > 50_000
+    outputs = [
+        tmp_path / "stream-wam-chunk-time.png",
+        tmp_path / "stream-wam-episode-time.png",
+    ]
+    for output in outputs:
+        contents = output.read_bytes()
+        assert contents.startswith(b"\x89PNG\r\n\x1a\n")
+        assert len(contents) > 50_000
+        with Image.open(output) as image:
+            assert image.size == (2400, 900)
 
 
 def test_latency_generator_uses_the_authoritative_values() -> None:
@@ -654,3 +673,22 @@ def test_latency_generator_uses_the_authoritative_values() -> None:
     assert module.ROBOCASA_CHUNK == (504.00, 135.21, 136.76)
     assert module.ROBOCASA_EPISODE == (37.31, 33.60, 11.76)
     assert module.LIBERO_CHUNK_YMAX == 520
+    assert tuple(label.replace("\n", " ") for label in module.LIBERO_METHODS) == (
+        "FastWAM",
+        "Joint-CD",
+        "RTC",
+        "Stream-WAM",
+        "Stream-WAM w/o Action Conditioning",
+        "Stream-WAM w/o Slot Encoder",
+    )
+
+
+def test_latency_figures_scroll_inside_their_mobile_viewports() -> None:
+    css = (PAGE_ROOT / "styles.css").read_text()
+    viewport_rule = re.search(r"\.latency-viewport\s*\{([^}]*)\}", css)
+    mobile_rule = re.search(r"@media \(max-width: 760px\)\s*\{(.*)\n\}", css, re.DOTALL)
+
+    assert viewport_rule is not None
+    assert re.search(r"overflow-x:\s*auto", viewport_rule.group(1))
+    assert mobile_rule is not None
+    assert re.search(r"\.latency-image-link\s*\{[^}]*min-width:\s*900px", mobile_rule.group(1))

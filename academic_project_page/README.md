@@ -15,7 +15,7 @@ benchmark tables that need more width.
 
 The asynchronous-strategy discussion links to the relevant primary source and distinguishes action
 prefix conditioning from action-conditioned future-video generation. Preserve that distinction when
-editing the method narrative or the `w/o Action Conditioning` ablation description.
+editing the method narrative or the `Stream-WAM w/o Action Conditioning` ablation description.
 
 All three benchmark tables are intentionally visible in source order. Do not hide scientific content
 behind tabs or require JavaScript to read the article. JavaScript is limited to the mobile header menu.
@@ -40,7 +40,7 @@ Then open `http://localhost:8000`.
 - Update public copy, links, benchmark values, and task captions in `index.html`.
 - Update colors, typography, spacing, and responsive layout in `styles.css`.
 - Update the progressively enhanced mobile navigation in `script.js`.
-- Update latency values or plotting styles in `generate_latency_figure.py`, then regenerate `assets/stream-wam-latency.png` with `python academic_project_page/generate_latency_figure.py`.
+- Update latency values or plotting styles in `generate_latency_figure.py`, then regenerate the `2400 × 900` Chunk Time and Episode Time figures with `python academic_project_page/generate_latency_figure.py`.
 - Replace rollout posters in `assets/` while keeping their existing filenames, or update the corresponding `src` and social metadata in `index.html`.
 
 The deployed page intentionally uses only local assets and system fonts. Regenerating the committed latency figure requires matplotlib, but viewing and deploying the page require no Python packages or build command.
