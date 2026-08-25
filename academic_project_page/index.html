@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#061119">
+    <meta name="description" content="StreamWAM is an action-conditioned streaming world-action model for robotic manipulation.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="StreamWAM — Think ahead. Act now.">
+    <meta property="og:description" content="Streaming World-Action Models for Robotic Manipulation">
+    <meta property="og:image" content="assets/streamwam-social-preview.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>StreamWAM — Streaming World-Action Models</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+
+    <header class="site-header">
+      <nav class="site-nav shell" aria-label="Primary navigation">
+        <a class="wordmark" href="#overview" aria-label="StreamWAM home">
+          <span class="wordmark-mark" aria-hidden="true"></span>
+          StreamWAM
+        </a>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+          <span class="sr-only">Open navigation</span>
+          <span aria-hidden="true"></span><span aria-hidden="true"></span>
+        </button>
+        <div class="nav-links" id="nav-links">
+          <a href="#method">Method</a>
+          <a href="#results">Results</a>
+          <a href="#gallery">Gallery</a>
+          <a href="#resources">Resources</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="content">
+      <section class="hero shell" id="overview" aria-labelledby="hero-title">
+        <div class="hero-copy reveal">
+          <p class="eyebrow"><span>Research preview</span> · Streaming robot control</p>
+          <h1 id="hero-title">Think ahead.<br><em>Act now.</em></h1>
+          <p class="hero-subtitle">Streaming World-Action Models for Robotic Manipulation</p>
+          <p class="hero-summary">
+            StreamWAM is a research framework and unified testbed for systematically studying
+            streaming strategies in world-action-model-based robot control.
+          </p>
+          <p class="hero-detail">
+            Our <strong>action-conditioned streaming</strong> formulation feeds the prefix of actions
+            currently being executed back into the world model. The executed actions shape the
+            predicted visual future while StreamWAM asynchronously infers the next world-action chunk.
+          </p>
+          <div class="hero-actions" aria-label="Project resources">
+            <a class="button button-primary" href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">
+              View code <span aria-hidden="true">↗</span>
+            </a>
+            <a class="button button-secondary" href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">
+              Get models <span aria-hidden="true">↗</span>
+            </a>
+            <span class="button button-disabled" aria-disabled="true">Paper · Coming Soon</span>
+          </div>
+        </div>
+
+        <div class="hero-visual reveal" aria-label="Preview frames from successful LIBERO rollouts">
+          <div class="frame frame-main">
+            <img src="assets/libero-drawer.webp" alt="Robot arm placing a black bowl into an open cabinet drawer" width="1344" height="672">
+            <div class="frame-overlay">
+              <span class="live-dot" aria-hidden="true"></span>
+              <span>Rollout film</span>
+              <span class="status">Coming Soon</span>
+            </div>
+          </div>
+          <div class="frame frame-small frame-basket" aria-hidden="true">
+            <img src="assets/libero-basket.webp" alt="" width="1344" height="672">
+          </div>
+          <div class="frame frame-small frame-stove" aria-hidden="true">
+            <img src="assets/libero-stove.webp" alt="" width="1344" height="672">
+          </div>
+          <div class="visual-index" aria-hidden="true">01 — 03</div>
+        </div>
+      </section>
+
+      <section class="metric-band" aria-label="Selected results">
+        <div class="shell metrics">
+          <article>
+            <span class="metric-value">98.20%</span>
+            <span class="metric-label">LIBERO average success</span>
+          </article>
+          <article>
+            <span class="metric-value">41.0 ms</span>
+            <span class="metric-label">LIBERO chunk time</span>
+          </article>
+          <article>
+            <span class="metric-value">11.76 s</span>
+            <span class="metric-label">RoboCasa total time</span>
+          </article>
+          <p class="metric-note">Fast visual futures.<br>Continuous robot action.</p>
+        </div>
+      </section>
+
+      <section class="section shell" id="method" aria-labelledby="method-title">
+        <div class="section-heading reveal">
+          <p class="eyebrow">The core idea</p>
+          <h2 id="method-title">Execution becomes part of prediction.</h2>
+          <p>
+            StreamWAM couples inference and execution at the modeling level. It does not treat
+            their overlap as a systems-only optimization: the actions already in motion become
+            context for what the world model predicts next.
+          </p>
+        </div>
+
+        <div class="stream-flow reveal" aria-label="StreamWAM action-conditioned streaming process">
+          <article class="flow-step flow-action">
+            <span class="flow-number">01</span>
+            <div class="flow-icon" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <h3>Executing action prefix</h3>
+            <p>The robot continues acting while its current action prefix is fed back to the model.</p>
+          </article>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <article class="flow-step flow-future">
+            <span class="flow-number">02</span>
+            <div class="future-strip" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <h3>Conditioned visual future</h3>
+            <p>Future video generation is explicitly constrained by the actions already underway.</p>
+          </article>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <article class="flow-step flow-chunk">
+            <span class="flow-number">03</span>
+            <div class="chunk-track" aria-hidden="true"><span></span><span></span></div>
+            <h3>Next world-action chunk</h3>
+            <p>The next chunk is inferred asynchronously and becomes ready for continuous control.</p>
+          </article>
+        </div>
+
+        <div class="comparison-grid">
+          <article class="comparison-card reveal">
+            <p class="card-kicker">Unified testbed</p>
+            <h3>Compare streaming strategies on equal ground.</h3>
+            <p>
+              StreamWAM provides a common framework for studying how different streaming choices
+              affect both task success and control latency in WAM-based manipulation.
+            </p>
+          </article>
+          <article class="comparison-card comparison-accent reveal">
+            <p class="card-kicker">Action conditioned</p>
+            <h3>Close the loop between what acts and what imagines.</h3>
+            <p>
+              The action prefix is not merely scheduled alongside inference. It directly conditions
+              the predicted visual future, connecting asynchronous generation to ongoing execution.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section results-section" id="results" aria-labelledby="results-title">
+        <div class="shell">
+          <div class="section-heading section-heading-row reveal">
+            <div>
+              <p class="eyebrow">Current results</p>
+              <h2 id="results-title">Success under a tighter clock.</h2>
+            </div>
+            <p>
+              StreamWAM models start from FastWAM-Joint checkpoints and are further trained.
+              RoboCasa builds on X-WAM; RoboTwin builds on StarWAM.
+            </p>
+          </div>
+
+          <div class="result-tabs reveal" data-tabs>
+            <div class="tab-list" role="tablist" aria-label="Benchmark results">
+              <button id="tab-libero" role="tab" aria-selected="true" aria-controls="panel-libero" data-tab="libero">LIBERO</button>
+              <button id="tab-robocasa" role="tab" aria-selected="false" aria-controls="panel-robocasa" data-tab="robocasa">RoboCasa</button>
+              <button id="tab-robotwin" role="tab" aria-selected="false" aria-controls="panel-robotwin" data-tab="robotwin">RoboTwin</button>
+            </div>
+
+            <section class="result-panel" id="panel-libero" role="tabpanel" aria-labelledby="tab-libero" data-panel="libero">
+              <div class="protocol">
+                <span>4 suites</span><span>10 tasks per suite</span><span>50 trials per task</span>
+              </div>
+              <div class="table-scroll" tabindex="0" aria-label="Scrollable LIBERO results table">
+                <table>
+                  <caption>LIBERO success and latency results</caption>
+                  <thead><tr><th scope="col">Method</th><th scope="col">LIBERO-10</th><th scope="col">Spatial</th><th scope="col">Goal</th><th scope="col">Object</th><th scope="col">Average ↑</th><th scope="col">Chunk time ↓</th><th scope="col">Episode time ↓<small>Long / Short</small></th></tr></thead>
+                  <tbody>
+                    <tr><th scope="row">FastWAM</th><td>96.20</td><td>96.20</td><td>94.20</td><td>96.20</td><td>95.70</td><td>493.0 ms</td><td>16.31 / 8.25 s</td></tr>
+                    <tr><th scope="row">FastWAM-Joint-CD</th><td>97.20</td><td>99.60</td><td>98.60</td><td>100.00</td><td>98.85</td><td>114.2 ms</td><td>6.89 / 3.74 s</td></tr>
+                    <tr><th scope="row">FastWAM-RTC</th><td>58.40</td><td>76.20</td><td>77.00</td><td>83.40</td><td>73.75</td><td>142.3 ms</td><td>6.23 / 3.20 s</td></tr>
+                    <tr><th scope="row">StreamWAM</th><td>96.60</td><td>98.80</td><td>97.40</td><td>100.00</td><td>98.20</td><td>41.0 ms</td><td>5.36 / 3.15 s</td></tr>
+                    <tr><th scope="row">w/o Action Conditioning</th><td>94.40</td><td>96.40</td><td>96.60</td><td>97.60</td><td>96.25</td><td>35.1 ms</td><td>5.20 / 2.92 s</td></tr>
+                    <tr><th scope="row">w/o Slot Encoder</th><td>95.60</td><td>98.40</td><td>96.80</td><td>99.80</td><td>97.65</td><td>36.3 ms</td><td>5.31 / 3.01 s</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="table-note">Success rates are percentages. Average is the arithmetic mean across the four suites.</p>
+            </section>
+
+            <section class="result-panel" id="panel-robocasa" role="tabpanel" aria-labelledby="tab-robocasa" data-panel="robocasa">
+              <div class="protocol">
+                <span>Target benchmark</span><span>50 target tasks</span><span>50 trials per task</span><span>Average task success</span>
+              </div>
+              <div class="table-scroll" tabindex="0" aria-label="Scrollable RoboCasa results table">
+                <table>
+                  <caption>RoboCasa target benchmark results</caption>
+                  <thead><tr><th scope="col">Method</th><th scope="col">Accuracy ↑</th><th scope="col">Chunk time ↓</th><th scope="col">Total time ↓</th></tr></thead>
+                  <tbody>
+                    <tr><th scope="row">X-WAM</th><td>75.42%</td><td>504.00 ms</td><td>37.31 s</td></tr>
+                    <tr><th scope="row">X-WAM-CD</th><td>75.83%</td><td>135.21 ms</td><td>33.60 s</td></tr>
+                    <tr><th scope="row">StreamWAM</th><td>75.35%</td><td>136.76 ms</td><td>11.76 s</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="result-panel" id="panel-robotwin" role="tabpanel" aria-labelledby="tab-robotwin" data-panel="robotwin">
+              <div class="protocol">
+                <span>RoboTwin 2.0</span><span>50 tasks</span><span>100 rollout episodes per task</span><span>Clean / Random</span>
+              </div>
+              <div class="table-scroll" tabindex="0" aria-label="Scrollable RoboTwin results table">
+                <table>
+                  <caption>RoboTwin 2.0 clean and randomized results</caption>
+                  <thead><tr><th scope="col">Method</th><th scope="col">Clean ↑</th><th scope="col">Random ↑</th><th scope="col">Total ↑</th><th scope="col">Chunk time ↓</th><th scope="col">Total time ↓</th></tr></thead>
+                  <tbody>
+                    <tr><th scope="row">StarWAM</th><td>84.8</td><td>86.0</td><td>85.4</td><td>189.3 ms</td><td>—</td></tr>
+                    <tr><th scope="row">StarWAM-CD</th><td>79.0</td><td>79.2</td><td>79.1</td><td>81.6 ms</td><td>—</td></tr>
+                    <tr><th scope="row">StreamWAM</th><td>87.2</td><td>88.8</td><td>87.6</td><td>—</td><td>112.2 s</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="table-note">Clean is the easy setting; Random is the hard domain-randomization setting.</p>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="section shell" id="gallery" aria-labelledby="gallery-title">
+        <div class="section-heading section-heading-row reveal">
+          <div>
+            <p class="eyebrow">Robot rollouts</p>
+            <h2 id="gallery-title">See the stream in motion.</h2>
+          </div>
+          <p>These real success-rollout frames preview the forthcoming film. Full-resolution videos will replace the posters when released.</p>
+        </div>
+
+        <div class="gallery-grid">
+          <article class="gallery-card gallery-featured reveal">
+            <div class="gallery-media">
+              <img src="assets/libero-drawer.webp" alt="Robot arm completing a cabinet drawer task in LIBERO" width="1344" height="672" loading="lazy">
+              <span class="media-status">Rollout film · Coming Soon</span>
+            </div>
+            <div class="gallery-copy"><span>LIBERO-10 · Manipulation</span><h3>Place the black bowl in the drawer and close it.</h3></div>
+          </article>
+          <article class="gallery-card reveal">
+            <div class="gallery-media">
+              <img src="assets/libero-basket.webp" alt="Robot arm completing a basket placement task in LIBERO" width="1344" height="672" loading="lazy">
+              <span class="media-status">Coming Soon</span>
+            </div>
+            <div class="gallery-copy"><span>LIBERO-10 · Multi-object</span><h3>Place both objects in the basket.</h3></div>
+          </article>
+          <article class="gallery-card reveal">
+            <div class="gallery-media">
+              <img src="assets/libero-stove.webp" alt="Robot arm completing a stove and moka pot task in LIBERO" width="1344" height="672" loading="lazy">
+              <span class="media-status">Coming Soon</span>
+            </div>
+            <div class="gallery-copy"><span>LIBERO-10 · Long horizon</span><h3>Turn on the stove and place the moka pot.</h3></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section resource-section" id="resources" aria-labelledby="resources-title">
+        <div class="shell">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Open research</p>
+            <h2 id="resources-title">Start with StreamWAM.</h2>
+          </div>
+          <div class="resource-grid">
+            <a class="resource-card reveal" href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">
+              <span class="resource-index">01</span><span><strong>Code</strong><small>Inference, training, and recipes</small></span><span aria-hidden="true">↗</span>
+            </a>
+            <a class="resource-card reveal" href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">
+              <span class="resource-index">02</span><span><strong>Models</strong><small>Released checkpoints on Hugging Face</small></span><span aria-hidden="true">↗</span>
+            </a>
+            <div class="resource-card resource-pending reveal">
+              <span class="resource-index">03</span><span><strong>Paper</strong><small>Technical report · Coming Soon</small></span><span class="status">Soon</span>
+            </div>
+            <div class="resource-card resource-pending reveal">
+              <span class="resource-index">04</span><span><strong>Rollout film</strong><small>Qualitative robot results · Coming Soon</small></span><span class="status">Soon</span>
+            </div>
+          </div>
+
+          <div class="acknowledgements reveal">
+            <p class="eyebrow">Acknowledgements</p>
+            <p>
+              StreamWAM builds on ideas and open-source work from
+              <a href="https://github.com/yuantianyuan01/FastWAM" target="_blank" rel="noopener noreferrer">FastWAM</a>,
+              <a href="https://github.com/shaohua-pan/StarWAM" target="_blank" rel="noopener noreferrer">StarWAM</a>,
+              <a href="https://github.com/sharinka0715/X-WAM" target="_blank" rel="noopener noreferrer">X-WAM</a>,
+              <a href="https://github.com/starVLA/starVLA" target="_blank" rel="noopener noreferrer">StarVLA</a>,
+              <a href="https://github.com/dreamzero0/dreamzero" target="_blank" rel="noopener noreferrer">DreamZero</a>,
+              <a href="https://github.com/Lifelong-Robot-Learning/LIBERO" target="_blank" rel="noopener noreferrer">LIBERO</a>,
+              <a href="https://github.com/Wan-Video/Wan2.2" target="_blank" rel="noopener noreferrer">Wan2.2</a>, and
+              <a href="https://github.com/nvidia-cosmos/cosmos-predict2" target="_blank" rel="noopener noreferrer">Cosmos-Predict2</a>.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell">
+        <a class="wordmark" href="#overview"><span class="wordmark-mark" aria-hidden="true"></span>StreamWAM</a>
+        <p>Streaming World-Action Models for Robotic Manipulation</p>
+        <p>Research preview · 2026</p>
+      </div>
+    </footer>
+  </body>
+</html>
