@@ -298,7 +298,7 @@ def _run_job_queue(
         status_output.unlink(missing_ok=True)
         _atomic_json(job_file, job.__dict__)
         log = open(job_dir / "worker.log", "w", encoding="utf-8")
-        replan_steps = 16 if args.inference_mode == "ac-stream" else 24
+        replan_steps = 16 if args.inference_mode == "ac-stream" else 32
         command = [
             args.simulator_python, "-m", "examples.robotwin.robotwin_worker",
             "--gpu-id", gpu, "--robotwin-home", args.robotwin_home,

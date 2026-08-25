@@ -6,9 +6,9 @@ Add three reproducible RoboTwin 2.0 inference modes to StreamWAM without
 converting or duplicating the original StarWAM checkpoints:
 
 1. `baseline`: official StarWAM MoT first-frame action inference, four Euler
-   steps, and `replan_steps=24`.
+   steps, and `replan_steps=32`.
 2. `cd`: StarWAM first-frame one-step action consistency inference using the
-   yzy CD checkpoint, with `replan_steps=24`.
+   yzy CD checkpoint, with `replan_steps=32`.
 3. `ac-stream`: yzy's three-stream RTC inference with `H=32`, `s=16`, and
    `d=8`. The same implementation supports eager and accelerated backends;
    formal evaluation defaults to the accelerated backend.
@@ -30,7 +30,7 @@ The implementation must preserve this distinction.
 - Conditioning: `action_video_conditioning=first_frame`.
 - Sampling: four-step Euler action denoising.
 - Model output used by the policy: 14-D action chunk.
-- Horizon and execution: predict the configured chunk and execute 24 actions
+- Horizon and execution: predict the configured chunk and execute 32 actions
   before replanning.
 
 ### CD
@@ -43,7 +43,7 @@ The implementation must preserve this distinction.
 - This mode is distinct from the existing LIBERO full-video Joint-CD path. Both
   variants must remain available without silently changing one into the other.
 - Horizon and execution: use the checkpoint's configured horizon and execute
-  24 actions before replanning.
+  32 actions before replanning.
 
 ### AC-Stream
 

@@ -13,8 +13,8 @@
 - Preserve existing LIBERO behavior and commands.
 - Do not convert or duplicate model checkpoints.
 - Do not create Git commits; the user performs manual review and commit.
-- Baseline is first-frame four-step Euler with `replan_steps=24`.
-- CD is first-frame one-step action consistency with `replan_steps=24`.
+- Baseline is first-frame four-step Euler with `replan_steps=32`.
+- CD is first-frame one-step action consistency with `replan_steps=32`.
 - AC-Stream uses the yzy RTC mathematics with `H=32`, `s=16`, `d=8`.
 - Eager and accelerated AC-Stream share one mathematical implementation.
 - Formal AC-Stream evaluation defaults to accelerated and supports explicit eager selection.
@@ -143,7 +143,7 @@
 - [ ] Add a fake-server failing test showing D8 starts after eight executed actions and finishes while actions 8-15 continue.
 - [ ] Add a failing boundary-miss test proving the client waits only at the stride boundary.
 - [ ] Add failing tests for reset, episode end with an outstanding request, socket failure, and request ID mismatch.
-- [ ] Add a regression test for baseline/CD replan queues at 24 actions.
+- [ ] Add a regression test for baseline/CD replan queues at 32 actions.
 - [ ] Run focused client tests and confirm failures.
 - [ ] Refactor connection access behind a serialized remote predictor.
 - [ ] Integrate `ACStreamController` for AC-Stream and keep the synchronous queue for baseline/CD.

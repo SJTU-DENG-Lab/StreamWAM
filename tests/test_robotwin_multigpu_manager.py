@@ -269,6 +269,58 @@ def test_dynamic_queue_rejects_jobs_without_any_gpu_server(tmp_path: Path) -> No
         )
 
 
+@pytest.mark.parametrize(
+    ("inference_mode", "expected_replan_steps"),
+    [("baseline", "32"), ("cd", "32"), ("ac-stream", "16")],
+)
+def test_worker_replan_steps_follow_inference_mode(
+    tmp_path: Path,
+    inference_mode: str,
+    expected_replan_steps: str,
+) -> None:
+    args = _build_arg_parser().parse_args([
+        "--config", "recipe.yaml", "--checkpoint", "model.pt",
+        "--stats-path", "stats.json", "--backbone-path", "wan",
+        "--robotwin-home", "RoboTwin", "--inference-python", "/wyx/python",
+        "--simulator-python", "/motus/python",
+        "--inference-mode", inference_mode,
+    ])
+    job = RoboTwinJob("adjust_bottle", "demo_clean", 0)
+    commands = []
+
+    class Process:
+        pid = 1234
+        returncode = 0
+
+        def __init__(self, command, **kwargs):
+            del kwargs
+            commands.append(command)
+            output = Path(command[command.index("--output") + 1])
+            output.write_text(json.dumps({
+                "result": {
+                    **job.__dict__, "status": "completed",
+                    "success": 1, "episodes": 1,
+                },
+                "timing": [],
+            }))
+
+        @staticmethod
+        def poll():
+            return 0
+
+    _run_job_queue(
+        args, [job],
+        [{"gpu": "0", "port": 18765, "environment": {}}],
+        tmp_path,
+        popen=Process,
+        cleanup_finished_group=lambda process: None,
+        sleep=lambda seconds: None,
+    )
+
+    command = commands[0]
+    assert command[command.index("--replan-steps") + 1] == expected_replan_steps
+
+
 def test_infrastructure_error_timing_is_excluded_from_final_aggregation() -> None:
     records = _completed_timing_records([
         {
