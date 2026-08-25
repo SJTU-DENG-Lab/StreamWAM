@@ -9,7 +9,7 @@ The public article opens with three continuous editorial acts: `act-wam`, `act-a
 `act-streamwam`, followed by `experiments`, `discussion`, and `resources`. Keep these IDs stable
 because the table of contents and external links use them. These sections intentionally have no
 visible numbered labels or display-sized headings; their accessible names live on the section
-elements. Only the compact `LIBERO`, `RoboCasa`, and `RoboTwin 2.0` headings identify the result
+elements. Only the compact `LIBERO`, `RoboTwin 2.0`, and `RoboCasa` headings identify the result
 tables. Put ordinary prose inside `.reading-column`; use `.breakout` only for the method figure or
 benchmark tables that need more width.
 
@@ -40,9 +40,10 @@ Then open `http://localhost:8000`.
 - Update public copy, links, benchmark values, and task captions in `index.html`.
 - Update colors, typography, spacing, and responsive layout in `styles.css`.
 - Update the progressively enhanced mobile navigation in `script.js`.
+- Update latency values or plotting styles in `generate_latency_figure.py`, then regenerate `assets/stream-wam-latency.png` with `python academic_project_page/generate_latency_figure.py`.
 - Replace rollout posters in `assets/` while keeping their existing filenames, or update the corresponding `src` and social metadata in `index.html`.
 
-The page intentionally uses only local assets and system fonts, so no package installation or build command is required.
+The deployed page intentionally uses only local assets and system fonts. Regenerating the committed latency figure requires matplotlib, but viewing and deploying the page require no Python packages or build command.
 
 ## Add the rollout film later
 
@@ -59,7 +60,7 @@ Remove the `Rollout film · Coming Soon` status only after the video or public f
 
 ## Update results safely
 
-The summary metrics appear near the top of `index.html`; the detailed values live in the three visible benchmark sections (`benchmark-libero`, `benchmark-robocasa`, and `benchmark-robotwin`). Update both locations when a headline metric changes, then run:
+The summary metrics appear near the top of `index.html`; the detailed values live in the three visible benchmark sections (`benchmark-libero`, `benchmark-robotwin`, and `benchmark-robocasa`). Update both locations when a headline metric changes, then run:
 
 ```bash
 pytest -q tests/test_academic_project_page.py

@@ -12,7 +12,7 @@
 
 - Benchmark order is LIBERO, RoboTwin 2.0, RoboCasa.
 - The public success tables contain no LingBot-VA rows.
-- The latency figure contains LIBERO and RoboTwin 2.0 only.
+- The latency figure contains LIBERO, RoboTwin 2.0, and RoboCasa.
 - The public label is Episode Time, never Total Time.
 - Stream-WAM is teal; complete baselines are muted; ablations are hatched and labeled.
 - All reported numeric values remain unchanged.
@@ -49,6 +49,7 @@ assert len(latency) == 1
 assert latency[0]["src"] == "assets/stream-wam-latency.png"
 assert "LIBERO" in latency[0]["alt"]
 assert "RoboTwin" in latency[0]["alt"]
+assert "RoboCasa" in latency[0]["alt"]
 assert "latency-bar" not in html
 assert "Episode Time" in visible_text
 assert "Total Time" not in visible_text
@@ -89,7 +90,7 @@ Expected: failure because `generate_latency_figure.py` does not exist.
 
 - [ ] **Step 3: Implement the generator**
 
-Define the literal LIBERO and RoboTwin latency data, create a 2×2 matplotlib figure, render vertical bars with the approved colors and hatching, annotate every bar, use a broken y-axis for LIBERO chunk time, and expose:
+Define the literal LIBERO, RoboTwin, and RoboCasa latency data, create a 2×2 matplotlib figure, render vertical bars with the approved colors and hatching, annotate every bar, use a continuous 0–520 ms axis for LIBERO chunk time, and expose:
 
 ```python
 def render(output_path: Path) -> None:
@@ -134,9 +135,9 @@ Move the complete RoboTwin section before RoboCasa, remove both LingBot rows, re
 <figure class="latency-figure breakout" aria-labelledby="latency-caption">
   <a href="assets/stream-wam-latency.png" target="_blank">
     <img class="latency-plot" src="assets/stream-wam-latency.png"
-      alt="Chunk and episode time comparisons for LIBERO and RoboTwin 2.0.">
+      alt="Chunk and episode time comparisons for LIBERO, RoboTwin 2.0, and RoboCasa.">
   </a>
-  <figcaption id="latency-caption">Latency comparison for LIBERO and RoboTwin 2.0. Lower is better.</figcaption>
+  <figcaption id="latency-caption">Latency comparison for LIBERO, RoboTwin 2.0, and RoboCasa. Lower is better.</figcaption>
 </figure>
 ```
 
@@ -167,4 +168,3 @@ Serve `academic_project_page/`, inspect at 1280 px and 390 px widths, and confir
 - [ ] **Step 5: Request release review and commit**
 
 Request a read-only review of the diff, resolve Critical and Important findings, then commit only the page, test, generator, asset, spec, and plan files.
-
