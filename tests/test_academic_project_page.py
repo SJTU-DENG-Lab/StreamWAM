@@ -32,6 +32,9 @@ class PageParser(HTMLParser):
         self.before_experiments = True
         self.section_stack: list[str] = []
         self.act_heading_tags: list[str] = []
+        self.act_body_paragraph_count = 0
+        self.act_opening_ids: set[str] = set()
+        self.act_body_paragraph_text: list[str] | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         normalized = {name: value or "" for name, value in attrs}
@@ -50,6 +53,12 @@ class PageParser(HTMLParser):
             self.article_paragraph_count += 1
             if self.before_experiments:
                 self.pre_experiment_paragraph_count += 1
+            classes = normalized.get("class", "").split()
+            if any(section_id.startswith("act-") for section_id in self.section_stack):
+                if "act-label" not in classes and "act-opening" not in classes:
+                    self.act_body_paragraph_text = []
+                if "act-opening" in classes and normalized.get("id"):
+                    self.act_opening_ids.add(normalized["id"])
         if tag in {"h1", "h2", "h3", "h4", "h5", "h6"} and any(
             section_id.startswith("act-") for section_id in self.section_stack
         ):
@@ -58,10 +67,16 @@ class PageParser(HTMLParser):
     def handle_endtag(self, tag: str) -> None:
         if tag == "article":
             self.article_depth -= 1
+        if tag == "p" and self.act_body_paragraph_text is not None:
+            if " ".join(self.act_body_paragraph_text).strip():
+                self.act_body_paragraph_count += 1
+            self.act_body_paragraph_text = None
         if tag == "section":
             self.section_stack.pop()
 
     def handle_data(self, data: str) -> None:
+        if self.act_body_paragraph_text is not None:
+            self.act_body_paragraph_text.append(data)
         if stripped := data.strip():
             self.text_parts.append(stripped)
 
@@ -314,8 +329,9 @@ def test_article_opens_with_three_detailed_editorial_acts() -> None:
 
     assert [section["id"] for section in act_sections] == ["act-wam", "act-async", "act-streamwam"]
     assert all("editorial-act" in section.get("class", "").split() for section in act_sections)
-    assert parser.pre_experiment_paragraph_count >= 18
+    assert parser.act_body_paragraph_count >= 18
     assert parser.act_heading_tags == []
+    assert {section.get("aria-labelledby") for section in act_sections} == parser.act_opening_ids
     assert "https://arxiv.org/abs/2608.01880" in links
 
 
