@@ -37,6 +37,8 @@ class PageParser(HTMLParser):
         self.current_h3_id: str | None = None
         self.current_h3_text: list[str] = []
         self.h3_text_by_id: dict[str, str] = {}
+        self.hero_title_text: list[str] | None = None
+        self.hero_title = ""
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         normalized = {name: value or "" for name, value in attrs}
@@ -66,6 +68,8 @@ class PageParser(HTMLParser):
         if tag == "h3" and normalized.get("id"):
             self.current_h3_id = normalized["id"]
             self.current_h3_text = []
+        if tag == "h1" and normalized.get("id") == "hero-title":
+            self.hero_title_text = []
 
     def handle_endtag(self, tag: str) -> None:
         if tag == "article":
@@ -78,6 +82,9 @@ class PageParser(HTMLParser):
             self.h3_text_by_id[self.current_h3_id] = " ".join(self.current_h3_text).strip()
             self.current_h3_id = None
             self.current_h3_text = []
+        if tag == "h1" and self.hero_title_text is not None:
+            self.hero_title = " ".join(self.hero_title_text).strip()
+            self.hero_title_text = None
         if tag == "section":
             self.section_stack.pop()
 
@@ -86,6 +93,8 @@ class PageParser(HTMLParser):
             self.act_body_paragraph_text.append(data)
         if self.current_h3_id is not None:
             self.current_h3_text.append(data)
+        if self.hero_title_text is not None:
+            self.hero_title_text.append(data)
         if stripped := data.strip():
             self.text_parts.append(stripped)
 
@@ -156,7 +165,8 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
         "discussion",
         "resources",
     } <= parser.ids
-    assert "Think ahead. Act now." in visible_text
+    assert parser.hero_title == "StreamWAM"
+    assert "Think ahead. Act now." not in visible_text
     assert "Streaming World-Action Models for Robotic Manipulation" in visible_text
     assert "action-conditioned" in visible_text.lower()
     assert "Coming Soon" in visible_text
