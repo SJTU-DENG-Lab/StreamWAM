@@ -60,13 +60,9 @@
 
       <article class="longform" id="article">
         <div class="article-header reading-column">
-          <h2>A streaming model should know what the robot is already doing.</h2>
-          <p class="article-dek">World-action models connect visual prediction and action generation. Stream-WAM asks what happens when that loop is reorganized around continuous robot execution—and why scheduling alone is not enough.</p>
-          <p>This page is a research preview rather than a substitute for the technical report. It develops the central motivation, explains the action-conditioned streaming design, and places the current results in context using the evidence available in the repository today.</p>
-          <nav class="article-toc" aria-label="Article contents">
-            <span>In this article</span>
-            <a href="#act-wam">Why robots wait</a><a href="#act-async">The asynchronous boundary</a><a href="#act-streamwam">Action-conditioned futures</a><a href="#experiments">Results</a>
-          </nav>
+          <h2>Abstract</h2>
+          <p class="abstract-lead">World-action models jointly generate visual futures and robot action chunks, giving manipulation policies a shared representation of what may happen and how the robot should act. Their iterative video-action generation, however, makes real-time deployment difficult: synchronous execution exposes inference latency as robot idle time, while naive asynchronous switching can create disagreement between consecutive chunks.</p>
+          <p>Stream-WAM provides a unified framework for studying streaming strategies in WAM-based robot control. Building on this framework, our method feeds the committed action prefix back into the world model: the action currently being executed conditions future-video generation while the next world-action chunk is predicted asynchronously. This couples ongoing execution to the visual future imagined by the model instead of treating inference–execution overlap as scheduling alone. We evaluate the approach on LIBERO, RoboTwin 2.0, and RoboCasa.</p>
         </div>
 
         <section class="editorial-act reading-column" id="act-wam" aria-label="The deployment problem">
@@ -190,7 +186,7 @@
           </section>
 
           <div class="efficiency-intro reading-column">
-            <p><strong>Inference efficiency.</strong> Chunk latency and end-to-end control time are separated from task success below. Every bar is labeled with its reported value; lower is better.</p>
+            <p><strong>Inference efficiency.</strong> Chunk latency and end-to-end control time are separated from task success below. Every bar is labeled with its reported value.</p>
           </div>
           <figure class="latency-figure breakout" aria-labelledby="chunk-time-caption">
             <div class="latency-viewport">
@@ -198,7 +194,7 @@
                 <img class="latency-plot" src="assets/stream-wam-chunk-time.png" alt="Chunk-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="chunk-time-caption latency-data-caption">
               </a>
             </div>
-            <figcaption id="chunk-time-caption">Chunk Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa. Each benchmark uses its own continuous scale; lower is better.</figcaption>
+            <figcaption id="chunk-time-caption">Chunk Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa. Each benchmark uses its own continuous scale.</figcaption>
           </figure>
           <figure class="latency-figure breakout" aria-labelledby="episode-time-caption">
             <div class="latency-viewport">
@@ -206,7 +202,7 @@
                 <img class="latency-plot" src="assets/stream-wam-episode-time.png" alt="Episode-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="episode-time-caption latency-data-caption">
               </a>
             </div>
-            <figcaption id="episode-time-caption">Episode Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa. LIBERO reports Long and Short tasks separately; lower is better.</figcaption>
+            <figcaption id="episode-time-caption">Episode Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa. LIBERO reports Long and Short tasks separately.</figcaption>
             <div class="sr-only">
             <table class="latency-data">
               <caption id="latency-data-caption">Exact latency values shown in the figure</caption>

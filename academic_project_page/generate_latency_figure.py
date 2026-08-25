@@ -59,17 +59,6 @@ def _style_axis(axis: Axes, *, ylabel: str, title: str) -> None:
     axis.set_axisbelow(True)
     axis.spines[["top", "right"]].set_visible(False)
     axis.spines[["left", "bottom"]].set_color(GRID)
-    axis.text(
-        1,
-        1.04,
-        "LOWER IS BETTER",
-        transform=axis.transAxes,
-        ha="right",
-        va="bottom",
-        color=MUTED,
-        fontsize=6,
-        fontweight="bold",
-    )
 
 
 def _libero_styles() -> tuple[list[str], list[str], list[str | None]]:
@@ -211,20 +200,12 @@ def _new_figure(metric: str) -> tuple[Figure, tuple[Axes, Axes, Axes]]:
         width_ratios=(2, 1, 1),
         left=0.06,
         right=0.98,
-        top=0.73,
+        top=0.79,
         bottom=0.29,
         wspace=0.31,
     )
     axes = tuple(figure.add_subplot(grid[0, index]) for index in range(3))
-    figure.suptitle(metric, x=0.06, y=0.955, ha="left", color=INK, fontsize=20, fontweight="bold")
-    figure.text(
-        0.06,
-        0.885,
-        "Streaming efficiency across three robotic-manipulation benchmarks",
-        ha="left",
-        color=MUTED,
-        fontsize=9,
-    )
+    figure.suptitle(metric, x=0.06, y=0.93, ha="left", color=INK, fontsize=14, fontweight="bold")
     figure.text(
         0.98,
         0.055,

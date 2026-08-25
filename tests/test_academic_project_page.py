@@ -407,6 +407,25 @@ def test_page_is_a_linear_text_first_research_article() -> None:
     assert "future-slots" not in html
 
 
+def test_article_opens_with_a_compact_abstract_without_a_contents_menu() -> None:
+    parser, html = parse_page()
+    visible_text = " ".join(parser.text_parts)
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+
+    assert "Abstract" in visible_text
+    assert "jointly generate visual futures and robot action chunks" in visible_text
+    assert "naive asynchronous switching can create disagreement between consecutive chunks" in visible_text
+    assert "action currently being executed conditions future-video generation" in visible_text
+    assert "A streaming model should know what the robot is already doing." not in visible_text
+    assert "In this article" not in visible_text
+    assert "lower is better" not in visible_text.casefold()
+    assert 'aria-label="Article contents"' not in html
+    assert "article-toc" not in html
+    heading_rule = re.search(r"\.article-header h2\s*\{([^}]*)\}", css)
+    assert heading_rule is not None
+    assert re.search(r"font-size:\s*clamp\([^;]*1\.45rem\s*\)", heading_rule.group(1))
+
+
 def test_article_opens_with_three_detailed_editorial_acts() -> None:
     parser, _ = parse_page()
     act_sections = [
@@ -681,6 +700,18 @@ def test_latency_generator_uses_the_authoritative_values() -> None:
         "Stream-WAM w/o Action Conditioning",
         "Stream-WAM w/o Slot Encoder",
     )
+
+    figure, axes = module._new_figure("Chunk Time")
+    module._style_axis(axes[0], ylabel="Milliseconds", title="LIBERO")
+    try:
+        assert figure._suptitle.get_fontsize() == 14
+        assert [text.get_text() for text in figure.texts] == [
+            "Chunk Time",
+            "Stream-WAM highlighted in teal  ·  hatched bars are Stream-WAM ablations",
+        ]
+        assert "LOWER IS BETTER" not in [text.get_text() for text in axes[0].texts]
+    finally:
+        module.plt.close(figure)
 
 
 def test_latency_figures_scroll_inside_their_mobile_viewports() -> None:
