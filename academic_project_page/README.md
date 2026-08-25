@@ -5,10 +5,13 @@ The page is organized as an editable research story rather than a fixed paper te
 
 ## Editing the story
 
-The seven public chapters in `index.html` are `motivation`, `testbed`, `method`, `execution`,
-`experiments`, `discussion`, and `resources`. Keep these IDs stable because the sticky chapter index
-and external links use them. Put ordinary prose inside `.story-copy`; use `.wide-figure` for diagrams,
-tables, or media that should break out beyond the reading column.
+The public article follows `motivation`, `overlap`, `method`, `execution`, `testbed`, `experiments`,
+`discussion`, and `resources`. Keep these IDs stable because the table of contents and external links
+use them. Put ordinary prose inside `.reading-column`; use `.breakout` only for the method figure,
+execution timeline, or benchmark tables that need more width.
+
+All three benchmark tables are intentionally visible in source order. Do not hide scientific content
+behind tabs or require JavaScript to read the article. JavaScript is limited to the mobile header menu.
 
 The page intentionally uses only local HTML, CSS, JavaScript, and media. Paper and rollout-video
 entries should remain non-interactive `Coming Soon` notices until real public URLs are available.
@@ -29,14 +32,14 @@ Then open `http://localhost:8000`.
 
 - Update public copy, links, benchmark values, and task captions in `index.html`.
 - Update colors, typography, spacing, and responsive layout in `styles.css`.
-- Update mobile navigation or result-tab behavior in `script.js`.
+- Update the progressively enhanced mobile navigation in `script.js`.
 - Replace rollout posters in `assets/` while keeping their existing filenames, or update the corresponding `src` and social metadata in `index.html`.
 
 The page intentionally uses only local assets and system fonts, so no package installation or build command is required.
 
-## Add rollout videos later
+## Add the rollout film later
 
-Put optimized MP4 files under `assets/videos/` using descriptive lowercase names, for example `assets/videos/libero-drawer.mp4`. Replace a gallery poster's `<img>` element with:
+Put the optimized MP4 file under `assets/videos/` using a descriptive lowercase name, for example `assets/videos/streamwam-rollouts.mp4`. Add it only in an approved linear media position near the article conclusion, or update the masthead rollout status to link to the public film. A local video element should use an existing rollout image as its poster:
 
 ```html
 <video controls preload="metadata" poster="assets/libero-drawer.webp">
@@ -45,11 +48,11 @@ Put optimized MP4 files under `assets/videos/` using descriptive lowercase names
 </video>
 ```
 
-Remove that card's `Coming Soon` badge only after the video file is committed and the local reference test passes. Keep the poster for fast loading and social sharing.
+Remove the `Rollout film · Coming Soon` status only after the video or public film URL is available and the local reference test passes. Keep the masthead image for fast loading and social sharing.
 
 ## Update results safely
 
-The summary metrics appear near the top of `index.html`; the detailed values live in the three result panels (`panel-libero`, `panel-robocasa`, and `panel-robotwin`). Update both locations when a headline metric changes, then run:
+The summary metrics appear near the top of `index.html`; the detailed values live in the three visible benchmark sections (`benchmark-libero`, `benchmark-robocasa`, and `benchmark-robotwin`). Update both locations when a headline metric changes, then run:
 
 ```bash
 pytest -q tests/test_academic_project_page.py

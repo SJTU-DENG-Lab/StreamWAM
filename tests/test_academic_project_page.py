@@ -10,6 +10,15 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 PAGE_ROOT = REPO_ROOT / "academic_project_page"
 INDEX_PATH = PAGE_ROOT / "index.html"
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "pages.yml"
+ARTICLE_SECTION_IDS = (
+    "motivation",
+    "overlap",
+    "method",
+    "execution",
+    "testbed",
+    "experiments",
+    "discussion",
+)
 
 
 class PageParser(HTMLParser):
@@ -19,6 +28,8 @@ class PageParser(HTMLParser):
         self.attributes: list[tuple[str, dict[str, str]]] = []
         self.ids: set[str] = set()
         self.text_parts: list[str] = []
+        self.article_depth = 0
+        self.article_paragraph_count = 0
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         normalized = {name: value or "" for name, value in attrs}
@@ -26,6 +37,14 @@ class PageParser(HTMLParser):
         self.attributes.append((tag, normalized))
         if element_id := normalized.get("id"):
             self.ids.add(element_id)
+        if tag == "article":
+            self.article_depth += 1
+        if tag == "p" and self.article_depth:
+            self.article_paragraph_count += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "article":
+            self.article_depth -= 1
 
     def handle_data(self, data: str) -> None:
         if stripped := data.strip():
@@ -37,6 +56,49 @@ def parse_page() -> tuple[PageParser, str]:
     parser = PageParser()
     parser.feed(html)
     return parser, html
+
+
+class BenchmarkParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.current_benchmark: str | None = None
+        self.current_cell: list[str] | None = None
+        self.current_row: list[str] | None = None
+        self.rows: dict[str, list[list[str]]] = {}
+        self.section_text: dict[str, list[str]] = {}
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        normalized = {name: value or "" for name, value in attrs}
+        if tag == "section" and normalized.get("id", "").startswith("benchmark-"):
+            self.current_benchmark = normalized["id"]
+            self.rows[self.current_benchmark] = []
+            self.section_text[self.current_benchmark] = []
+        elif self.current_benchmark and tag == "tr":
+            self.current_row = []
+        elif self.current_row is not None and tag in {"th", "td"}:
+            self.current_cell = []
+
+    def handle_data(self, data: str) -> None:
+        if self.current_benchmark and data.strip():
+            self.section_text[self.current_benchmark].append(data.strip())
+        if self.current_cell is not None and data.strip():
+            self.current_cell.append(data.strip())
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in {"th", "td"} and self.current_cell is not None and self.current_row is not None:
+            self.current_row.append(" ".join(self.current_cell))
+            self.current_cell = None
+        elif tag == "tr" and self.current_row is not None and self.current_benchmark:
+            self.rows[self.current_benchmark].append(self.current_row)
+            self.current_row = None
+        elif tag == "section" and self.current_benchmark:
+            self.current_benchmark = None
+
+
+def parse_benchmarks() -> BenchmarkParser:
+    parser = BenchmarkParser()
+    parser.feed(INDEX_PATH.read_text(encoding="utf-8"))
+    return parser
 
 
 def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
@@ -132,18 +194,12 @@ def test_pages_workflow_deploys_only_the_project_page() -> None:
 
 
 def test_no_javascript_navigation_remains_usable() -> None:
-    parser, _ = parse_page()
+    parser, html = parse_page()
     menu_buttons = [attrs for tag, attrs in parser.attributes if tag == "button" and "menu-toggle" in attrs.get("class", "")]
-    result_links = [attrs for tag, attrs in parser.attributes if tag == "a" and attrs.get("data-tab")]
-
     assert len(menu_buttons) == 1
     assert "hidden" in menu_buttons[0]
-    assert {link["href"] for link in result_links} == {
-        "#panel-libero",
-        "#panel-robocasa",
-        "#panel-robotwin",
-    }
-    assert all("role" not in link and "aria-selected" not in link for link in result_links)
+    assert "data-tabs" not in html
+    assert "data-panel" not in html
 
 
 def test_small_dim_text_meets_wcag_aa_contrast() -> None:
@@ -184,35 +240,18 @@ def test_social_metadata_uses_absolute_project_urls() -> None:
 def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> None:
     parser, html = parse_page()
     visible_text = " ".join(parser.text_parts)
-    chapter_links = {
-        attrs["href"]
-        for tag, attrs in parser.attributes
-        if tag == "a" and "chapter-link" in attrs.get("class", "")
-    }
     theme_colors = [
         attrs.get("content")
         for tag, attrs in parser.attributes
         if tag == "meta" and attrs.get("name") == "theme-color"
     ]
 
-    assert chapter_links == {
-        "#motivation",
-        "#testbed",
-        "#method",
-        "#execution",
-        "#experiments",
-        "#discussion",
-        "#resources",
-    }
     assert "Why Streaming WAM?" in visible_text
-    assert "A Unified Streaming Testbed" in visible_text
+    assert "A Common Testbed for Streaming Strategies" in visible_text
     assert "Action-Conditioned Streaming" in visible_text
     assert "Streaming While Acting" in visible_text
     assert "Sequential WAM" in visible_text
     assert "Execution overlap" in visible_text
-    assert "Key idea" in visible_text
-    assert "Quantitative latency breakdown" in visible_text
-    assert "Qualitative rollout film" in visible_text
     assert "00 · Abstract" in visible_text
     assert "Task success and control time are reported together" in visible_text
     assert "StreamWAM reaches 98.20% average success" in visible_text
@@ -230,3 +269,66 @@ def test_hidden_mobile_menu_remains_hidden_without_javascript() -> None:
     css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
 
     assert ".menu-toggle[hidden]{display:none!important}" in css
+
+
+def test_page_is_a_linear_text_first_research_article() -> None:
+    parser, html = parse_page()
+    article_ids = [
+        attrs["id"]
+        for tag, attrs in parser.attributes
+        if tag == "section" and attrs.get("id") in ARTICLE_SECTION_IDS
+    ]
+
+    assert parser.tags.count("article") >= 1
+    assert article_ids == list(ARTICLE_SECTION_IDS)
+    assert parser.article_paragraph_count >= 40
+    assert "chapter-index" not in html
+    assert "future-slots" not in html
+
+
+def test_all_benchmark_tables_are_visible_without_tabs() -> None:
+    parser, html = parse_page()
+    benchmark_ids = {
+        attrs["id"]
+        for tag, attrs in parser.attributes
+        if tag == "section" and attrs.get("id", "").startswith("benchmark-")
+    }
+
+    assert benchmark_ids == {"benchmark-libero", "benchmark-robocasa", "benchmark-robotwin"}
+    assert parser.tags.count("table") == 3
+    assert "data-tabs" not in html
+    assert "data-panel" not in html
+    assert 'role="tab"' not in html
+
+
+def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> None:
+    parsed = parse_benchmarks()
+
+    assert parsed.rows == {
+        "benchmark-libero": [
+            ["Method", "LIBERO-10", "Spatial", "Goal", "Object", "Average ↑", "Chunk time ↓", "Episode time ↓ Long / Short"],
+            ["FastWAM", "96.20", "96.20", "94.20", "96.20", "95.70", "493.0 ms", "16.31 / 8.25 s"],
+            ["FastWAM-Joint-CD", "97.20", "99.60", "98.60", "100.00", "98.85", "114.2 ms", "6.89 / 3.74 s"],
+            ["FastWAM-RTC", "58.40", "76.20", "77.00", "83.40", "73.75", "142.3 ms", "6.23 / 3.20 s"],
+            ["StreamWAM", "96.60", "98.80", "97.40", "100.00", "98.20", "41.0 ms", "5.36 / 3.15 s"],
+            ["w/o Action Conditioning", "94.40", "96.40", "96.60", "97.60", "96.25", "35.1 ms", "5.20 / 2.92 s"],
+            ["w/o Slot Encoder", "95.60", "98.40", "96.80", "99.80", "97.65", "36.3 ms", "5.31 / 3.01 s"],
+        ],
+        "benchmark-robocasa": [
+            ["Method", "Accuracy ↑", "Chunk time ↓", "Total time ↓"],
+            ["X-WAM", "75.42%", "504.00 ms", "37.31 s"],
+            ["X-WAM-CD", "75.83%", "135.21 ms", "33.60 s"],
+            ["StreamWAM", "75.35%", "136.76 ms", "11.76 s"],
+        ],
+        "benchmark-robotwin": [
+            ["Method", "Clean ↑", "Random ↑", "Total ↑", "Chunk time ↓", "Total time ↓"],
+            ["StarWAM", "84.8", "86.0", "85.4", "189.3 ms", "—"],
+            ["StarWAM-CD", "79.0", "79.2", "79.1", "81.6 ms", "—"],
+            ["StreamWAM", "87.2", "88.8", "87.6", "—", "112.2 s"],
+        ],
+    }
+
+    section_text = {name: " ".join(parts) for name, parts in parsed.section_text.items()}
+    assert all(fragment in section_text["benchmark-libero"] for fragment in ("four suites", "10 tasks per suite", "50 trials per task", "long and short tasks"))
+    assert all(fragment in section_text["benchmark-robocasa"] for fragment in ("50 target tasks", "50 trials per task", "average task success"))
+    assert all(fragment in section_text["benchmark-robotwin"] for fragment in ("50 tasks", "100 rollout episodes per task", "Clean", "Random", "domain-randomization"))
