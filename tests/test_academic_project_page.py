@@ -47,6 +47,9 @@ class PageParser(HTMLParser):
         self.hero_title = ""
         self.eyebrow_text: list[str] | None = None
         self.eyebrow = ""
+        self.header_depth = 0
+        self.main_depth = 0
+        self.lab_lockup_regions: list[str] = []
         self.caption_text: list[str] | None = None
         self.captions: list[str] = []
 
@@ -54,6 +57,17 @@ class PageParser(HTMLParser):
         normalized = {name: value or "" for name, value in attrs}
         self.tags.append(tag)
         self.attributes.append((tag, normalized))
+        if tag == "header":
+            self.header_depth += 1
+        if tag == "main":
+            self.main_depth += 1
+        if "lab-lockup" in normalized.get("class", "").split():
+            if self.header_depth:
+                self.lab_lockup_regions.append("header")
+            elif self.main_depth:
+                self.lab_lockup_regions.append("main")
+            else:
+                self.lab_lockup_regions.append("other")
         if element_id := normalized.get("id"):
             self.ids.add(element_id)
         if tag == "article":
@@ -107,6 +121,10 @@ class PageParser(HTMLParser):
             self.caption_text = None
         if tag == "section":
             self.section_stack.pop()
+        if tag == "header":
+            self.header_depth -= 1
+        if tag == "main":
+            self.main_depth -= 1
 
     def handle_data(self, data: str) -> None:
         if self.act_body_paragraph_text is not None:
@@ -247,10 +265,9 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
         "discussion",
         "resources",
     } <= parser.ids
-    assert parser.hero_title == (
-        "Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation."
-    )
+    assert parser.hero_title == "Streaming Your World-Action Model for Real-Time Robot Manipulation."
     assert parser.eyebrow == "Stream-WAM"
+    assert parser.lab_lockup_regions == ["main"]
     assert "Think ahead. Act now." not in visible_text
     assert "Streaming Your World-Action Model for Real-Time Robot Manipulation." in visible_text
     assert "committed action prefix" in visible_text
@@ -420,6 +437,25 @@ def test_hidden_mobile_menu_remains_hidden_without_javascript() -> None:
     css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
 
     assert ".menu-toggle[hidden]{display:none!important}" in css
+
+
+def test_masthead_and_hero_scale_like_the_visual_reference() -> None:
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+
+    header_rule = re.search(r"\.site-header\s*\{([^}]*)\}", css)
+    assert header_rule is not None
+    assert re.search(r"position:\s*fixed", header_rule.group(1))
+    assert re.search(r"top:\s*18px", header_rule.group(1))
+    assert re.search(r"width:\s*min\(1120px,\s*calc\(100%\s*-\s*32px\)\)", header_rule.group(1))
+    assert re.search(r"border-radius:\s*18px", header_rule.group(1))
+
+    title_rule = re.search(r"\.hero h1\s*\{([^}]*)\}", css)
+    assert title_rule is not None
+    assert re.search(r"font-size:\s*clamp\(46px,\s*4\.4vw,\s*68px\)", title_rule.group(1))
+
+    lead_rule = re.search(r"\.hero-lede\s*\{([^}]*)\}", css)
+    assert lead_rule is not None
+    assert re.search(r"font-size:\s*clamp\(18px,\s*1\.55vw,\s*22px\)", lead_rule.group(1))
 
 
 def test_page_is_a_linear_text_first_research_article() -> None:
