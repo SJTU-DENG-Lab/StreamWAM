@@ -184,20 +184,19 @@
 
         <section class="article-section experiments" id="experiments" aria-label="Current results">
           <div class="reading-column">
-            <p class="lead"><strong>Task performance.</strong> Success is reported independently from runtime so that control quality can be compared without mixing units or execution protocols into the same table.</p>
-            <p>Stream-WAM models are initialized from FastWAM-Joint and further trained. The RoboCasa study builds on X-WAM, while the RoboTwin study builds on StarWAM. These lineages make the streaming comparison part of existing world-action-model families rather than a detached controller.</p>
-            <p>The LIBERO and RoboTwin comparison rows reproduce the published results from the <a href="https://yuantianyuan01.github.io/FastWAM/" target="_blank" rel="noopener noreferrer">Fast-WAM project page</a>; our streaming results and ablations are reported alongside them. Best results are <strong>bold</strong> and second-best results are <u>underlined</u>.</p>
+            <p class="lead"><strong>Task performance.</strong> To evaluate Stream-WAM across different World Action Model families, we begin by further training FastWAM-Joint with our streaming approach on LIBERO. We then extend the same design to X-WAM on RoboCasa and StarWAM on RoboTwin 2.0 to examine its applicability across benchmarks and model families. All evaluations use four NVIDIA H100 GPUs.</p>
+            <p>We compare Stream-WAM with general purpose robot policies and World Action Model baselines in both task performance and inference efficiency. The performance tables summarize success across Long, Spatial, Goal, and Object in LIBERO, the clean and randomized settings of RoboTwin 2.0, and the RoboCasa target tasks. Best and second best results are shown in <strong>bold</strong> and <u>underlined</u>, respectively.</p>
           </div>
 
           <section class="benchmark breakout" id="benchmark-libero" aria-labelledby="libero-title">
             <div class="benchmark-intro">
               <h3 id="libero-title">LIBERO</h3>
-              <p>LIBERO evaluation covers four suites with 10 tasks per suite and 50 trials per task. Success is averaged across LIBERO-10, Spatial, Goal, and Object; latency for long and short tasks is reported separately below.</p>
+              <p>LIBERO evaluation covers four suites with 10 tasks per suite and 50 trials per task. Success is averaged across Long, Spatial, Goal, and Object; latency for long and short tasks is reported separately below.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable LIBERO results table">
               <table>
                 <caption>LIBERO success results</caption>
-                <thead><tr><th scope="col">Method</th><th scope="col">LIBERO-10</th><th scope="col">Spatial</th><th scope="col">Goal</th><th scope="col">Object</th><th scope="col">Average ↑</th></tr></thead>
+                <thead><tr><th scope="col">Method</th><th scope="col">Long</th><th scope="col">Spatial</th><th scope="col">Goal</th><th scope="col">Object</th><th scope="col">Average ↑</th></tr></thead>
                 <tbody>
                   <tr><th scope="row">OpenVLA</th><td>53.7</td><td>84.7</td><td>79.2</td><td>88.4</td><td>76.5</td></tr>
                   <tr><th scope="row">π₀</th><td>85.2</td><td>96.8</td><td>95.8</td><td>98.8</td><td>94.1</td></tr>
@@ -212,7 +211,6 @@
                 </tbody>
               </table>
             </div>
-            <p class="benchmark-reading">Stream-WAM reaches 98.20% average success. The action-conditioning ablation reaches 96.25%, showing the control-quality contribution of conditioning future video on the action underway.</p>
           </section>
 
           <section class="benchmark breakout" id="benchmark-robotwin" aria-labelledby="robotwin-title">
@@ -236,7 +234,6 @@
                 </tbody>
               </table>
             </div>
-            <p class="benchmark-reading">Stream-WAM reaches 87.6 total success, with 87.2 on Clean and 88.8 on Random.</p>
           </section>
 
           <section class="benchmark breakout" id="benchmark-robocasa" aria-labelledby="robocasa-title">
@@ -255,11 +252,11 @@
                 </tbody>
               </table>
             </div>
-            <p class="benchmark-reading">Stream-WAM reports 75.35% average task success, remaining close to the two X-WAM reference models.</p>
           </section>
 
           <div class="efficiency-intro reading-column">
-            <p><strong>Inference efficiency.</strong> Chunk latency and end-to-end control time are separated from task success below. Every bar is labeled with its reported value.</p>
+            <p><strong>Inference efficiency.</strong> Task success alone does not reveal how much inference interrupts robot execution. We therefore measure chunk latency, the time required to prepare the next action chunk, together with end to end episode time, which captures the accumulated cost of inference, execution, and replanning over a complete rollout.</p>
+            <p>Stream-WAM reduces chunk latency by 12.0× on LIBERO relative to FastWAM, 4.0× on RoboTwin 2.0 relative to StarWAM-Joint, and 3.7× on RoboCasa relative to X-WAM. These latency gains yield end to end speedups of 3.0× and 2.6× on long and short LIBERO tasks, 1.4× on RoboTwin 2.0, and 3.2× on RoboCasa.</p>
           </div>
           <figure class="latency-figure breakout" aria-labelledby="chunk-time-caption">
             <div class="latency-viewport">

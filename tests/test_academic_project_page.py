@@ -447,9 +447,9 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
     assert parser.eyebrow == "Stream-WAM"
     assert "Task performance." in visible_text
     assert "Inference efficiency." in visible_text
-    assert "Stream-WAM reaches 98.20% average success" in visible_text
-    assert "Stream-WAM reports 75.35% average task success" in visible_text
-    assert "Stream-WAM reaches 87.6 total success" in visible_text
+    assert "All evaluations use four NVIDIA H100 GPUs" in visible_text
+    assert "12.0× on LIBERO" in visible_text
+    assert "3.2× on RoboCasa" in visible_text
     assert "broader analysis, limitations, and failure cases" in visible_text
     assert "Model lineage." in visible_text
     assert "Code and models are available now" in visible_text
@@ -821,12 +821,52 @@ def test_all_benchmark_tables_are_visible_without_tabs() -> None:
     assert 'role="tab"' not in html
 
 
+def test_results_narrative_reports_protocol_and_speedups() -> None:
+    parser, html = parse_page()
+    visible_text = " ".join(parser.text_parts)
+
+    for fact in (
+        "FastWAM-Joint",
+        "X-WAM on RoboCasa",
+        "StarWAM on RoboTwin 2.0",
+        "four NVIDIA H100 GPUs",
+        "12.0× on LIBERO",
+        "4.0× on RoboTwin 2.0",
+        "3.7× on RoboCasa",
+        "3.0× and 2.6× on long and short LIBERO tasks",
+        "1.4× on RoboTwin 2.0",
+        "3.2× on RoboCasa",
+    ):
+        assert fact in visible_text
+
+    for redundant_summary in (
+        "Stream-WAM reaches 98.20% average success",
+        "Stream-WAM reaches 87.6 total success",
+        "Stream-WAM reports 75.35% average task success",
+        "Every bar is labeled with its reported value",
+    ):
+        assert redundant_summary not in visible_text
+
+    assert 'class="benchmark-reading"' not in html
+
+
+def test_result_tables_use_readable_tabular_sans_serif_numbers() -> None:
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    numeric_rule = re.search(r"tbody td\s*\{([^}]*)\}", css)
+
+    assert numeric_rule is not None
+    assert "font-family: inherit" in numeric_rule.group(1)
+    assert "monospace" not in numeric_rule.group(1)
+    assert "font-variant-numeric: tabular-nums" in css
+    assert ".benchmark-reading" not in css
+
+
 def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> None:
     parsed = parse_benchmarks()
 
     assert parsed.rows == {
         "benchmark-libero": [
-            ["Method", "LIBERO-10", "Spatial", "Goal", "Object", "Average ↑"],
+            ["Method", "Long", "Spatial", "Goal", "Object", "Average ↑"],
             ["OpenVLA", "53.7", "84.7", "79.2", "88.4", "76.5"],
             ["π₀", "85.2", "96.8", "95.8", "98.8", "94.1"],
             ["π₀.₅", "92.4", "98.8", "98.0", "98.2", "96.9"],
