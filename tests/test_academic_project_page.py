@@ -587,17 +587,26 @@ def test_readable_attention_visual_drops_numbers_and_allocates_more_width() -> N
     token_label_rule = re.search(
         r"\.mask-column-labels span, \.mask-row-labels span\s*\{([^}]*)\}", css
     )
+    row_label_grid_rule = re.search(r"\.mask-row-labels\s*\{([^}]*)\}", css)
+    matrix_grid_rule = re.search(r"\.mask-grid-10\s*\{([^}]*)\}", css)
+    matrix_cell_rule = re.search(r"\.mask-grid-10 \.matrix-cell\s*\{([^}]*)\}", css)
 
     assert hero_rule is not None
     assert "minmax(700px" in hero_rule.group(1)
     assert panel_heading_rule is not None
-    assert "font-size: .72rem" in panel_heading_rule.group(1)
+    assert "font-size: .82rem" in panel_heading_rule.group(1)
     assert path_badge_rule is not None
-    assert "font: 800 .66rem/1" in path_badge_rule.group(1)
+    assert "font: 800 .74rem/1" in path_badge_rule.group(1)
     assert chunk_heading_rule is not None
-    assert "font: 750 .55rem/1" in chunk_heading_rule.group(1)
+    assert "font: 750 .65rem/1" in chunk_heading_rule.group(1)
     assert token_label_rule is not None
-    assert "font: 700 .48rem/1" in token_label_rule.group(1)
+    assert "font: 700 .62rem/1" in token_label_rule.group(1)
+    assert row_label_grid_rule is not None
+    assert "repeat(10,minmax(16px,1fr))" in row_label_grid_rule.group(1)
+    assert matrix_grid_rule is not None
+    assert "repeat(10,minmax(16px,1fr))" in matrix_grid_rule.group(1)
+    assert matrix_cell_rule is not None
+    assert "min-height: 16px" in matrix_cell_rule.group(1)
 
 
 def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
