@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 760" role="img" aria-labelledby="streamwam-method-title streamwam-method-desc">
+  <title id="streamwam-method-title">Stream-WAM interwoven streaming timeline</title>
+  <desc id="streamwam-method-desc">The robot continuously executes one action chunk while Stream-WAM predicts the next visual and action chunk. A committed action prefix conditions only the next visual future, and the prepared action continuation joins execution at handoff.</desc>
+  <defs>
+    <linearGradient id="panel-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fcfbf7"/>
+      <stop offset="1" stop-color="#f4f1e9"/>
+    </linearGradient>
+    <linearGradient id="visual-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d8ecf7"/>
+      <stop offset="1" stop-color="#7fb9d2"/>
+    </linearGradient>
+    <linearGradient id="future-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d7e9ff"/>
+      <stop offset="1" stop-color="#8a86df"/>
+    </linearGradient>
+    <linearGradient id="action-gradient" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8468c5"/>
+      <stop offset="1" stop-color="#a47dc8"/>
+    </linearGradient>
+    <linearGradient id="prefix-gradient" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f0c15b"/>
+      <stop offset="1" stop-color="#ce8d2e"/>
+    </linearGradient>
+    <linearGradient id="execution-gradient" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#168e82"/>
+      <stop offset="1" stop-color="#42b5a2"/>
+    </linearGradient>
+    <filter id="card-shadow" x="-20%" y="-25%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#343027" flood-opacity=".10"/>
+    </filter>
+    <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow-charcoal" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L9,5 L0,10 Z" fill="#453f35"/>
+    </marker>
+    <marker id="arrow-gold" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L9,5 L0,10 Z" fill="#d79c34"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L9,5 L0,10 Z" fill="#168e82"/>
+    </marker>
+    <style>
+      .label{font:600 20px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#27231d;letter-spacing:-.01em}
+      .small{font:550 16px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#746d61}
+      .phase{font:650 18px/1 Inter,ui-sans-serif,system-ui,sans-serif;fill:#544d43}
+      .card-title{font:650 22px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#27231d;letter-spacing:-.015em}
+      .rail-title{font:650 23px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#176f67}
+      .method-flow-dot{animation:method-flow 7s linear infinite}
+      .method-reveal{animation:method-reveal 7s cubic-bezier(.22,.61,.36,1) infinite}
+      .method-prefix-pulse{animation:method-prefix 7s ease-in-out infinite}
+      .method-future-pulse{animation:method-future 7s ease-in-out infinite}
+      .method-handoff-pulse{animation:method-handoff 7s ease-in-out infinite}
+      @keyframes method-flow{0%{transform:translateX(0);opacity:0}8%{opacity:1}92%{opacity:1}100%{transform:translateX(980px);opacity:0}}
+      @keyframes method-reveal{0%,28%{stroke-dashoffset:180;opacity:.12}48%,72%{stroke-dashoffset:0;opacity:.5}100%{stroke-dashoffset:-180;opacity:.12}}
+      @keyframes method-prefix{0%,31%,69%,100%{opacity:.78}42%,58%{opacity:1;filter:url(#soft-glow)}}
+      @keyframes method-future{0%,38%,100%{opacity:.82}53%,66%{opacity:1;filter:url(#soft-glow)}}
+      @keyframes method-handoff{0%,58%,100%{opacity:.72}72%,84%{opacity:1;filter:url(#soft-glow)}}
+      @media (prefers-reduced-motion: reduce){.method-flow-dot,.method-reveal,.method-prefix-pulse,.method-future-pulse,.method-handoff-pulse{animation: none !important;opacity: 1 !important;transform:none!important}}
+    </style>
+  </defs>
+
+  <rect x="20" y="20" width="1560" height="720" rx="34" fill="url(#panel-bg)" stroke="#ddd8cd"/>
+
+  <g id="time-spine">
+    <path d="M122 101 H1483" fill="none" stroke="#bcb5aa" stroke-width="2" marker-end="url(#arrow-charcoal)"/>
+    <path d="M186 92 V110 M794 92 V110" stroke="#827b70" stroke-width="2"/>
+    <line id="handoff-landmark" x1="1340" y1="92" x2="1340" y2="110" stroke="#827b70" stroke-width="2"/>
+    <text class="phase" x="186" y="77" text-anchor="middle">Observe</text>
+    <text class="phase" x="794" y="77" text-anchor="middle">Think while acting</text>
+    <text class="phase" x="1340" y="77" text-anchor="middle">Handoff</text>
+  </g>
+
+  <g id="current-observation">
+    <rect x="78" y="157" width="244" height="208" rx="24" fill="#fff" stroke="#d6d0c5" filter="url(#card-shadow)"/>
+    <text class="card-title" x="101" y="194">Current observation</text>
+    <rect x="101" y="215" width="198" height="122" rx="14" fill="url(#visual-gradient)"/>
+    <circle cx="150" cy="255" r="21" fill="#f8d393"/>
+    <path d="M117 312 L167 267 L199 290 L230 253 L283 312 Z" fill="#5b9cad" opacity=".82"/>
+    <path d="M214 233 L254 256 L235 279 L195 254 Z" fill="#f6f1e7" opacity=".94"/>
+    <path d="M322 260 H357" fill="none" stroke="#847d72" stroke-width="2.5" marker-end="url(#arrow-charcoal)"/>
+  </g>
+
+  <g id="prediction-startup">
+    <rect x="370" y="135" width="408" height="264" rx="26" fill="#fff" stroke="#d6d0c5" filter="url(#card-shadow)"/>
+    <circle cx="400" cy="170" r="6" fill="#7b66bd"/>
+    <text class="card-title" x="418" y="178">World-action prediction</text>
+    <g transform="translate(398 205)">
+      <rect width="77" height="78" rx="11" fill="url(#visual-gradient)"/>
+      <path d="M10 64 L31 40 L48 53 L65 31 L69 64 Z" fill="#5793a9" opacity=".8"/>
+      <rect x="87" width="77" height="78" rx="11" fill="#b8d7e7"/>
+      <path d="M98 64 L121 37 L139 52 L153 30 L156 64 Z" fill="#609fb2" opacity=".82"/>
+      <rect x="174" width="77" height="78" rx="11" fill="#a9cde0"/>
+      <path d="M185 64 L210 34 L228 52 L242 27 L244 64 Z" fill="#5c9daf" opacity=".86"/>
+      <rect x="261" width="77" height="78" rx="11" fill="#99c3d7"/>
+      <path d="M272 64 L297 31 L316 50 L329 23 L331 64 Z" fill="#5798ab" opacity=".9"/>
+    </g>
+    <text class="small" x="398" y="313">Next action chunk</text>
+    <g transform="translate(398 329)">
+      <rect width="338" height="40" rx="12" fill="#f0edf7"/>
+      <rect x="7" y="7" width="50" height="26" rx="8" fill="#8b70c7"/>
+      <rect x="62" y="7" width="50" height="26" rx="8" fill="#9676c9"/>
+      <rect x="117" y="7" width="50" height="26" rx="8" fill="#9f7bca"/>
+      <rect x="172" y="7" width="50" height="26" rx="8" fill="#a77fcb"/>
+      <rect x="227" y="7" width="50" height="26" rx="8" fill="#ae83cc"/>
+      <rect x="282" y="7" width="49" height="26" rx="8" fill="#b487cd"/>
+    </g>
+    <path d="M574 399 C574 448 478 454 478 515" fill="none" stroke="#8268bd" stroke-width="5" marker-end="url(#arrow-charcoal)"/>
+  </g>
+
+  <g id="prediction-streaming">
+    <rect id="streaming-prediction-card" x="826" y="145" width="486" height="342" rx="28" fill="#fff" stroke="#cec7bb" filter="url(#card-shadow)"/>
+    <circle cx="858" cy="182" r="6" fill="#7b66bd"/>
+    <text class="card-title" x="877" y="190">World-action prediction</text>
+    <g>
+      <rect x="854" y="216" width="430" height="242" rx="18" fill="#f8f6f1" stroke="#e2ddd3"/>
+      <text class="small" x="877" y="248">Action-conditioned visual future</text>
+      <g transform="translate(877 267)">
+        <rect width="68" height="79" rx="12" fill="#d6e8ef"/>
+        <path d="M10 65 L26 43 L40 55 L58 32 L62 65 Z" fill="#6aa3b2" opacity=".74"/>
+        <rect x="78" width="68" height="79" rx="12" fill="url(#future-gradient)"/>
+        <path d="M88 65 L106 39 L120 54 L137 28 L140 65 Z" fill="#687eb7" opacity=".78"/>
+        <rect x="156" width="68" height="79" rx="12" fill="url(#future-gradient)"/>
+        <path d="M166 65 L185 36 L200 52 L216 25 L218 65 Z" fill="#6878b5" opacity=".84"/>
+        <rect x="234" width="68" height="79" rx="12" fill="url(#future-gradient)"/>
+        <path d="M244 65 L263 33 L278 50 L294 22 L296 65 Z" fill="#6472b2" opacity=".88"/>
+        <rect x="312" width="68" height="79" rx="12" fill="url(#future-gradient)"/>
+        <path d="M322 65 L341 30 L357 48 L372 19 L374 65 Z" fill="#606cac" opacity=".92"/>
+      </g>
+      <g id="future-visual-target" class="method-future-pulse">
+        <rect x="949" y="261" width="312" height="91" rx="16" fill="none" stroke="#7472c7" stroke-width="3"/>
+      </g>
+      <g id="condition-slots" transform="translate(877 363)">
+        <rect width="170" height="28" rx="9" fill="#f4ead3" stroke="#dfbd76"/>
+        <rect x="7" y="6" width="34" height="16" rx="5" fill="#d99e36"/>
+        <rect x="47" y="6" width="34" height="16" rx="5" fill="#daa343"/>
+        <rect x="87" y="6" width="34" height="16" rx="5" fill="#dca84f"/>
+        <rect x="127" y="6" width="36" height="16" rx="5" fill="#e1c58e"/>
+        <rect x="180" width="200" height="28" rx="9" fill="#e9e5de"/>
+        <rect x="188" y="6" width="32" height="16" rx="5" fill="#cbc5bc"/>
+        <rect x="226" y="6" width="32" height="16" rx="5" fill="#d2ccc3"/>
+        <rect x="264" y="6" width="32" height="16" rx="5" fill="#d8d3ca"/>
+        <rect x="302" y="6" width="32" height="16" rx="5" fill="#ded9d1"/>
+        <rect x="340" y="6" width="32" height="16" rx="5" fill="#e3dfd8"/>
+      </g>
+      <text id="next-action-label" class="small" x="877" y="414">Next action chunk</text>
+      <g id="next-action-strip" transform="translate(877 422)">
+        <rect width="380" height="28" rx="10" fill="#eeebf6"/>
+        <rect x="7" y="5" width="55" height="18" rx="7" fill="#876dc2"/>
+        <rect x="69" y="5" width="55" height="18" rx="7" fill="#9273c5"/>
+        <rect x="131" y="5" width="55" height="18" rx="7" fill="#9c78c7"/>
+        <rect x="193" y="5" width="55" height="18" rx="7" fill="#a67ec9"/>
+        <rect x="255" y="5" width="55" height="18" rx="7" fill="#ae83ca"/>
+        <rect x="317" y="5" width="56" height="18" rx="7" fill="#b589cc"/>
+      </g>
+    </g>
+    <rect class="method-reveal" x="846" y="207" width="450" height="260" rx="21" fill="none" stroke="#8872ca" stroke-width="2" stroke-dasharray="24 14" opacity=".12"/>
+  </g>
+
+  <g id="execution-rail">
+    <text class="rail-title" x="92" y="558">Robot execution</text>
+    <text class="small" x="92" y="584">Continuous control</text>
+    <path id="execution-track" d="M350 568 H1483" fill="none" stroke="#d9e8e4" stroke-width="52" stroke-linecap="round"/>
+    <path d="M350 568 H1340" fill="none" stroke="url(#execution-gradient)" stroke-width="40" stroke-linecap="round"/>
+    <path id="execution-continuation" d="M1340 568 H1467" fill="none" stroke="#48b8a5" stroke-width="40" stroke-linecap="butt" marker-end="url(#arrow-teal)"/>
+    <g fill="#f5fffc" opacity=".9">
+      <rect x="368" y="556" width="46" height="24" rx="8"/>
+      <rect x="424" y="556" width="46" height="24" rx="8"/>
+      <rect x="480" y="556" width="46" height="24" rx="8"/>
+      <rect x="536" y="556" width="46" height="24" rx="8"/>
+      <rect x="592" y="556" width="46" height="24" rx="8"/>
+      <rect x="648" y="556" width="46" height="24" rx="8"/>
+      <rect x="704" y="556" width="46" height="24" rx="8"/>
+      <rect x="760" y="556" width="46" height="24" rx="8"/>
+      <rect x="816" y="556" width="46" height="24" rx="8"/>
+      <rect x="872" y="556" width="46" height="24" rx="8"/>
+      <rect x="928" y="556" width="46" height="24" rx="8"/>
+      <rect x="984" y="556" width="46" height="24" rx="8"/>
+      <rect x="1040" y="556" width="46" height="24" rx="8"/>
+      <rect x="1115" y="556" width="46" height="24" rx="8"/>
+      <rect x="1171" y="556" width="46" height="24" rx="8"/>
+      <rect x="1227" y="556" width="46" height="24" rx="8"/>
+      <rect x="1283" y="556" width="46" height="24" rx="8"/>
+      <rect x="1350" y="556" width="46" height="24" rx="8"/>
+      <rect x="1406" y="556" width="40" height="24" rx="8"/>
+    </g>
+    <circle class="method-flow-dot" cx="374" cy="568" r="8" fill="#fff" stroke="#0f756d" stroke-width="3"/>
+  </g>
+
+  <g id="action-prefix-bridge" class="method-prefix-pulse">
+    <path d="M718 624 V637 H1288 V624" fill="none" stroke="url(#prefix-gradient)" stroke-width="5" stroke-linecap="round"/>
+    <text class="label" x="1003" y="676" text-anchor="middle" fill="#9b6718">Committed action prefix</text>
+    <path d="M886 622 C886 510 894 449 963 389 C1001 356 1036 343 1081 327" fill="none" stroke="#d79c34" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow-gold)"/>
+  </g>
+
+  <g id="handoff" class="method-handoff-pulse">
+    <path id="prepared-action-handoff" d="M1248 450 C1248 492 1340 488 1340 536" fill="none" stroke="url(#action-gradient)" stroke-width="7" stroke-linecap="round" marker-end="url(#arrow-charcoal)"/>
+    <circle id="handoff-node" cx="1340" cy="568" r="27" fill="#f7f5ef" stroke="#168e82" stroke-width="4"/>
+    <path d="M1329 568 L1337 576 L1353 557" fill="none" stroke="#168e82" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="label" x="1340" y="620" text-anchor="middle">Next chunk ready</text>
+  </g>
+</svg>

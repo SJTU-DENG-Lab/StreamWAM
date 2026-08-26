@@ -14,8 +14,8 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <title>Stream-WAM — Streaming World-Action Models</title>
-    <link rel="stylesheet" href="styles.css?v=20260826-14">
-    <script src="script.js?v=20260826-14" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260826-15">
+    <script src="script.js?v=20260826-15" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#article">Skip to article</a>
@@ -184,13 +184,12 @@
             <p>The next action chunk is then generated together with this action-conditioned visual future. In other words, the model does not first imagine an action-agnostic scene and attach a continuation afterward. Its future video and future action are produced from a shared account of what the robot has already committed to doing.</p>
             <p>This turns inference–execution overlap from a systems optimization into a coupled streaming process. The scheduler determines when the next prediction begins; temporal alignment determines which part of it belongs after the handoff; and action conditioning determines what future the WAM should imagine while the current action is being executed. Each component solves a different part of the same control problem.</p>
           </div>
-          <figure class="method-figure breakout" aria-labelledby="method-caption">
-            <div><span>1</span><strong>Executing action prefix</strong><small>The robot continues the current chunk while inference runs.</small></div>
-            <i aria-hidden="true">→</i>
-            <div><span>2</span><strong>Action-conditioned visual future</strong><small>Generated video reflects the intervention already underway.</small></div>
-            <i aria-hidden="true">→</i>
-            <div><span>3</span><strong>Next world-action chunk</strong><small>The following decision is prepared before the handoff.</small></div>
-            <figcaption id="method-caption">Stream-WAM feeds ongoing execution into future-video generation, then predicts the next world-action chunk asynchronously.</figcaption>
+          <figure class="method-figure breakout" id="streamwam-method-figure" aria-describedby="streamwam-method-description streamwam-method-caption">
+            <div class="method-figure-viewport" role="group" aria-label="Scrollable Stream-WAM method timeline" tabindex="0">
+              <img class="method-figure-artwork" src="assets/stream-wam-method.svg?v=20260826-1" alt="" width="1600" height="760">
+            </div>
+            <p class="sr-only" id="streamwam-method-description">An interwoven timeline shows Stream-WAM predicting the next joint visual and action chunk while the robot continuously executes the current chunk. A committed action prefix is routed only into the next visual future before the prepared action continuation joins robot execution at handoff.</p>
+            <figcaption id="streamwam-method-caption">Stream-WAM predicts the next world-action chunk while the robot executes the current one. The committed action prefix is aligned with the new prediction and conditions its visual future, allowing the prepared action continuation to enter the control stream at the next handoff.</figcaption>
           </figure>
           <div class="reading-column">
             <p>The loop repeats at every boundary. A prepared chunk becomes the current command, the robot begins executing it, and its committed prefix becomes context for the following prediction. When inference remains within the available action window, the model thinks ahead without asking the robot to stop; when the scene changes unexpectedly, the method still depends on fresh observations and replanning rather than assuming that an old prefix is always sufficient.</p>

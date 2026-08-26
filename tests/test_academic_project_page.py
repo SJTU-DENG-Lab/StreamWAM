@@ -7,6 +7,7 @@ import re
 import subprocess
 import sys
 from urllib.parse import urlparse
+import xml.etree.ElementTree as ET
 
 from PIL import Image
 
@@ -16,6 +17,7 @@ PAGE_ROOT = REPO_ROOT / "docs"
 INDEX_PATH = PAGE_ROOT / "index.html"
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "pages.yml"
 LATENCY_GENERATOR_PATH = PAGE_ROOT / "generate_latency_figure.py"
+METHOD_FIGURE_PATH = PAGE_ROOT / "assets" / "stream-wam-method.svg"
 CITATION_COPY_HARNESS_PATH = REPO_ROOT / "tests" / "citation_copy_harness.js"
 ARTICLE_SECTION_IDS = (
     "act-wam",
@@ -457,6 +459,212 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
     assert "Action-conditioned attention" in visible_text
     assert theme_colors == ["#f7f5ef"]
     assert not any(token in html.casefold() for token in ("todo", "tbd", "lorem ipsum"))
+
+
+def test_interwoven_method_figure_replaces_the_three_card_summary() -> None:
+    parser, html = parse_page()
+    figure_images = [
+        attrs
+        for tag, attrs in parser.attributes
+        if tag == "img" and "method-figure-artwork" in attrs.get("class", "").split()
+    ]
+    caption = (
+        "Stream-WAM predicts the next world-action chunk while the robot executes "
+        "the current one. The committed action prefix is aligned with the new "
+        "prediction and conditions its visual future, allowing the prepared action "
+        "continuation to enter the control stream at the next handoff."
+    )
+    description = (
+        "An interwoven timeline shows Stream-WAM predicting the next joint visual "
+        "and action chunk while the robot continuously executes the current chunk. "
+        "A committed action prefix is routed only into the next visual future before "
+        "the prepared action continuation joins robot execution at handoff."
+    )
+
+    assert len(figure_images) == 1
+    assert figure_images[0]["src"].split("?", 1)[0] == "assets/stream-wam-method.svg"
+    assert figure_images[0]["alt"] == ""
+    assert caption in " ".join(parser.text_parts)
+    assert description in " ".join(parser.text_parts)
+    assert 'class="method-figure-viewport"' in html
+    assert 'aria-describedby="streamwam-method-description streamwam-method-caption"' in html
+    assert "Executing action prefix</strong>" not in html
+
+    opening_position = html.index(
+        "Stream-WAM conditions the visual future on the action already underway."
+    )
+    figure_position = html.index('id="streamwam-method-figure"')
+    loop_position = html.index("The loop repeats at every boundary.")
+    experiments_position = html.index('id="experiments"')
+    assert opening_position < figure_position < loop_position < experiments_position
+
+
+def test_method_figure_extended_description_uses_the_existing_screen_reader_class() -> None:
+    parser, _ = parse_page()
+    descriptions = [
+        attrs
+        for tag, attrs in parser.attributes
+        if tag == "p" and attrs.get("id") == "streamwam-method-description"
+    ]
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+
+    assert len(descriptions) == 1
+    assert "sr-only" in descriptions[0].get("class", "").split()
+    assert re.search(r"\.sr-only\s*\{", css)
+
+
+def test_streamwam_method_svg_encodes_interwoven_streaming_semantics() -> None:
+    assert METHOD_FIGURE_PATH.is_file()
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    ids = {element.attrib["id"] for element in root.iter() if "id" in element.attrib}
+    text = " ".join(part.strip() for part in root.itertext() if part.strip())
+
+    assert root.attrib["viewBox"] == "0 0 1600 760"
+    assert {
+        "execution-rail",
+        "prediction-startup",
+        "prediction-streaming",
+        "action-prefix-bridge",
+        "future-visual-target",
+        "condition-slots",
+        "handoff",
+    } <= ids
+    for label in (
+        "Observe",
+        "Think while acting",
+        "Handoff",
+        "Current observation",
+        "World-action prediction",
+        "Robot execution",
+        "Committed action prefix",
+        "Action-conditioned visual future",
+        "Next action chunk",
+        "Next chunk ready",
+        "Continuous control",
+    ):
+        assert label in text
+    assert not re.search(r"\b(?:VM|IDM|FDM|cache|caches)\b", text, re.IGNORECASE)
+
+
+def test_streamwam_method_svg_is_complete_without_motion() -> None:
+    assert METHOD_FIGURE_PATH.is_file()
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    svg_source = METHOD_FIGURE_PATH.read_text(encoding="utf-8")
+    svg_namespace = "{http://www.w3.org/2000/svg}"
+
+    assert root.attrib["role"] == "img"
+    assert root.attrib["aria-labelledby"] == "streamwam-method-title streamwam-method-desc"
+    assert root.find(f"{svg_namespace}title") is not None
+    assert root.find(f"{svg_namespace}desc") is not None
+    for animation_name in (
+        "method-flow",
+        "method-reveal",
+        "method-prefix",
+        "method-future",
+        "method-handoff",
+    ):
+        assert f"@keyframes {animation_name}" in svg_source
+    reduced_motion = re.search(
+        r"@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{(.*?)\}\s*\}",
+        svg_source,
+        re.DOTALL,
+    )
+    assert reduced_motion is not None
+    assert "animation: none !important" in reduced_motion.group(1)
+    assert "opacity: 1 !important" in reduced_motion.group(1)
+
+
+def test_streamwam_method_svg_arrowheads_do_not_scale_with_thick_rails() -> None:
+    assert METHOD_FIGURE_PATH.is_file()
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    svg_namespace = "{http://www.w3.org/2000/svg}"
+    markers = root.findall(f".//{svg_namespace}marker")
+
+    assert markers
+    assert all(marker.attrib.get("markerUnits") == "userSpaceOnUse" for marker in markers)
+
+
+def test_streamwam_execution_track_leaves_clearance_for_its_label() -> None:
+    assert METHOD_FIGURE_PATH.is_file()
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    execution_track = next(
+        element for element in root.iter() if element.attrib.get("id") == "execution-track"
+    )
+    track_start = float(re.match(r"M([0-9.]+)", execution_track.attrib["d"]).group(1))
+
+    assert track_start >= 350
+
+
+def test_streamwam_prediction_finishes_before_a_forward_handoff() -> None:
+    assert METHOD_FIGURE_PATH.is_file()
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    elements_by_id = {
+        element.attrib["id"]: element
+        for element in root.iter()
+        if "id" in element.attrib
+    }
+    handoff_x = float(elements_by_id["handoff-landmark"].attrib["x1"])
+    prediction_card = elements_by_id["streaming-prediction-card"]
+    prediction_end = float(prediction_card.attrib["x"]) + float(
+        prediction_card.attrib["width"]
+    )
+    action_handoff = elements_by_id["prepared-action-handoff"].attrib["d"]
+    action_start = float(re.match(r"M([0-9.]+)", action_handoff).group(1))
+    action_end = float(re.search(r"([0-9.]+)\s+[0-9.]+$", action_handoff).group(1))
+    handoff_node_x = float(elements_by_id["handoff-node"].attrib["cx"])
+    continuation_start = float(
+        re.match(r"M([0-9.]+)", elements_by_id["execution-continuation"].attrib["d"]).group(1)
+    )
+
+    assert prediction_end <= handoff_x
+    assert action_start < action_end == handoff_x
+    assert handoff_node_x == continuation_start == handoff_x
+
+
+def test_streamwam_reveal_animation_never_deforms_explanatory_content() -> None:
+    assert METHOD_FIGURE_PATH.is_file()
+    svg_source = METHOD_FIGURE_PATH.read_text(encoding="utf-8")
+    reveal_keyframes = re.search(
+        r"@keyframes method-reveal\s*\{(.*?)\}\s*@keyframes",
+        svg_source,
+        re.DOTALL,
+    )
+
+    assert reveal_keyframes is not None
+    assert "scale" not in reveal_keyframes.group(1)
+
+
+def test_streamwam_next_action_strip_sits_below_its_label() -> None:
+    assert METHOD_FIGURE_PATH.is_file()
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    next_action_label = next(
+        element for element in root.iter() if element.attrib.get("id") == "next-action-label"
+    )
+    next_action_strip = next(
+        element for element in root.iter() if element.attrib.get("id") == "next-action-strip"
+    )
+    strip_transform = re.match(
+        r"translate\(([0-9.]+)\s+([0-9.]+)\)",
+        next_action_strip.attrib["transform"],
+    )
+    strip_y = float(strip_transform.group(2))
+    label_y = float(next_action_label.attrib["y"])
+
+    assert strip_y >= label_y + 6
+
+
+def test_method_figure_scrolls_inside_its_mobile_viewport() -> None:
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    viewport_rule = re.search(r"\.method-figure-viewport\s*\{([^}]*)\}", css)
+    mobile_rule = re.search(r"@media \(max-width: 760px\)\s*\{(.*)\n\}", css, re.DOTALL)
+
+    assert viewport_rule is not None
+    assert re.search(r"overflow-x:\s*auto", viewport_rule.group(1))
+    assert mobile_rule is not None
+    assert re.search(
+        r"\.method-figure-artwork\s*\{[^}]*min-width:\s*900px",
+        mobile_rule.group(1),
+    )
 
 
 def test_hidden_mobile_menu_remains_hidden_without_javascript() -> None:
