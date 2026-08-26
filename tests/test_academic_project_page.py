@@ -616,6 +616,15 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
         update = bounds(update_id)
         assert execution[0] < update[0] < update[2] <= execution[2]
 
+    selection = bounds("inset-selection")
+    selected_execution = bounds("overview-execution-0")
+    assert max(selection[0], selected_execution[0]) < min(
+        selection[2], selected_execution[2]
+    )
+    assert max(selection[1], selected_execution[1]) < min(
+        selection[3], selected_execution[3]
+    )
+
     inset = bounds("detail-inset-frame")
     assert 0 <= inset[0] < inset[2] <= 1600
     assert 0 <= inset[1] < inset[3] <= 740
@@ -699,6 +708,19 @@ def test_streamwam_method_svg_routes_both_inputs_to_update_and_actions_to_visual
     assert continuation_left <= handoff_x <= continuation_right
     assert handoff_y < float(continuation.attrib["y"])
 
+    prefix_x, prefix_y = path_endpoint("inset-prefix-copy")
+    known_context = by_id["inset-known-context"]
+    known_left = float(known_context.attrib["x"])
+    known_top = float(known_context.attrib["y"])
+    known_right = known_left + float(known_context.attrib["width"])
+    assert known_left < prefix_x < known_right
+    assert prefix_y < known_top
+
+    visual_path = by_id["inset-condition-to-video"]
+    assert "gold-path" in visual_path.attrib.get("class", "").split()
+    svg_source = METHOD_FIGURE_PATH.read_text(encoding="utf-8")
+    assert re.search(r"\.gold-path\s*\{[^}]*marker-end:url\(#arrow-gold\)", svg_source)
+
 
 def test_streamwam_method_svg_reserves_readable_space_for_update_labels() -> None:
     assert METHOD_FIGURE_PATH.is_file()
@@ -714,6 +736,21 @@ def test_streamwam_method_svg_reserves_readable_space_for_update_labels() -> Non
     assert float(by_id["inset-update"].attrib["width"]) >= 115
     assert float(by_id["detail-inset-frame"].attrib["width"]) >= 850
 
+    svg_source = METHOD_FIGURE_PATH.read_text(encoding="utf-8")
+
+    def class_font_size(class_name: str) -> float:
+        match = re.search(
+            rf"\.{class_name}\s*\{{[^}}]*font:[^;]*?([0-9.]+)px/",
+            svg_source,
+        )
+        assert match is not None
+        return float(match.group(1))
+
+    assert class_font_size("label") >= 15
+    assert class_font_size("small") >= 14
+    assert class_font_size("gold-label") >= 14
+    assert class_font_size("legend") >= 13
+
 
 def test_streamwam_second_update_is_a_lighter_repetition() -> None:
     assert METHOD_FIGURE_PATH.is_file()
@@ -722,7 +759,18 @@ def test_streamwam_second_update_is_a_lighter_repetition() -> None:
         element for element in root.iter() if element.attrib.get("id") == "overview-cycle-2"
     )
 
-    assert 0.65 <= float(second_update.attrib.get("opacity", "1")) <= 0.8
+    assert "opacity" not in second_update.attrib
+    assert "secondary" in second_update.attrib.get("class", "").split()
+    svg_namespace = "{http://www.w3.org/2000/svg}"
+    assert all(
+        "opacity" not in text.attrib
+        for text in second_update.findall(f".//{svg_namespace}text")
+    )
+    svg_source = METHOD_FIGURE_PATH.read_text(encoding="utf-8")
+    assert re.search(
+        r"\.secondary\s+rect,\.secondary\s+path\s*\{[^}]*opacity:\.74",
+        svg_source,
+    )
 
 
 def test_streamwam_method_svg_uses_flat_academic_style() -> None:
@@ -749,6 +797,8 @@ def test_streamwam_method_svg_is_fully_static_and_accessible() -> None:
     assert "@keyframes" not in svg_source
     assert "animation:" not in svg_source
     assert "time-cursor" not in svg_source
+    for tag in ("animate", "animateTransform", "set"):
+        assert root.findall(f".//{svg_namespace}{tag}") == []
 
 
 def test_method_figure_scrolls_inside_its_mobile_viewport() -> None:

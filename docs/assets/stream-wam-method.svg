@@ -19,12 +19,13 @@
       .callout{stroke:#8d948f;stroke-width:1.15;stroke-dasharray:5 5;fill:none}
       .title{font:650 20px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#202522}
       .section{font:650 16px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#202522}
-      .label{font:500 14px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#2c332f;text-anchor:middle}
-      .small{font:500 12px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#66706a;text-anchor:middle}
-      .gold-label{font:600 12px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#87580a;text-anchor:middle}
-      .mono{font:600 15px/1 ui-monospace,SFMono-Regular,Consolas,monospace;fill:#28302c;text-anchor:middle}
-      .time{font:500 15px/1 ui-monospace,SFMono-Regular,Consolas,monospace;fill:#28302c;text-anchor:middle}
-      .legend{font:500 12px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#59615c}
+      .label{font:500 15px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#2c332f;text-anchor:middle}
+      .small{font:500 14px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#66706a;text-anchor:middle}
+      .gold-label{font:600 14px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#87580a;text-anchor:middle}
+      .mono{font:600 16px/1 ui-monospace,SFMono-Regular,Consolas,monospace;fill:#28302c;text-anchor:middle}
+      .time{font:500 16px/1 ui-monospace,SFMono-Regular,Consolas,monospace;fill:#28302c;text-anchor:middle}
+      .legend{font:500 13px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#59615c}
+      .secondary rect,.secondary path{opacity:.74}
     </style>
   </defs>
 
@@ -81,7 +82,7 @@
       <text class="small" x="1018" y="278">handoff</text>
     </g>
 
-    <g id="overview-cycle-2" opacity=".74">
+    <g id="overview-cycle-2" class="secondary">
       <rect id="overview-execution-1" x="1050" y="118" width="400" height="42" rx="3" fill="#dcece7" stroke="#397c73" stroke-width="1.2"/>
       <text class="label" x="1250" y="144">Robot execution A₁</text>
 
@@ -101,7 +102,7 @@
       <text class="mono" x="1510" y="246">…</text>
     </g>
 
-    <rect id="inset-selection" x="670" y="168" width="370" height="103" rx="5" fill="none" stroke="#a66f12" stroke-width="1.2" stroke-dasharray="5 5"/>
+    <rect id="inset-selection" x="670" y="108" width="370" height="163" rx="5" fill="none" stroke="#a66f12" stroke-width="1.2" stroke-dasharray="5 5"/>
     <path id="inset-callout" class="callout" d="M1040 271 L1120 330 L1120 355"/>
   </g>
 
@@ -135,11 +136,17 @@
     <path id="inset-handoff" class="connector" d="M1010 453 V472 H1025 V480"/>
     <text class="small" x="1060" y="464">handoff</text>
 
-    <path class="gold-path" d="M920 526 V558"/>
-    <rect id="inset-known-context" x="760" y="566" width="160" height="40" rx="3" fill="#f2dfad" stroke="#a97920"/>
-    <rect id="inset-unknown-slots" x="920" y="566" width="160" height="40" rx="3" fill="#fafafa" stroke="#9fa5a1" stroke-dasharray="4 3"/>
-    <text class="label" x="840" y="591">known action context</text>
-    <text class="label" x="1000" y="591">unknown future slots</text>
+    <path id="inset-prefix-copy" class="gold-path" d="M920 526 V546 H810 V554"/>
+    <rect id="inset-known-context" x="720" y="562" width="180" height="48" rx="3" fill="#f2dfad" stroke="#a97920"/>
+    <rect id="inset-unknown-slots" x="900" y="562" width="180" height="48" rx="3" fill="#fafafa" stroke="#9fa5a1" stroke-dasharray="4 3"/>
+    <text class="small" x="810" y="581">
+      <tspan x="810">known action</tspan>
+      <tspan x="810" dy="16">context</tspan>
+    </text>
+    <text class="small" x="990" y="581">
+      <tspan x="990">unknown future</tspan>
+      <tspan x="990" dy="16">slots</tspan>
+    </text>
 
     <rect x="650" y="626" width="95" height="36" rx="3" fill="#f0efed" stroke="#707672"/>
     <text class="mono" x="697.5" y="650">O₁</text>
