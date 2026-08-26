@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Do not change the two-chunk attention topology.
-- Keep the seven-second runtime reveal timing; make synchronous prediction/execution boundaries contiguous and split the Stream-WAM execution rail into three uniformly spaced chunk segments with later prediction windows centered over the segment boundaries.
+- Keep the seven-second runtime reveal timing; make synchronous prediction/execution boundaries contiguous and split the Stream-WAM execution rail into three uniformly spaced chunks. In each Stream-WAM execution chunk, start a prediction at the 50% point and end it together with the execution chunk.
 - Preserve exact desktop top/bottom alignment between `.hero-main` and `.hero-figure`.
 - Preserve zero page-level horizontal overflow at 390px and 320px.
 - At desktop widths, use `16px` matrix rows/cells and approximately `10px` token labels so the attention comparison consumes the unused lower space.
@@ -41,7 +41,7 @@ Expected: FAIL because the numeric spans remain, the graphic minimum is `620px`,
 
 - [ ] **Step 3: Implement the minimal HTML/CSS changes**
 
-Remove only the two number spans; use a desktop hero grid of `minmax(0,1fr) minmax(700px,1.18fr)`; increase the path badge, panel heading, chunk heading, and matrix label font sizes without changing mask markup. Make both synchronous prediction/execution transitions contiguous. Replace the continuous Stream-WAM execution rail with three evenly spaced segments and center later prediction windows over the two narrow chunk boundaries.
+Remove only the two number spans; use a desktop hero grid of `minmax(0,1fr) minmax(700px,1.18fr)`; increase the path badge, panel heading, chunk heading, and matrix label font sizes without changing mask markup. Make both synchronous prediction/execution transitions contiguous. Replace the continuous Stream-WAM execution rail with three evenly spaced segments. Retain the initial prediction, then place one prediction in the second half of each execution segment so every prediction ends together with its corresponding execution segment.
 
 - [ ] **Step 4: Verify GREEN and run full regression**
 

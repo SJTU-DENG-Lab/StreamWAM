@@ -621,6 +621,7 @@ def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
     assert pipeline_markup.count('class="runtime-row') == 2
     assert "Synchronous WAM" in pipeline_markup
     assert "Stream-WAM" in pipeline_markup
+    assert "Predict through the second half of each action chunk" in pipeline_markup
     for forbidden in (
         "Naive Async",
         ">Inference<",
@@ -670,6 +671,7 @@ def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
     stream_row = pipeline_markup[
         pipeline_markup.index('<div class="runtime-row runtime-stream"') :
     ]
+    assert 'class="generation-window generation-four"' in stream_row
     assert stream_row.index('class="generation-window generation-one"') < stream_row.index(
         'class="execution-rail execution-stream-one"'
     )
@@ -678,8 +680,9 @@ def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
         (".runtime-sync .execution-one", ("left: 27%", "width: 20%")),
         (".runtime-sync .generation-two", ("left: 47%", "width: 27%")),
         (".runtime-sync .execution-two", ("left: 74%", "width: 24%")),
-        (".runtime-stream .generation-two", ("left: 40%", "width: 13%")),
-        (".runtime-stream .generation-three", ("left: 65%", "width: 13%")),
+        (".runtime-stream .generation-two", ("left: 34%", "width: 12%")),
+        (".runtime-stream .generation-three", ("left: 59%", "width: 12%")),
+        (".runtime-stream .generation-four", ("left: 85%", "width: 13%")),
         (".runtime-stream .execution-stream-one", ("left: 22%", "width: 24%")),
         (".runtime-stream .execution-stream-two", ("left: 47%", "width: 24%")),
         (".runtime-stream .execution-stream-three", ("left: 72%", "width: 26%")),

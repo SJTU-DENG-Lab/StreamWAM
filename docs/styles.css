@@ -102,8 +102,9 @@ button { font: inherit; }
 .runtime-sync .generation-one { left: 2%; width: 25%; }
 .runtime-sync .generation-two { left: 47%; width: 27%; }
 .runtime-stream .generation-one { left: 2%; width: 20%; }
-.runtime-stream .generation-two { left: 40%; width: 13%; }
-.runtime-stream .generation-three { left: 65%; width: 13%; }
+.runtime-stream .generation-two { left: 34%; width: 12%; }
+.runtime-stream .generation-three { left: 59%; width: 12%; }
+.runtime-stream .generation-four { left: 85%; width: 13%; }
 .execution-rail { top: 44px; height: 20px; display: flex; align-items: center; justify-content: space-around; border: 1px solid rgba(111,244,218,.32); background: linear-gradient(135deg,#055c54,#087d70); box-shadow: 0 7px 18px rgba(8,125,112,.17); }
 .execution-rail i { width: 4px; height: 4px; border-radius: 50%; background: #88f4df; opacity: .42; animation: motion-flow 1.4s ease-in-out infinite; }
 .execution-rail i:nth-child(2) { animation-delay: .25s; }

@@ -12,7 +12,7 @@ Improve the first-screen runtime and attention graphic at desktop widths without
 - Use the unused space below the attention comparison: at desktop widths, each of the ten mask rows and cells must be at least `16px` high, token labels must be approximately `10px`, and the attention comparison should extend toward the bottom of the hero graphic with only normal card padding remaining.
 - Preserve the existing two-chunk 10×10 masks exactly.
 - In Synchronous WAM, each prediction must meet the following execution segment without an empty interval.
-- In Stream-WAM, show three evenly spaced execution chunks with narrow boundaries; center later prediction windows over those boundaries to communicate asynchronous preparation without implying a long idle period.
+- In Stream-WAM, show three evenly spaced execution chunks with narrow boundaries. For every execution chunk, start the next model prediction at the chunk's 50% point and finish it exactly at that execution chunk's end; retain the initial prediction that produces the first action chunk.
 - Preserve the existing reveal animation and the graphic's top/bottom alignment with the left hero content.
 - At widths of 1040px and below, keep the existing stacked layout with no horizontal page overflow at 390px or 320px.
 
