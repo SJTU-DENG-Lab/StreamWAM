@@ -11,6 +11,7 @@ Improve the first-screen runtime and attention graphic at desktop widths without
 - Give the graphic more desktop width by shifting the hero column ratio toward the right and increasing the graphic column's minimum width.
 - Enlarge the `a-prefixᵏ → f₁ᵏ⁺¹` badge, both attention panel titles, chunk headings, and row/column token labels.
 - Use the unused space below the attention comparison: at desktop widths, each of the ten mask rows and cells must be at least `16px` high, token labels must be approximately `10px`, and the attention comparison should extend toward the bottom of the hero graphic with only normal card padding remaining.
+- Remove the visible `Chunk k` and `Chunk k+1` headings from both attention panels. Label both five-token groups simply as `f₀ f₁ fₕ a₁ aₕ`, using the matrix divider to distinguish the groups, and replace the formula badge with `Action conditioned`.
 - Preserve the existing two-chunk 10×10 masks exactly.
 - In Synchronous WAM, each prediction must meet the following execution segment without an empty interval.
 - In Stream-WAM, show three evenly spaced execution chunks with narrow boundaries. For every execution chunk, start the next model prediction at the chunk's 50% point and finish it exactly at that execution chunk's end; retain the initial prediction that produces the first action chunk.

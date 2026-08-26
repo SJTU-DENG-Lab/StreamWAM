@@ -112,3 +112,28 @@ Apply only the approved heading declarations, bump both asset keys to `20260826-
 - [ ] **Step 3: Review and deploy**
 
 Request read-only review, fix Critical or Important findings, commit, push `main`, wait for Pages success, and verify the live page loads `styles.css?v=20260826-12`.
+
+---
+
+### Task 4: Simplify attention labels
+
+**Files:**
+- Modify: `tests/test_academic_project_page.py`
+- Modify: `docs/index.html`
+- Modify: `docs/styles.css`
+
+**Interfaces:**
+- Consumes: The existing two 10×10 attention matrices and their visual midpoint divider.
+- Produces: Two repeated `f₀ f₁ fₕ a₁ aₕ` label groups per axis with unchanged matrix topology.
+
+- [ ] **Step 1: Write and verify the failing test**
+
+Require both panels to omit `Chunk k`, `Chunk k+1`, `ᵏ`, and `⁺¹`; require the badge `Action conditioned`; require `.72rem` token labels and `17px` desktop rows/cells. Run the focused attention tests and confirm they fail against the old superscript labels.
+
+- [ ] **Step 2: Implement and verify**
+
+Remove both chunk-heading rows, simplify all row/column labels, update the badge, enlarge the desktop label and cell scale, remove obsolete chunk-heading CSS, and advance both asset keys to `20260826-13`. Run the complete pytest, Node syntax, and diff checks; browser-check 1440px, 390px, and 320px for containment and readability.
+
+- [ ] **Step 3: Review and deploy**
+
+Request read-only review, fix Critical or Important findings, push `main`, wait for Pages success, and verify the live page uses `styles.css?v=20260826-13`.

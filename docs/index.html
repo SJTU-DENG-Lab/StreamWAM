@@ -14,8 +14,8 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <title>Stream-WAM — Streaming World-Action Models</title>
-    <link rel="stylesheet" href="styles.css?v=20260826-12">
-    <script src="script.js?v=20260826-12" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260826-13">
+    <script src="script.js?v=20260826-13" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#article">Skip to article</a>
@@ -104,10 +104,9 @@
                 <div class="attention-comparison">
                   <div class="attention-panel attention-standard">
                     <div class="attention-panel-heading"><strong>Standard Joint WAM</strong></div>
-                    <div class="mask-chunk-heads" aria-hidden="true"><span>Chunk k</span><span>Chunk k+1</span></div>
-                    <div class="mask-column-labels" aria-hidden="true"><span>f₀ᵏ</span><span>f₁ᵏ</span><span>fₕᵏ</span><span>a₁ᵏ</span><span>aₕᵏ</span><span>f₀ᵏ⁺¹</span><span>f₁ᵏ⁺¹</span><span>fₕᵏ⁺¹</span><span>a₁ᵏ⁺¹</span><span>aₕᵏ⁺¹</span></div>
+                    <div class="mask-column-labels" aria-hidden="true"><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span></div>
                     <div class="mask-matrix-body">
-                      <div class="mask-row-labels" aria-hidden="true"><span>f₀ᵏ</span><span>f₁ᵏ</span><span>fₕᵏ</span><span>a₁ᵏ</span><span>aₕᵏ</span><span>f₀ᵏ⁺¹</span><span>f₁ᵏ⁺¹</span><span>fₕᵏ⁺¹</span><span>a₁ᵏ⁺¹</span><span>aₕᵏ⁺¹</span></div>
+                      <div class="mask-row-labels" aria-hidden="true"><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span></div>
                       <div class="attention-matrix mask-grid-10 standard-attention-matrix" aria-hidden="true">
                         <i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
                         <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
@@ -123,11 +122,10 @@
                     </div>
                   </div>
                   <div class="attention-panel attention-conditioned">
-                    <div class="attention-panel-heading"><strong>Stream-WAM</strong><span class="attention-path-badge">a-prefixᵏ → f₁ᵏ⁺¹</span></div>
-                    <div class="mask-chunk-heads" aria-hidden="true"><span>Chunk k</span><span>Chunk k+1</span></div>
-                    <div class="mask-column-labels" aria-hidden="true"><span>f₀ᵏ</span><span>f₁ᵏ</span><span>fₕᵏ</span><span>a₁ᵏ</span><span>aₕᵏ</span><span>f₀ᵏ⁺¹</span><span>f₁ᵏ⁺¹</span><span>fₕᵏ⁺¹</span><span>a₁ᵏ⁺¹</span><span>aₕᵏ⁺¹</span></div>
+                    <div class="attention-panel-heading"><strong>Stream-WAM</strong><span class="attention-path-badge">Action conditioned</span></div>
+                    <div class="mask-column-labels" aria-hidden="true"><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span></div>
                     <div class="mask-matrix-body">
-                      <div class="mask-row-labels" aria-hidden="true"><span>f₀ᵏ</span><span>f₁ᵏ</span><span>fₕᵏ</span><span>a₁ᵏ</span><span>aₕᵏ</span><span>f₀ᵏ⁺¹</span><span>f₁ᵏ⁺¹</span><span>fₕᵏ⁺¹</span><span>a₁ᵏ⁺¹</span><span>aₕᵏ⁺¹</span></div>
+                      <div class="mask-row-labels" aria-hidden="true"><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span></div>
                       <div class="attention-matrix mask-grid-10 conditioned-attention-matrix" aria-hidden="true">
                         <i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
                         <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>

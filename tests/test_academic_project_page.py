@@ -583,7 +583,6 @@ def test_readable_attention_visual_drops_numbers_and_allocates_more_width() -> N
     hero_rule = re.search(r"\.hero\s*\{([^}]*)\}", css)
     panel_heading_rule = re.search(r"\.attention-panel-heading strong\s*\{([^}]*)\}", css)
     path_badge_rule = re.search(r"\.attention-path-badge\s*\{([^}]*)\}", css)
-    chunk_heading_rule = re.search(r"\.mask-chunk-heads span\s*\{([^}]*)\}", css)
     token_label_rule = re.search(
         r"\.mask-column-labels span, \.mask-row-labels span\s*\{([^}]*)\}", css
     )
@@ -597,16 +596,15 @@ def test_readable_attention_visual_drops_numbers_and_allocates_more_width() -> N
     assert "font-size: .82rem" in panel_heading_rule.group(1)
     assert path_badge_rule is not None
     assert "font: 800 .74rem/1" in path_badge_rule.group(1)
-    assert chunk_heading_rule is not None
-    assert "font: 750 .65rem/1" in chunk_heading_rule.group(1)
     assert token_label_rule is not None
-    assert "font: 700 .62rem/1" in token_label_rule.group(1)
+    assert "font: 700 .72rem/1" in token_label_rule.group(1)
     assert row_label_grid_rule is not None
-    assert "repeat(10,minmax(16px,1fr))" in row_label_grid_rule.group(1)
+    assert "repeat(10,minmax(17px,1fr))" in row_label_grid_rule.group(1)
     assert matrix_grid_rule is not None
-    assert "repeat(10,minmax(16px,1fr))" in matrix_grid_rule.group(1)
+    assert "repeat(10,minmax(17px,1fr))" in matrix_grid_rule.group(1)
     assert matrix_cell_rule is not None
-    assert "min-height: 16px" in matrix_cell_rule.group(1)
+    assert "min-height: 17px" in matrix_cell_rule.group(1)
+    assert ".mask-chunk-heads" not in css
 
 
 def test_control_loop_heading_uses_readable_interface_typography() -> None:
@@ -731,22 +729,11 @@ def test_attention_matrix_compares_visual_and_action_attention() -> None:
     assert pipeline_markup.count('class="matrix-cell cross-chunk-condition') == 2
     assert "Action-conditioned attention" in pipeline_markup
     assert "Standard Joint WAM" in pipeline_markup
-    for token_label in (
-        "f₀ᵏ",
-        "f₁ᵏ",
-        "fₕᵏ",
-        "a₁ᵏ",
-        "aₕᵏ",
-        "f₀ᵏ⁺¹",
-        "f₁ᵏ⁺¹",
-        "fₕᵏ⁺¹",
-        "a₁ᵏ⁺¹",
-        "aₕᵏ⁺¹",
-    ):
-        assert pipeline_markup.count(token_label) >= 4
+    for token_label in ("f₀", "f₁", "fₕ", "a₁", "aₕ"):
+        assert pipeline_markup.count(token_label) >= 8
     assert "Allowed" in pipeline_markup
     assert "Masked" in pipeline_markup
-    assert 'class="attention-path-badge">a-prefixᵏ → f₁ᵏ⁺¹</span>' in pipeline_markup
+    assert 'class="attention-path-badge">Action conditioned</span>' in pipeline_markup
 
     compact_markup = re.sub(r">\s+<", "><", pipeline_markup)
     standard_panel = compact_markup[
@@ -757,6 +744,11 @@ def test_attention_matrix_compares_visual_and_action_attention() -> None:
         compact_markup.index('class="attention-panel attention-conditioned"') :
         compact_markup.index("</section>", compact_markup.index('class="attention-panel attention-conditioned"'))
     ]
+    for panel in (standard_panel, conditioned_panel):
+        assert "Chunk k" not in panel
+        assert "Chunk k+1" not in panel
+        assert "ᵏ" not in panel
+        assert "⁺¹" not in panel
 
     def cell_classes(panel: str) -> list[str]:
         return re.findall(r'<i class="([^"]*\bmatrix-cell\b[^"]*)"></i>', panel)
