@@ -732,6 +732,23 @@ def test_streamwam_method_svg_uses_direct_overlap_mappings_and_routes_outputs() 
     for path_id in ("shared-to-known", "lookahead-to-unknown"):
         assert re.findall(r"[A-Za-z]", by_id[path_id].attrib["d"]) == ["M", "V"]
 
+    for path_id, source_id, target_id in (
+        ("shared-to-known", "inset-a0-overlap", "inset-known-context"),
+        ("lookahead-to-unknown", "inset-a0-lookahead", "inset-unknown-slots"),
+    ):
+        coordinates = [
+            float(value)
+            for value in re.findall(r"-?\d+(?:\.\d+)?", by_id[path_id].attrib["d"])
+        ]
+        source = by_id[source_id]
+        target = by_id[target_id]
+        source_center_x = float(source.attrib["x"]) + float(source.attrib["width"]) / 2
+        source_bottom = float(source.attrib["y"]) + float(source.attrib["height"])
+        target_center_x = float(target.attrib["x"]) + float(target.attrib["width"]) / 2
+        target_top = float(target.attrib["y"])
+        assert coordinates == [source_center_x, source_bottom, target_top - 7]
+        assert source_center_x == target_center_x
+
     for path_id, target_id in (
         ("inset-condition-to-video", "inset-video-1"),
         ("inset-action-output", "inset-action-1"),
@@ -774,6 +791,40 @@ def test_streamwam_method_svg_attention_mask_matches_ac_stream_connectivity() ->
         if "attention-conditioned" in cell.attrib.get("class", "").split()
     }
     assert conditioned == {(6, 3), (6, 4)}
+
+    visual_cells = {
+        (0, 0),
+        (1, 0), (1, 1), (1, 2),
+        (2, 0), (2, 1), (2, 2),
+        (5, 5),
+        (6, 5), (6, 6), (6, 7),
+        (7, 5), (7, 6), (7, 7),
+    }
+    action_cells = {
+        *((row, col) for row in (3, 4) for col in range(5)),
+        *((row, col) for row in (8, 9) for col in range(5, 10)),
+    }
+    expected_classes = {}
+    for row in range(10):
+        for col in range(10):
+            coordinate = (row, col)
+            expected_classes[coordinate] = (
+                "attention-conditioned"
+                if coordinate in conditioned
+                else "attention-visual"
+                if coordinate in visual_cells
+                else "attention-action"
+                if coordinate in action_cells
+                else "attention-masked"
+            )
+    assert {
+        (int(cell.attrib["data-row"]), int(cell.attrib["data-col"])): next(
+            class_name
+            for class_name in cell.attrib.get("class", "").split()
+            if class_name.startswith("attention-")
+        )
+        for cell in cells
+    } == expected_classes
 
     row_labels = [
         "".join(label.itertext())
