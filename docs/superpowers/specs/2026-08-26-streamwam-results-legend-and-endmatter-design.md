@@ -8,9 +8,11 @@ Clarify the meanings of CD and the two Stream-WAM ablations, then replace the de
 
 Replace the second Task performance paragraph with:
 
-> We compare Stream-WAM with general purpose robot policies and World Action Model baselines in task performance and inference efficiency. CD denotes variants distilled to a single denoising step through Consistency Distillation. Stream-WAM w/o Action Conditioning removes Action Conditioning, while Stream-WAM w/o Slot Encoder removes the Slot Encoder, isolating the contribution of each component. The tables report results on LIBERO, RoboTwin 2.0, and RoboCasa; best and second best results are shown in bold and underlined, respectively.
+> We compare Stream-WAM with general purpose robot policies and World Action Model baselines in task performance and inference efficiency. CD refers to one-step consistency distillation. We also conduct ablation studies on Stream-WAM by removing action conditioning or the slot encoder to evaluate the contribution of each component. The tables report results on LIBERO, RoboTwin 2.0, and RoboCasa; best and second best results are shown in bold and underlined, respectively.
 
 This paragraph must define the method labels without turning into a benchmark-by-benchmark list. Do not change table names, values, or emphasis.
+
+In the RoboCasa introduction, keep only the 24-task protocol, 50 trials per task, and average-success description. Remove the sentence beginning `Published policy results from` and do not replace it with another source-provenance sentence.
 
 ## End Matter Structure
 
