@@ -156,22 +156,6 @@ examples/
 └── robotwin/              # RoboTwin recipes and deployment adapters
 ```
 
-## License
-
-Released under the [Apache License 2.0](LICENSE).
-
-## Acknowledgements
-
-StreamWAM builds on ideas and open-source work from
-[FastWAM](https://github.com/yuantianyuan01/FastWAM),
-[StarWAM](https://github.com/shaohua-pan/StarWAM),
-[X-WAM](https://github.com/sharinka0715/X-WAM),
-[StarVLA](https://github.com/starVLA/starVLA),
-[DreamZero](https://github.com/dreamzero0/dreamzero),
-[LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO),
-[Wan2.2](https://github.com/Wan-Video/Wan2.2), and
-[Cosmos-Predict2](https://github.com/nvidia-cosmos/cosmos-predict2).
-
 ## Citation
 
 The arXiv entry is not public yet. For now, please cite the
@@ -187,3 +171,19 @@ The arXiv entry is not public yet. For now, please cite the
   url          = {https://sjtu-deng-lab.github.io/StreamWAM/}
 }
 ```
+
+## License
+
+Released under the [Apache License 2.0](LICENSE).
+
+## Acknowledgements
+
+StreamWAM builds on ideas and open-source work from
+[FastWAM](https://github.com/yuantianyuan01/FastWAM),
+[StarWAM](https://github.com/shaohua-pan/StarWAM),
+[X-WAM](https://github.com/sharinka0715/X-WAM),
+[StarVLA](https://github.com/starVLA/starVLA),
+[DreamZero](https://github.com/dreamzero0/dreamzero),
+[LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO),
+[Wan2.2](https://github.com/Wan-Video/Wan2.2), and
+[Cosmos-Predict2](https://github.com/nvidia-cosmos/cosmos-predict2).

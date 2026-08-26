@@ -30,7 +30,7 @@ This directory is a dependency-free preview site for Stream-WAM. GitHub Pages pu
 From the repository root:
 
 ```bash
-python -m http.server 8000 --directory academic_project_page
+python -m http.server 8000 --directory docs
 ```
 
 Then open `http://localhost:8000`.
@@ -40,7 +40,7 @@ Then open `http://localhost:8000`.
 - Update public copy, links, benchmark values, and task captions in `index.html`.
 - Update colors, typography, spacing, and responsive layout in `styles.css`.
 - Update the progressively enhanced mobile navigation in `script.js`.
-- Update latency values or plotting styles in `generate_latency_figure.py`, then regenerate the `2400 × 900` Chunk Time and Episode Time figures with `python academic_project_page/generate_latency_figure.py`.
+- Update latency values or plotting styles in `generate_latency_figure.py`, then regenerate the `2400 × 900` Chunk Time and Episode Time figures with `python docs/generate_latency_figure.py`.
 - Replace rollout posters in `assets/` while keeping their existing filenames, or update the corresponding `src` and social metadata in `index.html`.
 
 The deployed page intentionally uses only local assets and system fonts. Regenerating the committed latency figure requires matplotlib, but viewing and deploying the page require no Python packages or build command.
@@ -64,7 +64,7 @@ The summary metrics appear near the top of `index.html`; the detailed values liv
 
 ```bash
 pytest -q tests/test_academic_project_page.py
-node --check academic_project_page/script.js
+node --check docs/script.js
 ```
 
 ## Deploy

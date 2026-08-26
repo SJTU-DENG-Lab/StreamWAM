@@ -12,7 +12,7 @@ from PIL import Image
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PAGE_ROOT = REPO_ROOT / "academic_project_page"
+PAGE_ROOT = REPO_ROOT / "docs"
 INDEX_PATH = PAGE_ROOT / "index.html"
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "pages.yml"
 LATENCY_GENERATOR_PATH = PAGE_ROOT / "generate_latency_figure.py"
@@ -348,6 +348,11 @@ def test_every_local_page_reference_resolves() -> None:
     assert missing == []
 
 
+def test_project_page_uses_standard_docs_directory() -> None:
+    assert PAGE_ROOT.joinpath("index.html").is_file()
+    assert not REPO_ROOT.joinpath("academic_project_page").exists()
+
+
 def test_pages_workflow_deploys_only_the_project_page() -> None:
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
 
@@ -357,7 +362,8 @@ def test_pages_workflow_deploys_only_the_project_page() -> None:
     assert "actions/configure-pages@v5" in workflow
     assert "actions/upload-pages-artifact@v4" in workflow
     assert "actions/deploy-pages@v4" in workflow
-    assert "path: ./academic_project_page" in workflow
+    assert '"docs/**"' in workflow
+    assert "path: ./docs" in workflow
     assert "path: ./" not in {line.strip() for line in workflow.splitlines()}
 
 
@@ -499,7 +505,11 @@ def test_readme_leads_with_project_page_and_has_current_citation() -> None:
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
 
     assert readme.index("Project-Page") < readme.index("GitHub-Code")
-    assert readme.rstrip().endswith("```")
+    runtime = readme.index("## Runtime layout")
+    citation = readme.index("## Citation")
+    license_heading = readme.index("## License")
+    assert runtime < citation < license_heading
+    assert readme[runtime:citation].rstrip().endswith("```")
     for field in (
         "@misc{denglab2026streamwam,",
         "title        = {Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation}",
