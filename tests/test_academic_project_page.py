@@ -546,17 +546,25 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "inset-callout",
         "detail-inset",
         "detail-inset-frame",
+        "temporal-overlap-panel",
+        "attention-panel",
+        "inset-divider",
         "inset-a0-before",
         "inset-a0-overlap",
         "inset-a0-lookahead",
-        "inset-a1-prefix",
+        "inset-shared-prefix",
         "inset-a1-continuation",
         "inset-observation",
         "inset-known-context",
         "inset-unknown-slots",
+        "shared-to-known",
+        "lookahead-to-unknown",
         "inset-update",
         "inset-video-1",
         "inset-action-1",
+        "streamwam-attention-mask",
+        "attention-row-labels",
+        "attention-column-labels",
     } <= ids
     for label in (
         "Cold start",
@@ -566,18 +574,23 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "Joint WAM",
         "AC-Stream update 1",
         "AC-Stream update 2",
-        "One overlap window",
+        "Temporal overlap",
+        "Action-conditioned attention",
         "Observe O₁",
         "A₀[8:16] = A₁[0:8]",
         "known action context",
         "unknown future slots",
-        "handoff",
+        "Stream Update",
     ):
         assert label in text
     for obsolete_label in (
         "Aligned action prefix",
         "Next chunk ready",
         "completion time varies",
+        "One overlap window",
+        "AC-Stream update",
+        "Standard Joint WAM",
+        "handoff",
     ):
         assert obsolete_label not in text
     classes = " ".join(
@@ -587,6 +600,10 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
     assert "condition-slot" not in classes
     assert sum(element.attrib.get("id") == "detail-inset" for element in root.iter()) == 1
     assert not re.search(r"\b(?:VM|IDM|FDM|cache|caches)\b", text, re.IGNORECASE)
+    overview = next(element for element in root.iter() if element.attrib.get("id") == "global-overview")
+    overview_text = " ".join(part.strip() for part in overview.itertext() if part.strip()).casefold()
+    assert "action-conditioned" not in overview_text
+    assert "handoff" not in overview_text
 
 
 def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_whitespace() -> None:
@@ -624,9 +641,6 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
     assert max(selection[1], selected_execution[1]) < min(
         selection[3], selected_execution[3]
     )
-    handoff_label = by_id["overview-handoff-label"]
-    assert float(handoff_label.attrib["x"]) >= selection[2] + 50
-
     inset = bounds("detail-inset-frame")
     assert 0 <= inset[0] < inset[2] <= 1600
     assert 0 <= inset[1] < inset[3] <= 740
@@ -643,10 +657,22 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
     ]
     assert max(box[3] for box in overview_boxes) < inset[1]
 
+    temporal_panel = bounds("temporal-overlap-panel")
+    attention_panel = bounds("attention-panel")
+    divider_x = float(by_id["inset-divider"].attrib["x1"])
+    assert temporal_panel[2] < divider_x < attention_panel[0]
+
     a0_overlap = bounds("inset-a0-overlap")
-    a1_prefix = bounds("inset-a1-prefix")
-    assert a0_overlap[0] == a1_prefix[0]
-    assert a0_overlap[2] == a1_prefix[2]
+    shared_prefix = bounds("inset-shared-prefix")
+    assert a0_overlap[0] == shared_prefix[0]
+    assert a0_overlap[2] == shared_prefix[2]
+    known_context = bounds("inset-known-context")
+    assert shared_prefix[0] == known_context[0]
+    assert shared_prefix[2] == known_context[2]
+    lookahead = bounds("inset-a0-lookahead")
+    unknown_slots = bounds("inset-unknown-slots")
+    assert lookahead[0] == unknown_slots[0]
+    assert lookahead[2] == unknown_slots[2]
     observation = by_id["inset-observation"]
     assert float(observation.attrib["x1"]) == a0_overlap[0]
     assert float(observation.attrib["x2"]) == a0_overlap[0]
@@ -659,7 +685,7 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
     assert float(inference_label.attrib["x"]) >= observation_x + 10
 
 
-def test_streamwam_method_svg_routes_both_inputs_to_update_and_actions_to_visual_future() -> None:
+def test_streamwam_method_svg_uses_direct_overlap_mappings_and_routes_outputs() -> None:
     root = ET.parse(METHOD_FIGURE_PATH).getroot()
     by_id = {
         element.attrib["id"]: element
@@ -698,6 +724,16 @@ def test_streamwam_method_svg_routes_both_inputs_to_update_and_actions_to_visual
         assert endpoint_x == update_x - 7
         assert update_y <= endpoint_y <= update_bottom
 
+    observation_path = by_id["inset-observation-input"]
+    assert re.findall(r"[A-Za-z]", observation_path.attrib["d"]) == ["M", "H"]
+    observation_numbers = [
+        float(value) for value in re.findall(r"-?\d+(?:\.\d+)?", observation_path.attrib["d"])
+    ]
+    assert observation_numbers[1] == observation_numbers[-1]
+
+    for path_id in ("shared-to-known", "lookahead-to-unknown"):
+        assert re.findall(r"[A-Za-z]", by_id[path_id].attrib["d"]) == ["M", "V"]
+
     for path_id, target_id in (
         ("inset-condition-to-video", "inset-video-1"),
         ("inset-action-output", "inset-action-1"),
@@ -710,25 +746,47 @@ def test_streamwam_method_svg_routes_both_inputs_to_update_and_actions_to_visual
         assert endpoint_x == target_x - 7
         assert target_y <= endpoint_y <= target_bottom
 
-    handoff_x, handoff_y = path_endpoint("inset-handoff")
-    continuation = by_id["inset-a1-continuation"]
-    continuation_left = float(continuation.attrib["x"])
-    continuation_right = continuation_left + float(continuation.attrib["width"])
-    assert continuation_left <= handoff_x <= continuation_right
-    assert handoff_y < float(continuation.attrib["y"])
-
-    prefix_x, prefix_y = path_endpoint("inset-prefix-copy")
-    known_context = by_id["inset-known-context"]
-    known_left = float(known_context.attrib["x"])
-    known_top = float(known_context.attrib["y"])
-    known_right = known_left + float(known_context.attrib["width"])
-    assert known_left < prefix_x < known_right
-    assert prefix_y < known_top
-
     visual_path = by_id["inset-condition-to-video"]
     assert "gold-path" in visual_path.attrib.get("class", "").split()
     svg_source = METHOD_FIGURE_PATH.read_text(encoding="utf-8")
     assert re.search(r"\.gold-path\s*\{[^}]*marker-end:url\(#arrow-gold\)", svg_source)
+
+
+def test_streamwam_method_svg_attention_mask_matches_ac_stream_connectivity() -> None:
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    namespace = "{http://www.w3.org/2000/svg}"
+    by_id = {
+        element.attrib["id"]: element
+        for element in root.iter()
+        if "id" in element.attrib
+    }
+    token_labels = ["f₀", "f₁", "fₕ", "a₁", "aₕ"] * 2
+
+    mask = by_id["streamwam-attention-mask"]
+    cells = mask.findall(f"{namespace}rect")
+    assert len(cells) == 100
+    assert {
+        (int(cell.attrib["data-row"]), int(cell.attrib["data-col"]))
+        for cell in cells
+    } == {(row, col) for row in range(10) for col in range(10)}
+
+    conditioned = {
+        (int(cell.attrib["data-row"]), int(cell.attrib["data-col"]))
+        for cell in cells
+        if "attention-conditioned" in cell.attrib.get("class", "").split()
+    }
+    assert conditioned == {(6, 3), (6, 4)}
+
+    row_labels = [
+        "".join(label.itertext())
+        for label in by_id["attention-row-labels"].findall(f"{namespace}text")
+    ]
+    column_labels = [
+        "".join(label.itertext())
+        for label in by_id["attention-column-labels"].findall(f"{namespace}text")
+    ]
+    assert row_labels == token_labels
+    assert column_labels == token_labels
 
 
 def test_streamwam_method_svg_reserves_readable_space_for_update_labels() -> None:
