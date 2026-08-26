@@ -820,7 +820,10 @@ def test_readme_leads_with_project_page_and_has_current_citation() -> None:
     assert "average success" in normalized_readme
     assert "| X-WAM | 75.42 | 374.07 | 17.36 |" in readme
     assert "| X-WAM-CD | 75.83 | 134.37 | 13.04 |" in readme
-    assert "| StreamWAM | 75.35 | 115.98 | 9.49 |" in readme
+    assert "| Stream-WAM | 75.35 | 115.98 | 9.49 |" in readme
+    robocasa_section = readme.split("### RoboCasa", 1)[1].split("### RoboTwin", 1)[0]
+    for obsolete in ("504.00", "37.31", "135.21", "33.60", "136.76", "11.76", "| StreamWAM |"):
+        assert obsolete not in robocasa_section
     for field in (
         "@misc{denglab2026streamwam,",
         "title        = {Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation}",
@@ -1201,6 +1204,11 @@ def test_static_latency_figure_has_an_accessible_exact_data_table() -> None:
         ["RoboCasa", "X-WAM-CD", "134.37 ms", "13.04 s"],
         ["RoboCasa", "Stream-WAM", "115.98 ms", "9.49 s"],
     ]
+    robocasa_data = " ".join(
+        cell for row in parsed.rows if row[0] == "RoboCasa" for cell in row
+    )
+    for obsolete in ("504.00", "37.31", "135.21", "33.60", "136.76", "11.76"):
+        assert obsolete not in robocasa_data
 
 
 def test_latency_generator_writes_two_wide_nonempty_pngs(tmp_path: Path) -> None:
