@@ -43,7 +43,7 @@ assert benchmarks["benchmark-robocasa"]["rows"] == [
     ["π₀", "62.5%"],
     ["Cosmos Policy", "67.1%"],
     ["X-WAM", "75.42%"],
-    ["X-WAM-CD", "75.83%"],
+    ["X-WAM-CD", "75.33%"],
     ["Stream-WAM (Ours)", "75.35%"],
 ]
 ```
@@ -68,7 +68,7 @@ In `docs/index.html`:
 - Rename the Stream-WAM method cell in the three visible task-performance tables to `Stream-WAM (Ours)`.
 - Describe RoboCasa as 24 kitchen manipulation tasks with 50 trials per task and average success, linking the supplied SOTA2 leaderboard for the external published references.
 - Change the caption to `RoboCasa 24-task average success results` and the value header to `Average Success ↑`.
-- Insert the approved seven rows in their exact order and preserve underline on X-WAM plus bold on X-WAM-CD.
+- Insert the approved seven rows in their exact order and mark X-WAM as best plus Stream-WAM as second best.
 - Leave all hidden latency-table method names unchanged.
 
 In `README.md`, replace the 50-target-task protocol with the standard 24 kitchen manipulation tasks, 50 trials per task, and average success.

@@ -819,7 +819,7 @@ def test_readme_leads_with_project_page_and_has_current_citation() -> None:
     assert "50 trials per task" in normalized_readme
     assert "average success" in normalized_readme
     assert "| X-WAM | 75.42 | 374.07 | 17.36 |" in readme
-    assert "| X-WAM-CD | 75.83 | 134.37 | 13.04 |" in readme
+    assert "| X-WAM-CD | 75.33 | 134.37 | 13.04 |" in readme
     assert "| Stream-WAM | 75.35 | 115.98 | 9.49 |" in readme
     robocasa_section = readme.split("### RoboCasa", 1)[1].split("### RoboTwin", 1)[0]
     for obsolete in ("504.00", "37.31", "135.21", "33.60", "136.76", "11.76", "| StreamWAM |"):
@@ -1091,7 +1091,7 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
             ["π₀", "62.5%"],
             ["Cosmos Policy", "67.1%"],
             ["X-WAM", "75.42%"],
-            ["X-WAM-CD", "75.83%"],
+            ["X-WAM-CD", "75.33%"],
             ["Stream-WAM (Ours)", "75.35%"],
         ],
         "benchmark-robotwin": [
@@ -1127,9 +1127,9 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
             ["", ""],
             ["", ""],
             ["", ""],
-            ["", "second"],
             ["", "best"],
             ["", ""],
+            ["", "second"],
         ],
         "benchmark-robotwin": [
             ["", "", "", ""],
@@ -1158,11 +1158,16 @@ def test_page_embeds_two_wide_latency_figures_for_all_three_benchmarks() -> None
         for tag, attrs in parser.attributes
         if tag == "img" and "latency-plot" in attrs.get("class", "").split()
     ]
+    latency_links = [
+        attrs["href"]
+        for tag, attrs in parser.attributes
+        if tag == "a" and "latency-image-link" in attrs.get("class", "").split()
+    ]
 
     assert latency_images == [
         {
             "class": "latency-plot",
-            "src": "assets/stream-wam-chunk-time.png",
+            "src": "assets/stream-wam-chunk-time.png?v=robocasa-latency-20260826",
             "alt": "Chunk-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa.",
             "width": "2400",
             "height": "900",
@@ -1170,12 +1175,16 @@ def test_page_embeds_two_wide_latency_figures_for_all_three_benchmarks() -> None
         },
         {
             "class": "latency-plot",
-            "src": "assets/stream-wam-episode-time.png",
+            "src": "assets/stream-wam-episode-time.png?v=robocasa-latency-20260826",
             "alt": "Episode-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa.",
             "width": "2400",
             "height": "900",
             "aria-describedby": "episode-time-caption latency-data-caption",
         },
+    ]
+    assert latency_links == [
+        "assets/stream-wam-chunk-time.png?v=robocasa-latency-20260826",
+        "assets/stream-wam-episode-time.png?v=robocasa-latency-20260826",
     ]
     assert "Episode Time" in visible_text
     assert "Total Time" not in visible_text

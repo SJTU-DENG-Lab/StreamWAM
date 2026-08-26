@@ -37,7 +37,7 @@ Bold the StreamWAM row and label it as the proposed method.
 | Method | Accuracy (%) ↑ | Chunk Time (ms) ↓ | Total Time (s) ↓ |
 |---|---:|---:|---:|
 | X-WAM | 75.42 | 504.00 | 37.31 |
-| X-WAM-CD | 75.83 | 135.21 | 33.60 |
+| X-WAM-CD | 75.33 | 135.21 | 33.60 |
 | **StreamWAM (Ours)** | **75.35** | **136.76** | **11.76** |
 
 ## RoboTwin table

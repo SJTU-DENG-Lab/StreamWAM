@@ -18,13 +18,13 @@ Correct the RoboCasa protocol and comparison table, mark Stream-WAM as the autho
 | π₀-FAST | 61.2% |
 | π₀ | 62.5% |
 | Cosmos Policy | 67.1% |
-| X-WAM | 75.42% |
-| X-WAM-CD | **75.83%** |
-| Stream-WAM (Ours) | 75.35% |
+| X-WAM | **75.42%** |
+| X-WAM-CD | 75.33% |
+| Stream-WAM (Ours) | <u>75.35%</u> |
 
 - The π₀.₅ and π₀-FAST values follow the supplied SOTA2 RoboCasa leaderboard.
 - The π₀ and Cosmos Policy values use the 24-task main table in the Cosmos Policy paper; use the official 67.1% Cosmos Policy main result rather than the 66.6% ablation value displayed by SOTA2.
-- Keep X-WAM-CD at 75.83% and retain its best-result bold styling. Keep X-WAM at 75.42% and retain its second-best underline.
+- Keep X-WAM at 75.42% with best-result bold styling, and mark Stream-WAM at 75.35% as second best.
 - Link the benchmark description to the supplied SOTA2 leaderboard so readers can inspect the external reference results.
 
 ## Ours Labels and Hardware Wording
