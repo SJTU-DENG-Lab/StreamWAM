@@ -558,26 +558,37 @@ def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
     ):
         assert forbidden not in pipeline_markup
     assert 'class="generation-window' in pipeline_markup
+    assert pipeline_markup.count('class="timeline-curtain"') == 2
+    assert 'class="execution-rail execution-continuous"' in pipeline_markup
     assert 'aria-describedby="pipeline-description pipeline-caption"' in pipeline_markup
     assert 'class="sr-only" id="pipeline-description"' in pipeline_markup
     assert not re.search(r"\b\d+\s*(?:actions?|ms|seconds?)\b", pipeline_markup, re.I)
-    for animation_name in (
-        "generation-reveal-sync-one",
-        "generation-reveal-sync-two",
-        "generation-reveal-stream-one",
-        "generation-reveal-stream-two",
-    ):
-        assert f"@keyframes {animation_name}" in css
-        assert f"animation: {animation_name} 7s linear infinite" in css
-    assert "@keyframes timeline-sweep" in css
+    for label in ("World-Action Prediction", "Robot Execution", "Committed Actions"):
+        assert label in pipeline_markup
+    for old_label in ("Model update", "Robot motion", "Action prefix"):
+        assert old_label not in pipeline_markup
+    assert "@keyframes timeline-reveal" in css
+    assert "generation-reveal-sync" not in css
+    assert "generation-reveal-stream" not in css
     cursor_rule = re.search(r"\.timeline-cursor\s*\{([^}]*)\}", css)
     assert cursor_rule is not None
-    assert "animation: timeline-sweep 7s linear infinite" in cursor_rule.group(1)
+    assert "animation: timeline-reveal 7s linear infinite" in cursor_rule.group(1)
+    curtain_rule = re.search(r"\.timeline-curtain\s*\{([^}]*)\}", css)
+    assert curtain_rule is not None
+    assert "background: #020911" in curtain_rule.group(1)
+    assert "animation: timeline-reveal 7s linear infinite" in curtain_rule.group(1)
+
+    stream_row = pipeline_markup[
+        pipeline_markup.index('<div class="runtime-row runtime-stream"') :
+    ]
+    assert stream_row.index('class="generation-window generation-one"') < stream_row.index(
+        'class="execution-rail execution-continuous"'
+    )
     assert "@media (prefers-reduced-motion: reduce)" in css
     reduced_motion = css.split("@media (prefers-reduced-motion: reduce)", 1)[1]
-    assert ".generation-window" in reduced_motion
+    assert ".timeline-curtain" in reduced_motion
     assert ".timeline-cursor" in reduced_motion
-    assert "animation: none" in reduced_motion
+    assert "display: none" in reduced_motion
 
 
 def test_attention_matrix_compares_visual_and_action_attention() -> None:
@@ -588,18 +599,22 @@ def test_attention_matrix_compares_visual_and_action_attention() -> None:
         )
     ]
 
-    assert 'class="attention-matrix' in pipeline_markup
-    assert pipeline_markup.count('class="matrix-cell visual-token') >= 4
-    assert pipeline_markup.count('class="matrix-cell action-token') >= 4
-    assert pipeline_markup.count('class="matrix-cell directed-cell') >= 2
+    assert 'class="attention-matrix two-chunk-matrix"' in pipeline_markup
+    assert pipeline_markup.count('class="chunk-group') >= 2
+    assert pipeline_markup.count('class="matrix-cell visual-token') >= 3
+    assert pipeline_markup.count('class="matrix-cell action-token') >= 3
+    assert pipeline_markup.count('class="matrix-cell cross-chunk-condition') >= 1
     assert "Action-conditioned attention" in pipeline_markup
-    assert "Visual token" in pipeline_markup
-    assert "Action token" in pipeline_markup
+    assert "Chunk k" in pipeline_markup
+    assert "Chunk k+1" in pipeline_markup
+    assert "Future Visual" in pipeline_markup
+    assert "Committed Actions" in pipeline_markup
+    assert "Queries" in pipeline_markup
+    assert "Keys" in pipeline_markup
     assert "Allowed" in pipeline_markup
     assert "Masked" in pipeline_markup
-    assert "Standard WAM" in pipeline_markup
     assert "Stream-WAM" in pipeline_markup
-    assert "Filled cells indicate allowed attention" in pipeline_markup
+    assert "committed actions from Chunk k condition only the future visual tokens in Chunk k+1" in pipeline_markup
 
 
 def test_readme_leads_with_project_page_and_has_current_citation() -> None:

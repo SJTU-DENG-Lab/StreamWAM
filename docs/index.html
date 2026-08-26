@@ -14,8 +14,8 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <title>Stream-WAM — Streaming World-Action Models</title>
-    <link rel="stylesheet" href="styles.css?v=20260826-3">
-    <script src="script.js?v=20260826-3" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260826-4">
+    <script src="script.js?v=20260826-4" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#article">Skip to article</a>
@@ -58,65 +58,73 @@
         <figure class="hero-figure pipeline-figure" aria-labelledby="pipeline-caption">
           <div class="pipeline-visual" role="group" aria-labelledby="pipeline-graphic-title" aria-describedby="pipeline-description pipeline-caption">
             <span class="sr-only" id="pipeline-graphic-title">Synchronous WAM and Stream-WAM runtime and attention comparison</span>
-            <p class="sr-only" id="pipeline-description">The synchronous world-action model alternates long model-update windows with short robot motion, creating idle gaps. Stream-WAM overlaps short model updates with a continuous execution rail. Its attention mask additionally lets the committed action prefix condition future visual tokens. Filled cells indicate allowed attention, while dark outlined cells indicate masked connections.</p>
+            <p class="sr-only" id="pipeline-description">Both controllers first predict a world-action chunk. Synchronous WAM then alternates prediction and robot execution, interrupting motion at every new prediction. Stream-WAM keeps robot execution continuous while later predictions run concurrently. In its two-chunk directed attention graph, committed actions from Chunk k condition only the future visual tokens in Chunk k+1. Filled cells indicate allowed attention, while dark outlined cells indicate masked connections.</p>
             <div class="pipeline-heading">
-              <div><span>Streaming control loop</span><strong>Model update × Robot motion</strong></div>
-              <div class="pipeline-legend" aria-label="Runtime legend"><span class="legend-generation">Model update</span><span class="legend-execution">Robot motion</span></div>
+              <div><span>Think ahead while acting</span><strong>World-Action Prediction × Robot Execution</strong></div>
+              <div class="pipeline-legend" aria-label="Runtime legend"><span class="legend-generation">World-Action Prediction</span><span class="legend-execution">Robot Execution</span></div>
             </div>
 
             <div class="pipeline-layout">
               <section class="runtime-comparison" aria-labelledby="runtime-comparison-title">
                 <div class="visual-section-heading"><span>01</span><strong id="runtime-comparison-title">Runtime comparison</strong></div>
                 <div class="runtime-row runtime-sync">
-                  <div class="runtime-label"><strong>Synchronous WAM</strong><span>Wait, then move</span></div>
+                  <div class="runtime-label"><strong>Synchronous WAM</strong><span>Predict, act, then wait again</span></div>
                   <div class="runtime-timeline" aria-hidden="true">
-                    <span class="timeline-axis"></span><span class="timeline-cursor"></span>
+                    <span class="timeline-axis"></span>
                     <span class="generation-window generation-one"><i></i><i></i><i></i></span>
                     <span class="generation-window generation-two"><i></i><i></i><i></i></span>
                     <span class="execution-rail execution-one"><i></i><i></i><i></i></span>
                     <span class="execution-rail execution-two"><i></i><i></i><i></i></span>
+                    <span class="timeline-curtain"></span><span class="timeline-cursor"></span>
                   </div>
                 </div>
                 <div class="runtime-row runtime-stream">
-                  <div class="runtime-label"><strong>Stream-WAM</strong><span>Update while moving</span></div>
+                  <div class="runtime-label"><strong>Stream-WAM</strong><span>Predict once, then keep acting</span></div>
                   <div class="runtime-timeline" aria-hidden="true">
-                    <span class="timeline-axis"></span><span class="timeline-cursor"></span>
+                    <span class="timeline-axis"></span>
                     <span class="generation-window generation-one"><i></i><i></i><i></i></span>
                     <span class="generation-window generation-two"><i></i><i></i><i></i></span>
+                    <span class="generation-window generation-three"><i></i><i></i><i></i></span>
                     <span class="execution-rail execution-continuous"><i></i><i></i><i></i><i></i><i></i></span>
-                    <span class="action-prefix-segment">Action prefix</span>
+                    <span class="committed-actions-segment">Committed Actions</span>
+                    <span class="timeline-curtain"></span><span class="timeline-cursor"></span>
                   </div>
                 </div>
               </section>
 
               <section class="attention-diagram" aria-labelledby="attention-title">
                 <div class="visual-section-heading"><span>02</span><strong id="attention-title">Action-conditioned attention</strong></div>
-                <div class="matrix-legend"><span class="visual-key">Visual token</span><span class="action-key">Action token</span><span class="allowed-key">Allowed</span><span class="masked-key">Masked</span></div>
-                <div class="matrix-comparison">
-                  <div class="matrix-panel">
-                    <strong>Standard WAM</strong><span>Separated streams</span>
-                    <div class="attention-matrix matrix-standard" aria-hidden="true">
-                      <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
-                      <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
-                      <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
-                      <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
-                    </div>
+                <div class="attention-heading-row">
+                  <div><strong>Stream-WAM</strong><span>Two-chunk directed attention</span></div>
+                  <div class="matrix-legend"><span class="allowed-key">Allowed</span><span class="conditioned-key">Action-conditioned</span><span class="masked-key">Masked</span></div>
+                </div>
+                <div class="matrix-shell">
+                  <div class="matrix-key-axis">Keys <span aria-hidden="true">→</span></div>
+                  <div class="matrix-column-groups">
+                    <div class="chunk-group chunk-current"><strong>Chunk k</strong><span>Active chunk</span></div>
+                    <div class="chunk-group chunk-next"><strong>Chunk k+1</strong><span>Next prediction</span></div>
                   </div>
-                  <div class="matrix-panel matrix-panel-stream">
-                    <strong>Stream-WAM</strong><span>Actions guide the visual future</span>
-                    <div class="attention-matrix matrix-stream" aria-hidden="true">
-                      <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell directed-cell"></i><i class="matrix-cell directed-cell"></i>
-                      <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell directed-cell"></i><i class="matrix-cell directed-cell"></i>
-                      <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
-                      <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
+                  <div class="matrix-column-labels" aria-hidden="true">
+                    <span>Visual Context</span><span>Committed Actions</span><span>Future Visual</span><span>Next Actions</span>
+                  </div>
+                  <div class="matrix-body">
+                    <div class="matrix-row-heading">Queries <span aria-hidden="true">↓</span></div>
+                    <div class="matrix-row-labels" aria-hidden="true">
+                      <span>Visual Context</span><span>Actions</span><span>Future Visual</span><span>Next Actions</span>
                     </div>
-                    <small><i aria-hidden="true"></i>Action prefix → future visual tokens</small>
+                    <div class="attention-matrix two-chunk-matrix" aria-hidden="true">
+                      <i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                      <i class="matrix-cell visual-token"></i><i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                      <i class="matrix-cell masked-cell"></i><i class="matrix-cell cross-chunk-condition"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i>
+                      <i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell action-token"></i>
+                    </div>
                   </div>
                 </div>
+                <p class="attention-callout"><span aria-hidden="true"></span><strong>Committed Actions · Chunk k</strong><i aria-hidden="true">→</i><strong>Future Visual · Chunk k+1</strong></p>
               </section>
             </div>
           </div>
-          <figcaption id="pipeline-caption">Short model updates overlap continuous robot motion, while the committed action prefix opens a directed path into future visual tokens.</figcaption>
+          <figcaption id="pipeline-caption">Both methods predict before acting. Stream-WAM then hides later prediction behind continuous execution and lets committed actions from the active chunk guide the next chunk’s visual future.</figcaption>
         </figure>
       </section>
 
