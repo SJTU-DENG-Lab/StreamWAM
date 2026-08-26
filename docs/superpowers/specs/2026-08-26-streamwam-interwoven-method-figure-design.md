@@ -134,6 +134,9 @@ text inside the figure.
 
 The visible labels are limited to:
 
+- `Observe`
+- `Think while acting`
+- `Handoff`
 - `Current observation`
 - `World-action prediction`
 - `Robot execution`
