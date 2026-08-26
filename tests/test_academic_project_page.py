@@ -609,6 +609,25 @@ def test_readable_attention_visual_drops_numbers_and_allocates_more_width() -> N
     assert "min-height: 16px" in matrix_cell_rule.group(1)
 
 
+def test_control_loop_heading_uses_readable_interface_typography() -> None:
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    heading_rule = re.search(
+        r"\.pipeline-heading > div:first-child span\s*\{([^}]*)\}", css
+    )
+
+    assert heading_rule is not None
+    declarations = heading_rule.group(1)
+    for expected in (
+        "font-family: inherit",
+        "font-size: .875rem",
+        "font-weight: 760",
+        "letter-spacing: -.01em",
+        "color: #dce6eb",
+    ):
+        assert expected in declarations
+    assert "ui-monospace" not in declarations
+
+
 def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
     _, html = parse_page()
     css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
