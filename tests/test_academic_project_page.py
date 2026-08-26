@@ -252,6 +252,7 @@ def parse_latency_data() -> LatencyDataParser:
 def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
     parser, html = parse_page()
     visible_text = " ".join(parser.text_parts)
+    visible_copy_without_citation = visible_text.split("@misc{", 1)[0]
 
     assert parser.tags.count("header") == 1
     assert parser.tags.count("main") == 1
@@ -287,7 +288,7 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
     assert "RTC-AC" not in html
     assert "AC-StreamWAM" not in html
     assert html.count(">Stream-WAM (Ours)<") == 3
-    assert "StreamWAM" not in visible_text
+    assert "StreamWAM" not in visible_copy_without_citation
 
     deng_logos = [
         attrs
@@ -451,8 +452,8 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
     assert "12.0× on LIBERO" in visible_text
     assert "3.2× on RoboCasa" in visible_text
     assert "broader analysis, limitations, and failure cases" in visible_text
-    assert "Model lineage." in visible_text
-    assert "Code and models are available now" in visible_text
+    assert "Open source." in visible_text
+    assert "Citation" in visible_text
     assert "Action-conditioned attention" in visible_text
     assert theme_colors == ["#f7f5ef"]
     assert not any(token in html.casefold() for token in ("todo", "tbd", "lorem ipsum"))
@@ -828,6 +829,44 @@ def test_readme_leads_with_project_page_and_has_current_citation() -> None:
         assert field in readme
 
 
+def test_resources_publish_open_source_artifacts_and_exact_citation() -> None:
+    _, html = parse_page()
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    resources_html = html.split('<section class="article-section resources reading-column"', 1)[1].split(
+        "</section>", 1
+    )[0]
+
+    assert "<strong>Open source.</strong>" in resources_html
+    assert '<h3 id="citation-title">Citation</h3>' in resources_html
+    assert 'href="https://github.com/SJTU-DENG-Lab/StreamWAM"' in resources_html
+    assert 'href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM"' in resources_html
+    assert "<pre><code>" in resources_html
+    citation = resources_html.split("<pre><code>", 1)[1].split("</code></pre>", 1)[0].strip()
+    assert citation == """@misc{denglab2026streamwam,
+  title        = {Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation},
+  author       = {{DENG Lab}},
+  year         = {2026},
+  howpublished = {Project page},
+  organization = {Shanghai Jiao Tong University},
+  url          = {https://sjtu-deng-lab.github.io/StreamWAM/}
+}"""
+
+    for obsolete_copy in (
+        "resource-links",
+        "Model lineage.",
+        "Acknowledgements.",
+        "Paper · Coming Soon",
+        "Rollout film · Coming Soon",
+    ):
+        assert obsolete_copy not in resources_html
+
+    assert ".resource-links" not in css
+    assert ".acknowledgements" not in css
+    citation_rule = re.search(r"\.citation-block pre\s*\{([^}]*)\}", css)
+    assert citation_rule is not None
+    assert "overflow-x: auto" in citation_rule.group(1)
+
+
 def test_page_is_a_linear_text_first_research_article() -> None:
     parser, html = parse_page()
     article_ids = [
@@ -838,7 +877,7 @@ def test_page_is_a_linear_text_first_research_article() -> None:
 
     assert parser.tags.count("article") >= 1
     assert article_ids == list(ARTICLE_SECTION_IDS)
-    assert parser.article_paragraph_count >= 40
+    assert parser.article_paragraph_count >= 35
     assert "chapter-index" not in html
     assert "future-slots" not in html
 

@@ -222,12 +222,11 @@ tbody tr:last-child > * { border-bottom: 0; }
 .latency-figure figcaption { margin-top: 16px; color: var(--dim); font-size: .72rem; line-height: 1.55; }
 
 .resources { background: var(--resources-bg); }
-.resource-links { display: flex; flex-wrap: wrap; gap: 9px; margin-block: 35px!important; }
-.resource-links a, .resource-links span { padding: 9px 13px; border: 1px solid var(--line-strong); color: var(--muted); font-size: .72rem; font-weight: 730; letter-spacing: .055em; text-decoration: none; text-transform: uppercase; }
-.resource-links a { color: var(--teal-deep); background: var(--paper); }
-.resource-links span { color: var(--orange); border-style: dashed; }
-.acknowledgements { padding-top: 28px; border-top: 1px solid var(--line-strong); }
-.acknowledgements a { color: var(--teal-deep); text-decoration-color: #89bdb2; text-underline-offset: 3px; }
+.resources a { color: var(--teal-deep); text-decoration-color: #89bdb2; text-underline-offset: 4px; }
+.citation-block { margin-top: 38px; }
+.citation-block h3 { margin: 0 0 14px; color: var(--ink); font-size: .76rem; font-weight: 780; letter-spacing: .1em; text-transform: uppercase; }
+.citation-block pre { margin: 0; overflow-x: auto; padding: 22px 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.citation-block code { color: var(--ink); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .78rem; line-height: 1.65; }
 
 .site-footer { padding-block: 28px; border-top: 1px solid var(--line); background: var(--paper); }
 .site-footer .shell { display: grid; grid-template-columns: 1fr auto auto; gap: 30px; align-items: center; }

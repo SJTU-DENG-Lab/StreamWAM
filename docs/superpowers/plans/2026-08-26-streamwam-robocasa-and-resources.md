@@ -177,4 +177,3 @@ Confirm the diff contains no unrelated hero/title changes, then commit:
 git add tests/test_academic_project_page.py docs/index.html docs/styles.css
 git commit -m "refactor: simplify resources and add citation"
 ```
-
