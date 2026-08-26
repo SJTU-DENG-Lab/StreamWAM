@@ -470,16 +470,17 @@ def test_academic_spacetime_method_figure_replaces_the_illustrated_timeline() ->
     ]
     caption = (
         "The overview shows Stream-WAM repeatedly predicting the next visual-action "
-        "chunk during continuous robot execution. The temporal inset aligns A₀’s "
-        "shared prefix with known action context and its look-ahead with unknown "
-        "future slots; the adjacent attention mask shows previous actions "
-        "conditioning the next visual future."
+        "chunk during continuous robot execution. The temporal inset places known "
+        "action context and unknown future slots beneath A₁’s shared prefix and "
+        "continuation; the adjacent attention mask shows previous actions conditioning "
+        "the next visual future."
     )
     description = (
         "A static two-scale method figure. The global t₀-to-t₃ overview shows two "
         "Stream updates overlapped with continuous execution. The lower-left "
-        "temporal view aligns A₀[8:16] with A₁[0:8], maps the shared prefix to "
-        "known action context, and maps look-ahead to unknown future slots. The "
+        "temporal view aligns A₀[8:16] with A₁[0:8], positions known action context "
+        "beneath A₁’s shared prefix, and positions unknown future slots beneath its "
+        "continuation. The "
         "lower-right ten-by-ten mask highlights the two previous-action links into "
         "the next visual-future query."
     )
@@ -737,6 +738,33 @@ def test_streamwam_method_svg_uses_direct_overlap_mappings_and_routes_outputs() 
 
     observation_path = by_id["inset-observation-input"]
     assert re.findall(r"[A-Za-z]", observation_path.attrib["d"]) == ["M", "H"]
+
+    for path_id, source_id, target_id, expected_class in (
+        ("shared-to-known", "inset-shared-prefix", "inset-known-context", "gold-path"),
+        (
+            "continuation-to-unknown",
+            "inset-a1-continuation",
+            "inset-unknown-slots",
+            "connector",
+        ),
+    ):
+        path = by_id[path_id]
+        assert re.findall(r"[A-Za-z]", path.attrib["d"]) == ["M", "V"]
+        path_x, source_y, target_y = [
+            float(value) for value in re.findall(r"-?\d+(?:\.\d+)?", path.attrib["d"])
+        ]
+        source = by_id[source_id]
+        target = by_id[target_id]
+        source_left = float(source.attrib["x"])
+        source_right = source_left + float(source.attrib["width"])
+        source_bottom = float(source.attrib["y"]) + float(source.attrib["height"])
+        target_center = float(target.attrib["x"]) + float(target.attrib["width"]) / 2
+        target_top = float(target.attrib["y"])
+        assert source_left <= path_x <= source_right
+        assert path_x == target_center
+        assert source_y == source_bottom
+        assert target_y == target_top - 7
+        assert expected_class in path.attrib.get("class", "").split()
 
     for path_id, target_id in (
         ("inset-condition-to-video", "inset-video-1"),
