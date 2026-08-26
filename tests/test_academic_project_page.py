@@ -45,6 +45,8 @@ class PageParser(HTMLParser):
         self.h3_text_by_id: dict[str, str] = {}
         self.hero_title_text: list[str] | None = None
         self.hero_title = ""
+        self.eyebrow_text: list[str] | None = None
+        self.eyebrow = ""
         self.caption_text: list[str] | None = None
         self.captions: list[str] = []
 
@@ -78,6 +80,8 @@ class PageParser(HTMLParser):
             self.current_h3_text = []
         if tag == "h1" and normalized.get("id") == "hero-title":
             self.hero_title_text = []
+        if tag == "p" and "eyebrow" in normalized.get("class", "").split():
+            self.eyebrow_text = []
         if tag == "caption":
             self.caption_text = []
 
@@ -95,6 +99,9 @@ class PageParser(HTMLParser):
         if tag == "h1" and self.hero_title_text is not None:
             self.hero_title = " ".join(self.hero_title_text).strip()
             self.hero_title_text = None
+        if tag == "p" and self.eyebrow_text is not None:
+            self.eyebrow = " ".join(self.eyebrow_text).strip()
+            self.eyebrow_text = None
         if tag == "caption" and self.caption_text is not None:
             self.captions.append(" ".join(self.caption_text).strip())
             self.caption_text = None
@@ -108,6 +115,8 @@ class PageParser(HTMLParser):
             self.current_h3_text.append(data)
         if self.hero_title_text is not None:
             self.hero_title_text.append(data)
+        if self.eyebrow_text is not None:
+            self.eyebrow_text.append(data)
         if self.caption_text is not None:
             self.caption_text.append(data)
         if stripped := data.strip():
@@ -238,9 +247,13 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
         "discussion",
         "resources",
     } <= parser.ids
-    assert parser.hero_title == "Stream-WAM: Streaming World-Action Models for Robotic Manipulation"
+    assert parser.hero_title == (
+        "Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation."
+    )
+    assert parser.eyebrow == "Stream-WAM"
     assert "Think ahead. Act now." not in visible_text
-    assert "Streaming World-Action Models for Robotic Manipulation" in visible_text
+    assert "Streaming Your World-Action Model for Real-Time Robot Manipulation." in visible_text
+    assert "committed action prefix" in visible_text
     assert "action-conditioned" in visible_text.lower()
     assert "Coming Soon" in visible_text
 
@@ -251,11 +264,28 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
     }
     assert "https://github.com/SJTU-DENG-Lab/StreamWAM" in links
     assert "https://huggingface.co/SJTU-DENG-Lab/StreamWAM" in links
+    assert "https://sjtu-deng-lab.github.io/home/" in links
     assert "#" not in links
+    assert "MLSys Team" not in visible_text
     assert "RTC-AC" not in html
     assert "AC-StreamWAM" not in html
     assert "Ours" not in html
     assert "StreamWAM" not in visible_text
+
+    deng_logos = [
+        attrs
+        for tag, attrs in parser.attributes
+        if tag == "img" and "deng-lab-logo" in attrs.get("class", "").split()
+    ]
+    assert deng_logos == [
+        {
+            "class": "deng-lab-logo",
+            "src": "assets/deng-lab.webp",
+            "alt": "",
+            "width": "420",
+            "height": "155",
+        }
+    ]
 
 
 def test_page_publishes_the_current_benchmark_results() -> None:
@@ -372,7 +402,7 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
     assert "Stream-WAM conditions the visual future on the action already underway" in visible_text
     assert "inference-time RTC" in visible_text
     assert "prefix-conditioned" in visible_text
-    assert "00 · Abstract" in visible_text
+    assert parser.eyebrow == "Stream-WAM"
     assert "Task performance." in visible_text
     assert "Inference efficiency." in visible_text
     assert "Stream-WAM reaches 98.20% average success" in visible_text

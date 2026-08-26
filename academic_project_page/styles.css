@@ -35,6 +35,9 @@ button { font: inherit; }
 .site-nav { min-height: 68px; display: flex; align-items: center; justify-content: space-between; }
 .wordmark { display: inline-flex; align-items: center; gap: 10px; font-weight: 780; letter-spacing: -.025em; text-decoration: none; }
 .wordmark-mark { width: 15px; height: 15px; border: 2px solid var(--teal); box-shadow: inset 5px 0 var(--teal); transform: rotate(45deg); }
+.lab-lockup { display: inline-flex; align-items: center; gap: 12px; color: var(--muted); font-size: .7rem; font-weight: 760; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
+.deng-lab-logo { width: auto; height: 34px; mix-blend-mode: multiply; object-fit: contain; }
+.lab-lockup:hover, .lab-lockup:focus-visible { color: var(--teal-deep); }
 .nav-links { display: flex; align-items: center; gap: 30px; }
 .nav-links a, .nav-pending { color: var(--muted); font-size: .73rem; font-weight: 760; letter-spacing: .11em; text-decoration: none; text-transform: uppercase; }
 .nav-links a:hover, .nav-links a:focus-visible { color: var(--teal-deep); }
@@ -43,14 +46,13 @@ button { font: inherit; }
 .menu-toggle[hidden]{display:none!important}
 
 .hero { min-height: calc(100vh - 68px); display: grid; grid-template-columns: .9fr 1.1fr; grid-template-rows: 1fr auto; align-items: center; gap: 55px clamp(45px, 6vw, 90px); padding-block: clamp(74px, 9vw, 126px) 0; }
-.eyebrow { margin: 0 0 20px; color: var(--teal-deep); font-size: .7rem; font-weight: 790; letter-spacing: .17em; text-transform: uppercase; }
-.eyebrow span { color: var(--orange); }
+.eyebrow { display: flex; align-items: center; gap: 9px; margin: 0 0 20px; color: var(--teal-deep); font-size: .7rem; font-weight: 790; letter-spacing: .17em; text-transform: uppercase; }
+.live-dot { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px var(--teal-soft); }
 .hero h1 { margin: 0; font-family: var(--serif); font-weight: 500; }
 .hero-name { display: block; font-size: clamp(3rem,5.3vw,5.2rem); line-height: .95; letter-spacing: -.055em; }
 .hero-tagline { max-width: 620px; display: block; margin-top: 17px; color: var(--ink); font-size: clamp(1.08rem,1.6vw,1.42rem); font-weight: 500; line-height: 1.35; letter-spacing: -.015em; }
-.hero-summary { max-width: 640px; margin: 30px 0 0; font-size: 1.04rem; }
-.hero-detail { max-width: 640px; margin: 14px 0 0; color: var(--muted); }
-.hero-detail strong { color: var(--teal-deep); }
+.hero-lede { max-width: 660px; margin: 30px 0 0; color: var(--muted); font-size: clamp(1.08rem,1.35vw,1.24rem); line-height: 1.68; }
+.hero-lede strong { color: var(--ink); font-weight: 760; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
 .button { min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border: 1px solid var(--line-strong); background: var(--paper); font-size: .78rem; font-weight: 760; letter-spacing: .035em; text-decoration: none; }
 .button-primary { color: white; border-color: var(--teal); background: var(--teal); }
@@ -156,6 +158,8 @@ tbody tr:last-child > * { border-bottom: 0; }
 @media (max-width: 760px) {
   :root { --shell: min(100% - 30px,1220px); --reading: min(100% - 30px,800px); }
   .site-nav { min-height: 62px; }
+  .deng-lab-logo { height: 29px; }
+  .lab-lockup { gap: 8px; font-size: .64rem; }
   .menu-toggle { width: 39px; height: 39px; display: grid; place-content: center; gap: 6px; border: 1px solid var(--line); background: var(--paper); }
   .menu-toggle > span[aria-hidden="true"] { width: 18px; height: 1px; display: block; background: currentColor; }
   html:not(.js) .site-nav { flex-wrap: wrap; padding-block: 11px; }

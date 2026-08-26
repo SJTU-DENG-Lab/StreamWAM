@@ -22,7 +22,10 @@
 
     <header class="site-header">
       <nav class="site-nav shell" aria-label="Primary navigation">
-        <a class="wordmark" href="#overview" aria-label="Stream-WAM home"><span class="wordmark-mark" aria-hidden="true"></span>Stream-WAM</a>
+        <a class="lab-lockup" href="https://sjtu-deng-lab.github.io/home/" target="_blank" rel="noopener noreferrer" aria-label="Visit DENG Lab">
+          <img class="deng-lab-logo" src="assets/deng-lab.webp" alt="" width="420" height="155">
+          <span>DENG Lab ↗</span>
+        </a>
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" hidden>
           <span class="sr-only">Open navigation</span><span aria-hidden="true"></span><span aria-hidden="true"></span>
         </button>
@@ -37,10 +40,9 @@
     <main id="content">
       <section class="hero shell" id="overview" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow"><span>00 · Abstract</span> · Research preview</p>
-          <h1 id="hero-title"><span class="hero-name">Stream-WAM:</span><span class="hero-tagline">Streaming World-Action Models for Robotic Manipulation</span></h1>
-          <p class="hero-summary">Stream-WAM is a research framework and unified testbed for systematically studying streaming strategies in world-action-model-based robot control.</p>
-          <p class="hero-detail">Its <strong>action-conditioned streaming</strong> formulation feeds the action prefix currently being executed back into the world model, so future video generation reflects robot motion already underway while the next world-action chunk is inferred asynchronously.</p>
+          <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Stream-WAM</p>
+          <h1 id="hero-title"><span class="hero-name">Stream-WAM:</span><span class="hero-tagline">Streaming Your World-Action Model for Real-Time Robot Manipulation.</span></h1>
+          <p class="hero-lede"><strong>Stream-WAM</strong> introduces <strong>action-conditioned streaming</strong> for world-action models. It overlaps world-action inference with robot execution and feeds the <strong>committed action prefix</strong> back into future-video generation, so the model imagines what comes next with knowledge of the motion already underway. The robot keeps acting while its next world-action chunk is prepared.</p>
           <div class="hero-actions" aria-label="Project resources">
             <a class="button button-primary" href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">View code ↗</a>
             <a class="button" href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Get models ↗</a>
