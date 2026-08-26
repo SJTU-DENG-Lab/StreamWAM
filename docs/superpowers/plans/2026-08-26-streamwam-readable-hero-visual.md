@@ -4,14 +4,14 @@
 
 **Goal:** Make the hero runtime/attention graphic wider and its attention labels legible while removing the section number badges.
 
-**Architecture:** Keep the current semantic HTML sections, runtime tracks, and 10×10 matrix cell markup. Change only the decorative heading markup, desktop grid allocation, and targeted typography sizing; retain the 1040px stacked breakpoint.
+**Architecture:** Keep the current semantic HTML sections and 10×10 matrix cell markup. Change the decorative heading markup, desktop grid allocation, targeted typography sizing, and runtime-track geometry while retaining the seven-second reveal and the 1040px stacked breakpoint.
 
 **Tech Stack:** Static HTML, CSS Grid, pytest page-contract tests, agent-browser responsive QA.
 
 ## Global Constraints
 
 - Do not change the two-chunk attention topology.
-- Do not change runtime animation timing or track placement.
+- Keep the seven-second runtime reveal timing; make synchronous prediction/execution boundaries contiguous and split the Stream-WAM execution rail into three uniformly spaced chunk segments with later prediction windows centered over the segment boundaries.
 - Preserve exact desktop top/bottom alignment between `.hero-main` and `.hero-figure`.
 - Preserve zero page-level horizontal overflow at 390px and 320px.
 
@@ -40,7 +40,7 @@ Expected: FAIL because the numeric spans remain, the graphic minimum is `620px`,
 
 - [ ] **Step 3: Implement the minimal HTML/CSS changes**
 
-Remove only the two number spans; use a desktop hero grid of `minmax(0,1fr) minmax(700px,1.16fr)`; increase the path badge, panel heading, chunk heading, and matrix label font sizes without changing mask markup.
+Remove only the two number spans; use a desktop hero grid of `minmax(0,1fr) minmax(700px,1.18fr)`; increase the path badge, panel heading, chunk heading, and matrix label font sizes without changing mask markup. Make both synchronous prediction/execution transitions contiguous. Replace the continuous Stream-WAM execution rail with three evenly spaced segments and center later prediction windows over the two narrow chunk boundaries.
 
 - [ ] **Step 4: Verify GREEN and run full regression**
 

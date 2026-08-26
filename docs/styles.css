@@ -100,10 +100,10 @@ button { font: inherit; }
 .generation-window::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg,transparent 30%,rgba(255,255,255,.28) 50%,transparent 70%); transform: translateX(-120%); animation: generation-shimmer 2.4s ease-in-out infinite; }
 .generation-window i { z-index: 1; width: 5px; height: 5px; border-radius: 50%; background: #e4e0ff; box-shadow: 0 0 8px rgba(228,224,255,.85); }
 .runtime-sync .generation-one { left: 2%; width: 25%; }
-.runtime-sync .generation-two { left: 50%; width: 24%; }
+.runtime-sync .generation-two { left: 47%; width: 27%; }
 .runtime-stream .generation-one { left: 2%; width: 20%; }
-.runtime-stream .generation-two { left: 43%; width: 13%; }
-.runtime-stream .generation-three { left: 72%; width: 13%; }
+.runtime-stream .generation-two { left: 40%; width: 13%; }
+.runtime-stream .generation-three { left: 65%; width: 13%; }
 .execution-rail { top: 44px; height: 20px; display: flex; align-items: center; justify-content: space-around; border: 1px solid rgba(111,244,218,.32); background: linear-gradient(135deg,#055c54,#087d70); box-shadow: 0 7px 18px rgba(8,125,112,.17); }
 .execution-rail i { width: 4px; height: 4px; border-radius: 50%; background: #88f4df; opacity: .42; animation: motion-flow 1.4s ease-in-out infinite; }
 .execution-rail i:nth-child(2) { animation-delay: .25s; }
@@ -112,7 +112,9 @@ button { font: inherit; }
 .execution-rail i:nth-child(5) { animation-delay: 1s; }
 .runtime-sync .execution-one { left: 27%; width: 20%; }
 .runtime-sync .execution-two { left: 74%; width: 24%; }
-.execution-continuous { left: 22%; width: 76%; }
+.runtime-stream .execution-stream-one { left: 22%; width: 24%; }
+.runtime-stream .execution-stream-two { left: 47%; width: 24%; }
+.runtime-stream .execution-stream-three { left: 72%; width: 26%; }
 .attention-topline { display: flex; justify-content: flex-end; margin: -32px 0 9px; }
 .matrix-legend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin: 0; color: #9cadba; font-size: .5rem; font-weight: 700; }
 .matrix-legend span { display: inline-flex; align-items: center; gap: 5px; }

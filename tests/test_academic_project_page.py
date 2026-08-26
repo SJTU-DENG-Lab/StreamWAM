@@ -623,7 +623,9 @@ def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
         assert forbidden not in pipeline_markup
     assert 'class="generation-window' in pipeline_markup
     assert pipeline_markup.count('class="timeline-curtain"') == 2
-    assert 'class="execution-rail execution-continuous"' in pipeline_markup
+    assert 'class="execution-rail execution-continuous"' not in pipeline_markup
+    for segment in ("one", "two", "three"):
+        assert f'class="execution-rail execution-stream-{segment}"' in pipeline_markup
     assert 'aria-describedby="pipeline-description pipeline-caption"' in pipeline_markup
     assert 'class="sr-only" id="pipeline-description"' in pipeline_markup
     assert not re.search(r"\b\d+\s*(?:actions?|ms|seconds?)\b", pipeline_markup, re.I)
@@ -660,8 +662,22 @@ def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
         pipeline_markup.index('<div class="runtime-row runtime-stream"') :
     ]
     assert stream_row.index('class="generation-window generation-one"') < stream_row.index(
-        'class="execution-rail execution-continuous"'
+        'class="execution-rail execution-stream-one"'
     )
+    for rule, placement in (
+        (".runtime-sync .generation-one", ("left: 2%", "width: 25%")),
+        (".runtime-sync .execution-one", ("left: 27%", "width: 20%")),
+        (".runtime-sync .generation-two", ("left: 47%", "width: 27%")),
+        (".runtime-sync .execution-two", ("left: 74%", "width: 24%")),
+        (".runtime-stream .generation-two", ("left: 40%", "width: 13%")),
+        (".runtime-stream .generation-three", ("left: 65%", "width: 13%")),
+        (".runtime-stream .execution-stream-one", ("left: 22%", "width: 24%")),
+        (".runtime-stream .execution-stream-two", ("left: 47%", "width: 24%")),
+        (".runtime-stream .execution-stream-three", ("left: 72%", "width: 26%")),
+    ):
+        css_rule = re.search(rf"{re.escape(rule)}\s*\{{([^}}]*)\}}", css)
+        assert css_rule is not None
+        assert all(value in css_rule.group(1) for value in placement)
     assert "@media (prefers-reduced-motion: reduce)" in css
     reduced_motion = css.split("@media (prefers-reduced-motion: reduce)", 1)[1]
     assert ".timeline-curtain" in reduced_motion
