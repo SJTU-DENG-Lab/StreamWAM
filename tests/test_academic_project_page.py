@@ -469,20 +469,23 @@ def test_academic_spacetime_method_figure_replaces_the_illustrated_timeline() ->
         if tag == "img" and "method-figure-artwork" in attrs.get("class", "").split()
     ]
     caption = (
-        "Stream-WAM predicts the next world-action chunk while the robot executes "
-        "the current one. The committed action prefix is aligned with the new "
-        "prediction and conditions its visual future, allowing the prepared action "
-        "continuation to enter the control stream at the next handoff."
+        "A₀ contains 32 actions. After its first eight actions, Stream-WAM captures "
+        "O₁ and predicts asynchronously while A₀[8:16] continues to execute. Those "
+        "eight shared actions become A₁[0:8]; at handoff, execution resumes from "
+        "A₁[8] without replaying the overlap."
     )
     description = (
-        "A spacetime diagram shows Stream-WAM predicting each next video-action "
-        "chunk during execution. The aligned action prefix conditions only the next "
-        "visual prediction, and each prepared action chunk begins at the following "
-        "handoff without a planned pause."
+        "A static spacetime diagram shows the 32-action A₀ split into eight actions "
+        "before observation, eight actions executed during inference, and 16 unused "
+        "look-ahead actions. A₀[8:16] equals A₁[0:8] and supplies eight known action "
+        "slots; together with eight unknown slots, the 16 condition slots guide the "
+        "next visual future."
     )
 
     assert len(figure_images) == 1
-    assert figure_images[0]["src"].split("?", 1)[0] == "assets/stream-wam-method.svg"
+    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260826-3"
+    assert figure_images[0]["width"] == "1600"
+    assert figure_images[0]["height"] == "980"
     assert figure_images[0]["alt"] == ""
     assert caption in " ".join(parser.text_parts)
     assert description in " ".join(parser.text_parts)

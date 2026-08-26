@@ -186,10 +186,10 @@
           </div>
           <figure class="method-figure breakout" id="streamwam-method-figure" aria-describedby="streamwam-method-description streamwam-method-caption">
             <div class="method-figure-viewport" role="group" aria-label="Scrollable Stream-WAM method timeline" tabindex="0">
-              <img class="method-figure-artwork" src="assets/stream-wam-method.svg?v=20260826-2" alt="" width="1600" height="860">
+              <img class="method-figure-artwork" src="assets/stream-wam-method.svg?v=20260826-3" alt="" width="1600" height="980">
             </div>
-            <p class="sr-only" id="streamwam-method-description">A spacetime diagram shows Stream-WAM predicting each next video-action chunk during execution. The aligned action prefix conditions only the next visual prediction, and each prepared action chunk begins at the following handoff without a planned pause.</p>
-            <figcaption id="streamwam-method-caption">Stream-WAM predicts the next world-action chunk while the robot executes the current one. The committed action prefix is aligned with the new prediction and conditions its visual future, allowing the prepared action continuation to enter the control stream at the next handoff.</figcaption>
+            <p class="sr-only" id="streamwam-method-description">A static spacetime diagram shows the 32-action A₀ split into eight actions before observation, eight actions executed during inference, and 16 unused look-ahead actions. A₀[8:16] equals A₁[0:8] and supplies eight known action slots; together with eight unknown slots, the 16 condition slots guide the next visual future.</p>
+            <figcaption id="streamwam-method-caption">A₀ contains 32 actions. After its first eight actions, Stream-WAM captures O₁ and predicts asynchronously while A₀[8:16] continues to execute. Those eight shared actions become A₁[0:8]; at handoff, execution resumes from A₁[8] without replaying the overlap.</figcaption>
           </figure>
           <div class="reading-column">
             <p>The loop repeats at every boundary. A prepared chunk becomes the current command, the robot begins executing it, and its committed prefix becomes context for the following prediction. When inference remains within the available action window, the model thinks ahead without asking the robot to stop; when the scene changes unexpectedly, the method still depends on fresh observations and replanning rather than assuming that an old prefix is always sufficient.</p>

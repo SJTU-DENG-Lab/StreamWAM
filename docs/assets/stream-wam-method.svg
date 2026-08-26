@@ -93,9 +93,9 @@
     </g>
 
     <path class="connector-plain" d="M300 402 V390 H538 V402"/>
-    <text class="range-label" x="419" y="385">executed before observation · A₀[0:8]</text>
+    <text class="range-label" x="419" y="385">before observation · A₀[0:8]</text>
     <path class="connector-plain" d="M540 402 V390 H778 V402"/>
-    <text class="gold-label" x="659" y="385">executed during inference · A₀[8:16]</text>
+    <text class="gold-label" x="659" y="385">during inference · A₀[8:16]</text>
     <path class="connector-plain" d="M780 402 V390 H1258 V402"/>
     <text class="range-label" x="1019" y="385">unused look-ahead · A₀[16:32]</text>
 
