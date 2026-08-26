@@ -567,6 +567,39 @@ def test_hero_main_and_figure_share_the_second_desktop_grid_row() -> None:
     assert ".hero-copy { display: block; }" in stacked_css
 
 
+def test_readable_attention_visual_drops_numbers_and_allocates_more_width() -> None:
+    _, html = parse_page()
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    pipeline_markup = html[
+        html.index('<div class="pipeline-visual"') : html.index(
+            '<figcaption id="pipeline-caption"'
+        )
+    ]
+
+    assert '<span>01</span>' not in pipeline_markup
+    assert '<span>02</span>' not in pipeline_markup
+    assert pipeline_markup.count('class="visual-section-heading"') == 2
+
+    hero_rule = re.search(r"\.hero\s*\{([^}]*)\}", css)
+    panel_heading_rule = re.search(r"\.attention-panel-heading strong\s*\{([^}]*)\}", css)
+    path_badge_rule = re.search(r"\.attention-path-badge\s*\{([^}]*)\}", css)
+    chunk_heading_rule = re.search(r"\.mask-chunk-heads span\s*\{([^}]*)\}", css)
+    token_label_rule = re.search(
+        r"\.mask-column-labels span, \.mask-row-labels span\s*\{([^}]*)\}", css
+    )
+
+    assert hero_rule is not None
+    assert "minmax(700px" in hero_rule.group(1)
+    assert panel_heading_rule is not None
+    assert "font-size: .72rem" in panel_heading_rule.group(1)
+    assert path_badge_rule is not None
+    assert "font: 800 .66rem/1" in path_badge_rule.group(1)
+    assert chunk_heading_rule is not None
+    assert "font: 750 .55rem/1" in chunk_heading_rule.group(1)
+    assert token_label_rule is not None
+    assert "font: 700 .48rem/1" in token_label_rule.group(1)
+
+
 def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
     _, html = parse_page()
     css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
