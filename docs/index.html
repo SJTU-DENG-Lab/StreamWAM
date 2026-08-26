@@ -14,8 +14,8 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <title>Stream-WAM — Streaming World-Action Models</title>
-    <link rel="stylesheet" href="styles.css?v=20260826-13">
-    <script src="script.js?v=20260826-13" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260826-14">
+    <script src="script.js?v=20260826-14" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#article">Skip to article</a>
@@ -202,7 +202,7 @@
         <section class="article-section experiments" id="experiments" aria-label="Current results">
           <div class="reading-column">
             <p class="lead"><strong>Task performance.</strong> To evaluate Stream-WAM across different World Action Model families, we begin by further training FastWAM-Joint with our streaming approach on LIBERO. We then extend the same design to X-WAM on RoboCasa and StarWAM on RoboTwin 2.0 to examine its applicability across benchmarks and model families. Our evaluations use four NVIDIA H100 GPUs.</p>
-            <p>We compare Stream-WAM with general purpose robot policies and World Action Model baselines in both task performance and inference efficiency. The performance tables summarize success across Long, Spatial, Goal, and Object in LIBERO, the clean and randomized settings of RoboTwin 2.0, and the RoboCasa target tasks. Best and second best results are shown in <strong>bold</strong> and <u>underlined</u>, respectively.</p>
+            <p>We compare Stream-WAM with general purpose robot policies and World Action Model baselines in task performance and inference efficiency. CD denotes variants distilled to a single denoising step through Consistency Distillation. Stream-WAM w/o Action Conditioning removes Action Conditioning, while Stream-WAM w/o Slot Encoder removes the Slot Encoder, isolating the contribution of each component. The tables report results on LIBERO, RoboTwin 2.0, and RoboCasa; best and second best results are shown in <strong>bold</strong> and <u>underlined</u>, respectively.</p>
           </div>
 
           <section class="benchmark breakout" id="benchmark-libero" aria-labelledby="libero-title">
@@ -322,13 +322,11 @@
           <p>The first provisional conclusion is that action conditioning provides a direct link between the robot motion underway and the visual future used for its next decision. It gives asynchronous prediction a model-level account of what execution is doing during inference.</p>
           <p>The second is that streaming performance needs to be read jointly with control success. Chunk time, end-to-end time, and task outcomes describe different parts of the system; none alone establishes that a robot can act continuously and successfully.</p>
           <p>The third is about the scope of this preview. The technical report will carry the broader analysis, limitations, and failure cases. Until then, this page presents the method motivation, released artifacts, evaluation protocols, and current tables without filling those missing sections with speculative claims.</p>
-        </section>
-
-        <section class="article-section resources reading-column" id="resources" aria-label="Project resources">
-          <p class="lead"><strong>Open source.</strong> Stream-WAM training and inference code and evaluation recipes are available on <a href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">GitHub</a>, with released checkpoints hosted on <a href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Hugging Face</a>.</p>
-          <div class="citation-block" aria-labelledby="citation-title">
-            <h3 id="citation-title">Citation</h3>
-            <pre><code>@misc{denglab2026streamwam,
+          <section class="project-endmatter" id="resources" aria-labelledby="citation-title">
+            <h2 id="citation-title">Citation</h2>
+            <div class="citation-card">
+              <button class="citation-copy" type="button" aria-label="Copy BibTeX citation">Copy</button>
+              <pre><code id="citation-bibtex">@misc{denglab2026streamwam,
   title        = {Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation},
   author       = {{DENG Lab}},
   year         = {2026},
@@ -336,7 +334,12 @@
   organization = {Shanghai Jiao Tong University},
   url          = {https://sjtu-deng-lab.github.io/StreamWAM/}
 }</code></pre>
-          </div>
+            </div>
+            <div class="resource-actions" aria-label="Open source artifacts">
+              <a class="button button-primary" href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Code ↗</a>
+              <a class="button" href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Models ↗</a>
+            </div>
+          </section>
         </section>
       </article>
     </main>

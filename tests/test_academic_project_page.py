@@ -16,6 +16,7 @@ PAGE_ROOT = REPO_ROOT / "docs"
 INDEX_PATH = PAGE_ROOT / "index.html"
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "pages.yml"
 LATENCY_GENERATOR_PATH = PAGE_ROOT / "generate_latency_figure.py"
+CITATION_COPY_HARNESS_PATH = REPO_ROOT / "tests" / "citation_copy_harness.js"
 ARTICLE_SECTION_IDS = (
     "act-wam",
     "act-async",
@@ -411,7 +412,6 @@ def test_small_dim_text_meets_wcag_aa_contrast() -> None:
         ("orange", "orange-soft"),
         ("teal-deep", "teal-soft"),
         ("teal-deep", "results-bg"),
-        ("teal-deep", "resources-bg"),
     ):
         foreground = luminance(colors[foreground_name])
         background = luminance(colors[background_name])
@@ -452,7 +452,6 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
     assert "12.0× on LIBERO" in visible_text
     assert "3.2× on RoboCasa" in visible_text
     assert "broader analysis, limitations, and failure cases" in visible_text
-    assert "Open source." in visible_text
     assert "Citation" in visible_text
     assert "Action-conditioned attention" in visible_text
     assert theme_colors == ["#f7f5ef"]
@@ -829,19 +828,26 @@ def test_readme_leads_with_project_page_and_has_current_citation() -> None:
         assert field in readme
 
 
-def test_resources_publish_open_source_artifacts_and_exact_citation() -> None:
+def test_discussion_ends_with_copyable_citation_and_open_source_actions() -> None:
     _, html = parse_page()
     css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
-    resources_html = html.split('<section class="article-section resources reading-column"', 1)[1].split(
-        "</section>", 1
-    )[0]
+    discussion_start = html.index('<section class="article-section reading-column" id="discussion"')
+    conclusion_start = html.index("The third is about the scope of this preview.", discussion_start)
+    resources_start = html.find('<section class="project-endmatter" id="resources"', conclusion_start)
+    assert resources_start > conclusion_start
+    resources_end = html.index("</section>", resources_start)
+    discussion_end = html.index("</section>", resources_end + len("</section>"))
+    resources_html = html[resources_start:resources_end]
 
-    assert "<strong>Open source.</strong>" in resources_html
-    assert '<h3 id="citation-title">Citation</h3>' in resources_html
+    assert discussion_start < conclusion_start < resources_start < resources_end < discussion_end
+    assert '<h2 id="citation-title">Citation</h2>' in resources_html
     assert 'href="https://github.com/SJTU-DENG-Lab/StreamWAM"' in resources_html
     assert 'href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM"' in resources_html
-    assert "<pre><code>" in resources_html
-    citation = resources_html.split("<pre><code>", 1)[1].split("</code></pre>", 1)[0].strip()
+    assert ">Code ↗</a>" in resources_html
+    assert ">Models ↗</a>" in resources_html
+    assert '<button class="citation-copy" type="button" aria-label="Copy BibTeX citation">Copy</button>' in resources_html
+    assert '<pre><code id="citation-bibtex">' in resources_html
+    citation = resources_html.split('<pre><code id="citation-bibtex">', 1)[1].split("</code></pre>", 1)[0].strip()
     assert citation == """@misc{denglab2026streamwam,
   title        = {Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation},
   author       = {{DENG Lab}},
@@ -852,7 +858,8 @@ def test_resources_publish_open_source_artifacts_and_exact_citation() -> None:
 }"""
 
     for obsolete_copy in (
-        "resource-links",
+        "article-section resources reading-column",
+        "Open source.",
         "Model lineage.",
         "Acknowledgements.",
         "Paper · Coming Soon",
@@ -860,11 +867,16 @@ def test_resources_publish_open_source_artifacts_and_exact_citation() -> None:
     ):
         assert obsolete_copy not in resources_html
 
-    assert ".resource-links" not in css
-    assert ".acknowledgements" not in css
-    citation_rule = re.search(r"\.citation-block pre\s*\{([^}]*)\}", css)
+    assert ".resources" not in css
+    citation_rule = re.search(r"\.citation-card pre\s*\{([^}]*)\}", css)
     assert citation_rule is not None
     assert "overflow-x: auto" in citation_rule.group(1)
+    assert "border-radius" in citation_rule.group(1)
+    assert re.search(r"background:\s*#[0-9a-fA-F]{6}", citation_rule.group(1))
+
+
+def test_citation_copy_button_uses_clipboard_and_local_preview_fallback() -> None:
+    subprocess.run(["node", str(CITATION_COPY_HARNESS_PATH)], check=True, cwd=REPO_ROOT)
 
 
 def test_page_is_a_linear_text_first_research_article() -> None:
@@ -945,7 +957,7 @@ def test_article_uses_a_continuous_editorial_hierarchy() -> None:
         "Benchmark 03",
     )
     section_labels = {
-        attrs.get("id"): attrs.get("aria-label")
+        attrs.get("id"): attrs.get("aria-label") or attrs.get("aria-labelledby")
         for tag, attrs in parser.attributes
         if tag == "section" and attrs.get("id") in {"experiments", "discussion", "resources"}
     }
@@ -959,7 +971,7 @@ def test_article_uses_a_continuous_editorial_hierarchy() -> None:
     assert section_labels == {
         "experiments": "Current results",
         "discussion": "Discussion",
-        "resources": "Project resources",
+        "resources": "citation-title",
     }
     assert len(set(benchmark_heading_ids.values())) == 3
     assert {
@@ -1012,6 +1024,9 @@ def test_results_narrative_reports_protocol_and_speedups() -> None:
         "X-WAM on RoboCasa",
         "StarWAM on RoboTwin 2.0",
         "four NVIDIA H100 GPUs",
+        "CD denotes variants distilled to a single denoising step through Consistency Distillation",
+        "Stream-WAM w/o Action Conditioning removes Action Conditioning",
+        "Stream-WAM w/o Slot Encoder removes the Slot Encoder",
         "12.0× on LIBERO",
         "4.0× on RoboTwin 2.0",
         "3.7× on RoboCasa",

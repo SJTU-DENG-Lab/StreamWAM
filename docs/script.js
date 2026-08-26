@@ -32,3 +32,56 @@ if (menuButton && menu) {
     }
   });
 }
+
+const citationCopyButton = document.querySelector(".citation-copy");
+const citationBibtex = document.querySelector("#citation-bibtex");
+
+function copyWithTextarea(text) {
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  try {
+    return document.execCommand("copy");
+  } finally {
+    document.body.removeChild(textarea);
+  }
+}
+
+if (citationCopyButton && citationBibtex) {
+  citationCopyButton.addEventListener("click", async () => {
+    const citation = citationBibtex.textContent.trim();
+    let copied = false;
+
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(citation);
+        copied = true;
+      } catch {
+        copied = false;
+      }
+    }
+
+    if (!copied) {
+      try {
+        copied = copyWithTextarea(citation);
+      } catch {
+        copied = false;
+      }
+    }
+
+    if (!copied) {
+      citationCopyButton.textContent = "Select text";
+      return;
+    }
+
+    citationCopyButton.textContent = "Copied";
+    setTimeout(() => {
+      citationCopyButton.textContent = "Copy";
+    }, 1800);
+  });
+}

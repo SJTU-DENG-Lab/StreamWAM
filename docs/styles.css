@@ -15,7 +15,6 @@
   --orange: #8f3d16;
   --orange-soft: #f2e3d6;
   --results-bg: #eef1ec;
-  --resources-bg: #e8ece6;
   --table-alt: #faf8f3;
   --shell: min(1220px, calc(100vw - 48px));
   --hero-shell: min(1680px, calc(100vw - 32px));
@@ -221,12 +220,14 @@ tbody tr:last-child > * { border-bottom: 0; }
 .latency-plot { width: 100%; height: auto; display: block; }
 .latency-figure figcaption { margin-top: 16px; color: var(--dim); font-size: .72rem; line-height: 1.55; }
 
-.resources { background: var(--resources-bg); }
-.resources a { color: var(--teal-deep); text-decoration-color: #89bdb2; text-underline-offset: 4px; }
-.citation-block { margin-top: 38px; }
-.citation-block h3 { margin: 0 0 14px; color: var(--ink); font-size: .76rem; font-weight: 780; letter-spacing: .1em; text-transform: uppercase; }
-.citation-block pre { margin: 0; overflow-x: auto; padding: 22px 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
-.citation-block code { color: var(--ink); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .78rem; line-height: 1.65; }
+.project-endmatter { margin-top: clamp(48px,6vw,72px); }
+.project-endmatter h2 { margin: 0; font-family: var(--serif); font-size: clamp(2.15rem,4vw,3rem); font-weight: 600; line-height: 1.08; letter-spacing: -.035em; }
+.citation-card { position: relative; margin-top: 24px; }
+.citation-card pre { margin: 0; overflow-x: auto; padding: 62px 26px 28px; border: 1px solid #303632; border-radius: 20px; color: #f7f5ef; background: #171a18; box-shadow: 0 18px 38px rgba(25,34,32,.16); }
+.citation-card code { display: block; color: inherit; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8rem; line-height: 1.7; }
+.citation-copy { position: absolute; z-index: 1; top: 14px; right: 14px; min-width: 74px; padding: 7px 12px; border: 1px solid rgba(247,245,239,.28); border-radius: 9px; color: #f7f5ef; background: rgba(247,245,239,.08); cursor: pointer; font-size: .7rem; font-weight: 740; letter-spacing: .05em; }
+.citation-copy:hover, .citation-copy:focus-visible { border-color: rgba(247,245,239,.62); background: rgba(247,245,239,.15); }
+.resource-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
 
 .site-footer { padding-block: 28px; border-top: 1px solid var(--line); background: var(--paper); }
 .site-footer .shell { display: grid; grid-template-columns: 1fr auto auto; gap: 30px; align-items: center; }
