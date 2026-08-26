@@ -202,7 +202,7 @@
         <section class="article-section experiments" id="experiments" aria-label="Current results">
           <div class="reading-column">
             <p class="lead"><strong>Task performance.</strong> To evaluate Stream-WAM across different World Action Model families, we begin by further training FastWAM-Joint with our streaming approach on LIBERO. We then extend the same design to X-WAM on RoboCasa and StarWAM on RoboTwin 2.0 to examine its applicability across benchmarks and model families. Our evaluations use four NVIDIA H100 GPUs.</p>
-            <p>We compare Stream-WAM with general purpose robot policies and World Action Model baselines in task performance and inference efficiency. CD denotes variants distilled to a single denoising step through Consistency Distillation. Stream-WAM w/o Action Conditioning removes Action Conditioning, while Stream-WAM w/o Slot Encoder removes the Slot Encoder, isolating the contribution of each component. The tables report results on LIBERO, RoboTwin 2.0, and RoboCasa; best and second best results are shown in <strong>bold</strong> and <u>underlined</u>, respectively.</p>
+            <p>We compare Stream-WAM with general purpose robot policies and World Action Model baselines in task performance and inference efficiency. CD refers to one-step consistency distillation. We also conduct ablation studies on Stream-WAM by removing action conditioning or the slot encoder to evaluate the contribution of each component. The tables report results on LIBERO, RoboTwin 2.0, and RoboCasa; best and second best results are shown in <strong>bold</strong> and <u>underlined</u>, respectively.</p>
           </div>
 
           <section class="benchmark breakout" id="benchmark-libero" aria-labelledby="libero-title">
@@ -256,7 +256,7 @@
           <section class="benchmark breakout" id="benchmark-robocasa" aria-labelledby="robocasa-title">
             <div class="benchmark-intro">
               <h3 id="robocasa-title">RoboCasa</h3>
-              <p>RoboCasa evaluation follows the standard 24-task protocol, covering 24 kitchen manipulation tasks with 50 trials per task and reporting average success. Published policy results from the <a href="https://www.sota2.com/research/sota/robotic-manipulation-on-robocasa?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">RoboCasa leaderboard</a> and the <a href="https://arxiv.org/abs/2601.16163" target="_blank" rel="noopener noreferrer">Cosmos Policy study</a> are included as reference points.</p>
+              <p>RoboCasa evaluation follows the standard 24-task protocol, covering 24 kitchen manipulation tasks with 50 trials per task and reporting average success.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable RoboCasa results table">
               <table>

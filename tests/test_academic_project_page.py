@@ -1024,9 +1024,8 @@ def test_results_narrative_reports_protocol_and_speedups() -> None:
         "X-WAM on RoboCasa",
         "StarWAM on RoboTwin 2.0",
         "four NVIDIA H100 GPUs",
-        "CD denotes variants distilled to a single denoising step through Consistency Distillation",
-        "Stream-WAM w/o Action Conditioning removes Action Conditioning",
-        "Stream-WAM w/o Slot Encoder removes the Slot Encoder",
+        "CD refers to one-step consistency distillation",
+        "We also conduct ablation studies on Stream-WAM by removing action conditioning or the slot encoder to evaluate the contribution of each component",
         "12.0× on LIBERO",
         "4.0× on RoboTwin 2.0",
         "3.7× on RoboCasa",
@@ -1041,6 +1040,9 @@ def test_results_narrative_reports_protocol_and_speedups() -> None:
         "Stream-WAM reaches 87.6 total success",
         "Stream-WAM reports 75.35% average task success",
         "Every bar is labeled with its reported value",
+        "Consistency Distillation",
+        "Stream-WAM w/o Action Conditioning removes Action Conditioning",
+        "Published policy results from",
     ):
         assert redundant_summary not in visible_text
 
@@ -1138,8 +1140,6 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
     section_text = {name: " ".join(parts) for name, parts in parsed.section_text.items()}
     assert all(fragment in section_text["benchmark-libero"] for fragment in ("four suites", "10 tasks per suite", "50 trials per task", "long and short tasks"))
     assert all(fragment in section_text["benchmark-robocasa"] for fragment in ("24 kitchen manipulation tasks", "50 trials per task", "average success"))
-    _, html = parse_page()
-    assert "https://www.sota2.com/research/sota/robotic-manipulation-on-robocasa?utm_source=chatgpt.com" in html
     assert all(fragment in section_text["benchmark-robotwin"] for fragment in ("50 tasks", "100 rollout episodes per task", "Clean", "Random", "domain-randomization"))
 
 
