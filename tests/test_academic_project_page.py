@@ -434,7 +434,7 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
     assert "broader analysis, limitations, and failure cases" in visible_text
     assert "Model lineage." in visible_text
     assert "Code and models are available now" in visible_text
-    assert "Action-Conditioned Attention" in visible_text
+    assert "Action-conditioned attention" in visible_text
     assert theme_colors == ["#f7f5ef"]
     assert not any(token in html.casefold() for token in ("todo", "tbd", "lorem ipsum"))
 
@@ -473,6 +473,9 @@ def test_wide_hero_accents_only_streaming_and_real_time() -> None:
     assert "title-accent-model" not in html
     assert "title-accent-control" not in html
     assert "--shell: min(1480px" in css
+    realtime_rule = re.search(r"\.title-accent-realtime\s*\{([^}]*)\}", css)
+    assert realtime_rule is not None
+    assert "white-space: nowrap" in realtime_rule.group(1)
 
 
 def test_headline_metrics_follow_actions_and_use_libero_speedups() -> None:
@@ -486,13 +489,14 @@ def test_headline_metrics_follow_actions_and_use_libero_speedups() -> None:
     assert actions_end < metrics_start < figure_start
     for text in ("98.20%", "41.0 ms", "12.0×", "4.74 s", "3.4×"):
         assert text in metric_markup
+    for label in ("LIBERO average success", "LIBERO chunk time", "LIBERO total time"):
+        assert label in metric_markup
     assert metric_markup.count("vs FastWAM") == 2
     assert "RoboCasa total time" not in metric_markup
 
 
-def test_hero_visual_compares_streaming_strategies_without_numeric_timing() -> None:
-    parser, html = parse_page()
-    visible_text = " ".join(parser.text_parts)
+def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
+    _, html = parse_page()
     css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
     pipeline_markup = html[
         html.index('<div class="pipeline-visual"') : html.index(
@@ -500,31 +504,48 @@ def test_hero_visual_compares_streaming_strategies_without_numeric_timing() -> N
         )
     ]
 
-    for label in (
-        "Synchronous WAM",
+    assert pipeline_markup.count('class="runtime-row') == 2
+    assert "Synchronous WAM" in pipeline_markup
+    assert "Stream-WAM" in pipeline_markup
+    for forbidden in (
         "Naive Async",
-        "Stream-WAM",
-        "Inference",
-        "Execution",
-        "Action Prefix",
-        "Action-Conditioned Attention",
+        ">Inference<",
+        "Video &amp; Action Chunk",
+        "Current Observation",
+        "Directed feedback",
         "Visual Future + Next Action Chunk",
     ):
-        assert label in visible_text
-
-    assert "assets/libero-drawer.webp" not in html
-    assert "title-accent-streaming" in html
-    assert "title-accent-realtime" in html
+        assert forbidden not in pipeline_markup
+    assert 'class="generation-window' in pipeline_markup
     assert 'aria-describedby="pipeline-description pipeline-caption"' in pipeline_markup
     assert 'class="sr-only" id="pipeline-description"' in pipeline_markup
-    assert "--pipeline-detail-size: .68rem" in css
     assert not re.search(r"\b\d+\s*(?:actions?|ms|seconds?)\b", pipeline_markup, re.I)
-    assert "@keyframes pipeline-sweep" in css
-    assert "@keyframes attention-flow" in css
+    assert "@keyframes generation-reveal" in css
+    assert "@keyframes timeline-sweep" in css
     assert "@media (prefers-reduced-motion: reduce)" in css
     reduced_motion = css.split("@media (prefers-reduced-motion: reduce)", 1)[1]
-    assert ".pipeline-playhead { display: none; }" in reduced_motion
-    assert ".attention-arrow { animation: none; }" in reduced_motion
+    assert ".generation-window" in reduced_motion
+    assert ".timeline-cursor" in reduced_motion
+    assert "animation: none" in reduced_motion
+
+
+def test_attention_matrix_compares_visual_and_action_attention() -> None:
+    _, html = parse_page()
+    pipeline_markup = html[
+        html.index('<div class="pipeline-visual"') : html.index(
+            '<figcaption id="pipeline-caption"'
+        )
+    ]
+
+    assert 'class="attention-matrix' in pipeline_markup
+    assert pipeline_markup.count('class="matrix-cell visual-token') >= 4
+    assert pipeline_markup.count('class="matrix-cell action-token') >= 4
+    assert pipeline_markup.count('class="matrix-cell directed-cell') >= 2
+    assert "Action-conditioned attention" in pipeline_markup
+    assert "Visual token" in pipeline_markup
+    assert "Action token" in pipeline_markup
+    assert "Standard WAM" in pipeline_markup
+    assert "Stream-WAM" in pipeline_markup
 
 
 def test_readme_leads_with_project_page_and_has_current_citation() -> None:

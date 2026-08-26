@@ -50,63 +50,73 @@
             <span class="button button-pending" aria-disabled="true">Paper · Coming Soon</span>
           </div>
           <div class="headline-results" aria-label="Selected LIBERO results">
-            <p><strong>98.20%</strong><span>Average success</span></p>
-            <p><strong>41.0 ms</strong><span>Chunk time</span><small><b>12.0× faster</b> vs FastWAM</small></p>
-            <p><strong>4.74 s</strong><span>Total time</span><small><b>3.4× faster</b> vs FastWAM</small></p>
+            <p><strong>98.20%</strong><span>LIBERO average success</span></p>
+            <p><strong>41.0 ms</strong><span>LIBERO chunk time</span><small><b>12.0× faster</b> vs FastWAM</small></p>
+            <p><strong>4.74 s</strong><span>LIBERO total time</span><small><b>3.4× faster</b> vs FastWAM</small></p>
           </div>
         </div>
         <figure class="hero-figure pipeline-figure" aria-labelledby="pipeline-caption">
-          <div class="pipeline-visual" role="img" aria-labelledby="pipeline-graphic-title" aria-describedby="pipeline-description pipeline-caption">
-            <span class="sr-only" id="pipeline-graphic-title">Comparison of inference and execution strategies</span>
-            <p class="sr-only" id="pipeline-description">Three control loops are compared. Synchronous WAM alternates inference and execution, leaving the robot waiting. Naive asynchronous inference overlaps execution but breaks at the handoff because the model does not know the motion already committed. Stream-WAM keeps execution continuous while inference runs, feeds the committed action prefix through action-conditioned attention, and jointly produces a visual future and the next action chunk.</p>
-            <div class="pipeline-heading" aria-hidden="true">
-              <div><span>Streaming control loop</span><strong>Inference × Execution</strong></div>
-              <div class="pipeline-legend"><span class="legend-inference">Inference</span><span class="legend-execution">Execution</span></div>
+          <div class="pipeline-visual" role="group" aria-labelledby="pipeline-graphic-title" aria-describedby="pipeline-description pipeline-caption">
+            <span class="sr-only" id="pipeline-graphic-title">Synchronous WAM and Stream-WAM runtime and attention comparison</span>
+            <p class="sr-only" id="pipeline-description">The synchronous world-action model alternates long model-update windows with short robot motion, creating idle gaps. Stream-WAM overlaps short model updates with a continuous execution rail. Its attention mask additionally lets the committed action prefix condition future visual tokens.</p>
+            <div class="pipeline-heading">
+              <div><span>Streaming control loop</span><strong>Model update × Robot motion</strong></div>
+              <div class="pipeline-legend" aria-label="Runtime legend"><span class="legend-generation">Model update</span><span class="legend-execution">Robot motion</span></div>
             </div>
 
-            <div class="strategy-row strategy-sync" aria-hidden="true">
-              <div class="strategy-label"><strong>Synchronous WAM</strong><span>Stop · think · act</span></div>
-              <div class="strategy-timeline">
-                <i class="pipeline-playhead"></i>
-                <span class="pipeline-block inference sync-inference-one">Inference</span>
-                <span class="pipeline-block execution sync-execution-one">Execution</span>
-                <span class="pipeline-block inference sync-inference-two">Inference</span>
-                <span class="pipeline-block execution sync-execution-two">Execution</span>
-              </div>
-            </div>
+            <div class="pipeline-layout">
+              <section class="runtime-comparison" aria-labelledby="runtime-comparison-title">
+                <div class="visual-section-heading"><span>01</span><strong id="runtime-comparison-title">Runtime comparison</strong></div>
+                <div class="runtime-row runtime-sync">
+                  <div class="runtime-label"><strong>Synchronous WAM</strong><span>Wait, then move</span></div>
+                  <div class="runtime-timeline" aria-hidden="true">
+                    <span class="timeline-axis"></span><span class="timeline-cursor"></span>
+                    <span class="generation-window generation-one"><i></i><i></i><i></i></span>
+                    <span class="generation-window generation-two"><i></i><i></i><i></i></span>
+                    <span class="execution-rail execution-one"><i></i><i></i><i></i></span>
+                    <span class="execution-rail execution-two"><i></i><i></i><i></i></span>
+                  </div>
+                </div>
+                <div class="runtime-row runtime-stream">
+                  <div class="runtime-label"><strong>Stream-WAM</strong><span>Update while moving</span></div>
+                  <div class="runtime-timeline" aria-hidden="true">
+                    <span class="timeline-axis"></span><span class="timeline-cursor"></span>
+                    <span class="generation-window generation-one"><i></i><i></i><i></i></span>
+                    <span class="generation-window generation-two"><i></i><i></i><i></i></span>
+                    <span class="execution-rail execution-continuous"><i></i><i></i><i></i><i></i><i></i></span>
+                    <span class="action-prefix-segment">Action prefix</span>
+                  </div>
+                </div>
+              </section>
 
-            <div class="strategy-row strategy-naive" aria-hidden="true">
-              <div class="strategy-label"><strong>Naive Async</strong><span>Overlap · uncertain handoff</span></div>
-              <div class="strategy-timeline">
-                <i class="pipeline-playhead"></i>
-                <span class="pipeline-block execution async-execution-one">Execution</span>
-                <span class="pipeline-block inference async-inference">Inference</span>
-                <span class="pipeline-block execution async-execution-two">Execution</span>
-                <span class="handoff-break"><b></b><b></b><b></b></span>
-              </div>
-            </div>
-
-            <div class="strategy-row strategy-stream" aria-hidden="true">
-              <div class="strategy-label"><strong>Stream-WAM</strong><span>Think while acting</span></div>
-              <div class="strategy-timeline">
-                <i class="pipeline-playhead"></i>
-                <span class="pipeline-block execution stream-execution-one">Execution</span>
-                <span class="pipeline-block inference stream-inference">Inference</span>
-                <span class="pipeline-block execution stream-execution-two">Execution</span>
-                <span class="prefix-marker">Action Prefix</span>
-                <span class="smooth-handoff" aria-hidden="true">→</span>
-              </div>
-            </div>
-
-            <div class="attention-panel" aria-hidden="true">
-              <div class="attention-inputs"><span>Current Observation</span><span class="prefix-input">Action Prefix</span></div>
-              <span class="attention-arrow">→</span>
-              <div class="attention-core"><small>Directed feedback</small><strong>Action-Conditioned Attention</strong></div>
-              <span class="attention-arrow">→</span>
-              <div class="attention-output">Visual Future + Next Action Chunk</div>
+              <section class="attention-diagram" aria-labelledby="attention-title">
+                <div class="visual-section-heading"><span>02</span><strong id="attention-title">Action-conditioned attention</strong></div>
+                <div class="matrix-legend"><span class="visual-key">Visual token</span><span class="action-key">Action token</span></div>
+                <div class="matrix-comparison">
+                  <div class="matrix-panel">
+                    <strong>Standard WAM</strong><span>Separated streams</span>
+                    <div class="attention-matrix matrix-standard" aria-hidden="true">
+                      <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                      <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                      <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
+                      <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
+                    </div>
+                  </div>
+                  <div class="matrix-panel matrix-panel-stream">
+                    <strong>Stream-WAM</strong><span>Actions guide the visual future</span>
+                    <div class="attention-matrix matrix-stream" aria-hidden="true">
+                      <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell directed-cell"></i><i class="matrix-cell directed-cell"></i>
+                      <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell directed-cell"></i><i class="matrix-cell directed-cell"></i>
+                      <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
+                      <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
+                    </div>
+                    <small><i aria-hidden="true"></i>Action prefix → future visual tokens</small>
+                  </div>
+                </div>
+              </section>
             </div>
           </div>
-          <figcaption id="pipeline-caption">Stream-WAM overlaps inference with execution and feeds the committed action prefix into future-video generation for a continuous handoff.</figcaption>
+          <figcaption id="pipeline-caption">Short model updates overlap continuous robot motion, while the committed action prefix opens a directed path into future visual tokens.</figcaption>
         </figure>
       </section>
 
