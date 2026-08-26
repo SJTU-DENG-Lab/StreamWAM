@@ -485,7 +485,7 @@ def test_academic_spacetime_method_figure_replaces_the_illustrated_timeline() ->
     )
 
     assert len(figure_images) == 1
-    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260826-5"
+    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260826-6"
     assert figure_images[0]["width"] == "1600"
     assert figure_images[0]["height"] == "740"
     assert figure_images[0]["alt"] == ""
@@ -559,8 +559,6 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "inset-observation",
         "inset-known-context",
         "inset-unknown-slots",
-        "shared-to-known",
-        "lookahead-to-unknown",
         "inset-update",
         "inset-video-1",
         "inset-action-1",
@@ -578,8 +576,11 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "Stream update 2",
         "Temporal overlap",
         "Action-conditioned attention",
-        "Observe O₁",
         "A₀[8:16] = A₁[0:8]",
+        "execute",
+        "shared prefix",
+        "look-ahead",
+        "new actions",
         "known action context",
         "unknown future slots",
         "Stream Update",
@@ -593,6 +594,8 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "AC-Stream update",
         "Standard Joint WAM",
         "handoff",
+        "Observe O₁",
+        "predict A₁ while A₀ continues",
     ):
         assert obsolete_label not in text
     classes = " ".join(
@@ -644,7 +647,8 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
         selection[3], selected_execution[3]
     )
     inset = bounds("detail-inset-frame")
-    assert 0 <= inset[0] < inset[2] <= 1600
+    assert inset[0] == 58
+    assert inset[2] == 1520
     assert 0 <= inset[1] < inset[3] <= 740
     overview_boxes = [
         bounds(element_id)
@@ -671,20 +675,25 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
     known_context = bounds("inset-known-context")
     assert shared_prefix[0] == known_context[0]
     assert shared_prefix[2] == known_context[2]
+    assert shared_prefix[3] < known_context[1]
     lookahead = bounds("inset-a0-lookahead")
     unknown_slots = bounds("inset-unknown-slots")
     assert lookahead[0] == unknown_slots[0]
     assert lookahead[2] == unknown_slots[2]
+    continuation = bounds("inset-a1-continuation")
+    assert continuation[0] == unknown_slots[0]
+    assert continuation[3] < unknown_slots[1]
     observation = by_id["inset-observation"]
     assert float(observation.attrib["x1"]) == a0_overlap[0]
     assert float(observation.attrib["x2"]) == a0_overlap[0]
-    observation_x = float(observation.attrib["x1"])
-    observation_label = by_id["inset-observation-label"]
-    inference_label = by_id["inset-inference-label"]
-    assert "anchor-end" in observation_label.attrib.get("class", "").split()
-    assert "anchor-start" in inference_label.attrib.get("class", "").split()
-    assert float(observation_label.attrib["x"]) <= observation_x - 10
-    assert float(inference_label.attrib["x"]) >= observation_x + 10
+    overview_cycle = by_id["overview-cycle-1"]
+    connector_paths = [
+        element
+        for element in overview_cycle.iter()
+        if element.tag.endswith("path")
+        and "connector" in element.attrib.get("class", "").split()
+    ]
+    assert len(connector_paths) == 1
 
 
 def test_streamwam_method_svg_uses_direct_overlap_mappings_and_routes_outputs() -> None:
@@ -728,26 +737,6 @@ def test_streamwam_method_svg_uses_direct_overlap_mappings_and_routes_outputs() 
 
     observation_path = by_id["inset-observation-input"]
     assert re.findall(r"[A-Za-z]", observation_path.attrib["d"]) == ["M", "H"]
-
-    for path_id in ("shared-to-known", "lookahead-to-unknown"):
-        assert re.findall(r"[A-Za-z]", by_id[path_id].attrib["d"]) == ["M", "V"]
-
-    for path_id, source_id, target_id in (
-        ("shared-to-known", "inset-a0-overlap", "inset-known-context"),
-        ("lookahead-to-unknown", "inset-a0-lookahead", "inset-unknown-slots"),
-    ):
-        coordinates = [
-            float(value)
-            for value in re.findall(r"-?\d+(?:\.\d+)?", by_id[path_id].attrib["d"])
-        ]
-        source = by_id[source_id]
-        target = by_id[target_id]
-        source_center_x = float(source.attrib["x"]) + float(source.attrib["width"]) / 2
-        source_bottom = float(source.attrib["y"]) + float(source.attrib["height"])
-        target_center_x = float(target.attrib["x"]) + float(target.attrib["width"]) / 2
-        target_top = float(target.attrib["y"])
-        assert coordinates == [source_center_x, source_bottom, target_top - 7]
-        assert source_center_x == target_center_x
 
     for path_id, target_id in (
         ("inset-condition-to-video", "inset-video-1"),
