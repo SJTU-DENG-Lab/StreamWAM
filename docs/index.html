@@ -42,12 +42,17 @@
             <span>DENG Lab ↗</span>
           </a>
           <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Stream-WAM</p>
-          <h1 id="hero-title"><span>Streaming Your</span> <span class="title-accent-model">World-Action Model</span> <span>for</span> <span class="title-accent-control">Real-Time Robot Manipulation.</span></h1>
+          <h1 id="hero-title"><span class="title-accent-streaming">Streaming</span> Your World-Action Model for <span class="title-accent-realtime">Real-Time</span> Robot Manipulation.</h1>
           <p class="hero-lede"><strong>Stream-WAM</strong> introduces <strong>action-conditioned streaming</strong> for world-action models. It overlaps world-action inference with robot execution and feeds the <strong>committed action prefix</strong> back into future-video generation, so the model imagines what comes next with knowledge of the motion already underway. The robot keeps acting while its next world-action chunk is prepared.</p>
           <div class="hero-actions" aria-label="Project resources">
             <a class="button button-primary" href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">View code ↗</a>
             <a class="button" href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Get models ↗</a>
             <span class="button button-pending" aria-disabled="true">Paper · Coming Soon</span>
+          </div>
+          <div class="headline-results" aria-label="Selected LIBERO results">
+            <p><strong>98.20%</strong><span>Average success</span></p>
+            <p><strong>41.0 ms</strong><span>Chunk time</span><small><b>12.0× faster</b> vs FastWAM</small></p>
+            <p><strong>4.74 s</strong><span>Total time</span><small><b>3.4× faster</b> vs FastWAM</small></p>
           </div>
         </div>
         <figure class="hero-figure pipeline-figure" aria-labelledby="pipeline-caption">
@@ -103,11 +108,6 @@
           </div>
           <figcaption id="pipeline-caption">Stream-WAM overlaps inference with execution and feeds the committed action prefix into future-video generation for a continuous handoff.</figcaption>
         </figure>
-        <div class="headline-results" aria-label="Selected results">
-          <p><strong>98.20%</strong><span>LIBERO average success</span></p>
-          <p><strong>41.0 ms</strong><span>LIBERO chunk time</span></p>
-          <p><strong>11.76 s</strong><span>RoboCasa total time</span></p>
-        </div>
       </section>
 
       <article class="longform" id="article">

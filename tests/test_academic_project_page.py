@@ -457,11 +457,37 @@ def test_masthead_and_hero_scale_like_the_visual_reference() -> None:
 
     title_rule = re.search(r"\.hero h1\s*\{([^}]*)\}", css)
     assert title_rule is not None
-    assert re.search(r"font-size:\s*clamp\(46px,\s*4\.4vw,\s*68px\)", title_rule.group(1))
+    assert re.search(r"font-size:\s*clamp\(46px,\s*4\.15vw,\s*66px\)", title_rule.group(1))
 
     lead_rule = re.search(r"\.hero-lede\s*\{([^}]*)\}", css)
     assert lead_rule is not None
     assert re.search(r"font-size:\s*clamp\(18px,\s*1\.55vw,\s*22px\)", lead_rule.group(1))
+
+
+def test_wide_hero_accents_only_streaming_and_real_time() -> None:
+    _, html = parse_page()
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+
+    assert '<span class="title-accent-streaming">Streaming</span>' in html
+    assert '<span class="title-accent-realtime">Real-Time</span>' in html
+    assert "title-accent-model" not in html
+    assert "title-accent-control" not in html
+    assert "--shell: min(1480px" in css
+
+
+def test_headline_metrics_follow_actions_and_use_libero_speedups() -> None:
+    _, html = parse_page()
+    actions_start = html.index('class="hero-actions"')
+    actions_end = html.index("</div>", actions_start)
+    metrics_start = html.index('class="headline-results"')
+    figure_start = html.index('class="hero-figure')
+    metric_markup = html[metrics_start:figure_start]
+
+    assert actions_end < metrics_start < figure_start
+    for text in ("98.20%", "41.0 ms", "12.0×", "4.74 s", "3.4×"):
+        assert text in metric_markup
+    assert metric_markup.count("vs FastWAM") == 2
+    assert "RoboCasa total time" not in metric_markup
 
 
 def test_hero_visual_compares_streaming_strategies_without_numeric_timing() -> None:
@@ -487,8 +513,8 @@ def test_hero_visual_compares_streaming_strategies_without_numeric_timing() -> N
         assert label in visible_text
 
     assert "assets/libero-drawer.webp" not in html
-    assert "title-accent-model" in html
-    assert "title-accent-control" in html
+    assert "title-accent-streaming" in html
+    assert "title-accent-realtime" in html
     assert 'aria-describedby="pipeline-description pipeline-caption"' in pipeline_markup
     assert 'class="sr-only" id="pipeline-description"' in pipeline_markup
     assert "--pipeline-detail-size: .68rem" in css
