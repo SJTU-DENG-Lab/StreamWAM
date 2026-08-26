@@ -31,7 +31,7 @@
   <rect width="1600" height="740" fill="#ffffff"/>
 
   <g id="global-overview">
-    <text class="title" x="58" y="40">Streaming overview</text>
+    <text class="title" x="58" y="25">Streaming overview</text>
     <g id="time-axis">
       <path class="axis" d="M220 64 H1538" marker-end="url(#arrow-gray)"/>
       <line id="time-t0" class="landmark" x1="250" y1="52" x2="250" y2="290"/>
@@ -131,9 +131,9 @@
     <rect id="inset-a1-continuation" x="1010" y="487" width="300" height="38" rx="3" fill="#dcece7" stroke="#397c73"/>
     <text class="gold-label" x="920" y="510">shared prefix</text>
     <text class="small" x="1160" y="510">continue from handoff</text>
-    <text class="gold-label" x="920" y="475">A₀[8:16] = A₁[0:8] · same physical actions</text>
+    <text class="gold-label" x="920" y="475">A₀[8:16] = A₁[0:8]</text>
     <path id="inset-handoff" class="connector" d="M1010 453 V472 H1025 V480"/>
-    <text class="small" x="1065" y="474">handoff</text>
+    <text class="small" x="1060" y="464">handoff</text>
 
     <path class="gold-path" d="M920 526 V558"/>
     <rect id="inset-known-context" x="760" y="566" width="160" height="40" rx="3" fill="#f2dfad" stroke="#a97920"/>

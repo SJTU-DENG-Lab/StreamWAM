@@ -469,23 +469,23 @@ def test_academic_spacetime_method_figure_replaces_the_illustrated_timeline() ->
         if tag == "img" and "method-figure-artwork" in attrs.get("class", "").split()
     ]
     caption = (
-        "A₀ contains 32 actions. After its first eight actions, Stream-WAM captures "
-        "O₁ and predicts asynchronously while A₀[8:16] continues to execute. Those "
-        "eight shared actions become A₁[0:8]; at handoff, execution resumes from "
-        "A₁[8] without replaying the overlap."
+        "The overview shows Stream-WAM repeatedly predicting the next visual-action "
+        "chunk during continuous robot execution. The inset magnifies one overlap: "
+        "the executing A₀ segment becomes A₁’s shared prefix, and that known action "
+        "context conditions the next visual future V₁."
     )
     description = (
-        "A static spacetime diagram shows the 32-action A₀ split into eight actions "
-        "before observation, eight actions executed during inference, and 16 unused "
-        "look-ahead actions. A₀[8:16] equals A₁[0:8] and supplies eight known action "
-        "slots; together with eight unknown slots, the 16 condition slots guide the "
-        "next visual future."
+        "A static two-scale spacetime figure. The global t₀-to-t₃ overview shows two "
+        "AC-Stream updates overlapped with continuous execution. A single inset "
+        "magnifies one t-to-t+1 window, showing observation O₁, the aligned "
+        "A₀[8:16] and A₁[0:8] shared actions, handoff into the A₁ continuation, and "
+        "action-context conditioning of V₁."
     )
 
     assert len(figure_images) == 1
-    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260826-3"
+    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260826-4"
     assert figure_images[0]["width"] == "1600"
-    assert figure_images[0]["height"] == "980"
+    assert figure_images[0]["height"] == "740"
     assert figure_images[0]["alt"] == ""
     assert caption in " ".join(parser.text_parts)
     assert description in " ".join(parser.text_parts)
