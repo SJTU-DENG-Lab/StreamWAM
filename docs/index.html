@@ -14,8 +14,8 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <title>Stream-WAM — Streaming World-Action Models</title>
-    <link rel="stylesheet" href="styles.css?v=20260826-6">
-    <script src="script.js?v=20260826-6" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260826-7">
+    <script src="script.js?v=20260826-7" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#article">Skip to article</a>
@@ -41,6 +41,7 @@
             <img class="deng-lab-logo" src="assets/deng-lab.webp" alt="" width="420" height="155">
             <span>DENG Lab ↗</span>
           </a>
+          <div class="hero-main">
           <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Stream-WAM</p>
           <h1 id="hero-title"><span class="title-accent-streaming">Streaming</span> Your World-Action Model for <span class="title-accent-realtime">Real-Time</span> Robot Manipulation.</h1>
           <p class="hero-lede"><strong>Stream-WAM</strong> introduces <strong>action-conditioned streaming</strong> for world-action models. It overlaps world-action inference with robot execution and feeds the <strong>committed action prefix</strong> back into future-video generation, so the model imagines what comes next with knowledge of the motion already underway. The robot keeps acting while its next world-action chunk is prepared.</p>
@@ -54,11 +55,12 @@
             <p><strong>41.0 ms</strong><span>LIBERO chunk time</span><small><b>12.0× faster</b> vs FastWAM</small></p>
             <p><strong>4.74 s</strong><span>LIBERO total time</span><small><b>3.4× faster</b> vs FastWAM</small></p>
           </div>
+          </div>
         </div>
         <figure class="hero-figure pipeline-figure" aria-labelledby="pipeline-caption">
           <div class="pipeline-visual" role="group" aria-labelledby="pipeline-graphic-title" aria-describedby="pipeline-description pipeline-caption">
             <span class="sr-only" id="pipeline-graphic-title">Synchronous WAM and Stream-WAM runtime and attention comparison</span>
-            <p class="sr-only" id="pipeline-description">Both controllers first predict a model chunk. Synchronous WAM then alternates prediction and robot execution, interrupting motion at every new prediction. Stream-WAM keeps robot execution continuous while later predictions run concurrently. The paired attention masks show that standard attention blocks the previous action to next visual path, while action-conditioned attention enables it. Filled cells indicate allowed attention, while dark outlined cells indicate masked connections.</p>
+            <p class="sr-only" id="pipeline-description">Both controllers first predict a model chunk. Synchronous WAM then alternates prediction and robot execution, interrupting motion at every new prediction. Stream-WAM keeps robot execution continuous while later predictions run concurrently. The paired ten-by-ten masks contain two five-token chunks. Standard Joint WAM has no cross-chunk attention. Stream-WAM adds only the aligned action-prefix keys from chunk k to the f1 future-video queries in chunk k plus one. Filled cells indicate allowed attention, while dark outlined cells indicate masked connections.</p>
             <div class="pipeline-heading">
               <div><span>Streaming control loop</span></div>
               <div class="pipeline-legend" aria-label="Runtime legend"><span class="legend-generation">Model Prediction</span><span class="legend-execution">Robot Execution</span></div>
@@ -98,28 +100,42 @@
                 </div>
                 <div class="attention-comparison">
                   <div class="attention-panel attention-standard">
-                    <div class="attention-panel-heading"><strong>Standard attention</strong></div>
-                    <div class="compact-matrix-columns" aria-hidden="true"><span>Vₖ</span><span>Aₖ</span><span>Vₖ₊₁</span><span>Aₖ₊₁</span></div>
-                    <div class="compact-matrix-body">
-                      <div class="compact-matrix-rows" aria-hidden="true"><span>Vₖ</span><span>Aₖ</span><span>Vₖ₊₁</span><span>Aₖ₊₁</span></div>
-                      <div class="attention-matrix compact-attention-matrix standard-attention-matrix" aria-hidden="true">
-                        <i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
-                        <i class="matrix-cell visual-token"></i><i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
-                        <i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell cross-chunk-target"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i>
-                        <i class="matrix-cell visual-token"></i><i class="matrix-cell action-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell action-token"></i>
+                    <div class="attention-panel-heading"><strong>Standard Joint WAM</strong></div>
+                    <div class="mask-chunk-heads" aria-hidden="true"><span>Chunk k</span><span>Chunk k+1</span></div>
+                    <div class="mask-column-labels" aria-hidden="true"><span>f₀ᵏ</span><span>f₁ᵏ</span><span>fₕᵏ</span><span>a₁ᵏ</span><span>aₕᵏ</span><span>f₀ᵏ⁺¹</span><span>f₁ᵏ⁺¹</span><span>fₕᵏ⁺¹</span><span>a₁ᵏ⁺¹</span><span>aₕᵏ⁺¹</span></div>
+                    <div class="mask-matrix-body">
+                      <div class="mask-row-labels" aria-hidden="true"><span>f₀ᵏ</span><span>f₁ᵏ</span><span>fₕᵏ</span><span>a₁ᵏ</span><span>aₕᵏ</span><span>f₀ᵏ⁺¹</span><span>f₁ᵏ⁺¹</span><span>fₕᵏ⁺¹</span><span>a₁ᵏ⁺¹</span><span>aₕᵏ⁺¹</span></div>
+                      <div class="attention-matrix mask-grid-10 standard-attention-matrix" aria-hidden="true">
+                        <i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
+                        <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
                       </div>
                     </div>
                   </div>
                   <div class="attention-panel attention-conditioned">
-                    <div class="attention-panel-heading"><strong>Action-conditioned attention</strong><span class="attention-path-badge">Aₖ → Vₖ₊₁</span></div>
-                    <div class="compact-matrix-columns" aria-hidden="true"><span>Vₖ</span><span>Aₖ</span><span>Vₖ₊₁</span><span>Aₖ₊₁</span></div>
-                    <div class="compact-matrix-body">
-                      <div class="compact-matrix-rows" aria-hidden="true"><span>Vₖ</span><span>Aₖ</span><span>Vₖ₊₁</span><span>Aₖ₊₁</span></div>
-                      <div class="attention-matrix compact-attention-matrix conditioned-attention-matrix" aria-hidden="true">
-                        <i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
-                        <i class="matrix-cell visual-token"></i><i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
-                        <i class="matrix-cell visual-token"></i><i class="matrix-cell cross-chunk-condition"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i>
-                        <i class="matrix-cell visual-token"></i><i class="matrix-cell action-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell action-token"></i>
+                    <div class="attention-panel-heading"><strong>Stream-WAM</strong><span class="attention-path-badge">a-prefixᵏ → f₁ᵏ⁺¹</span></div>
+                    <div class="mask-chunk-heads" aria-hidden="true"><span>Chunk k</span><span>Chunk k+1</span></div>
+                    <div class="mask-column-labels" aria-hidden="true"><span>f₀ᵏ</span><span>f₁ᵏ</span><span>fₕᵏ</span><span>a₁ᵏ</span><span>aₕᵏ</span><span>f₀ᵏ⁺¹</span><span>f₁ᵏ⁺¹</span><span>fₕᵏ⁺¹</span><span>a₁ᵏ⁺¹</span><span>aₕᵏ⁺¹</span></div>
+                    <div class="mask-matrix-body">
+                      <div class="mask-row-labels" aria-hidden="true"><span>f₀ᵏ</span><span>f₁ᵏ</span><span>fₕᵏ</span><span>a₁ᵏ</span><span>aₕᵏ</span><span>f₀ᵏ⁺¹</span><span>f₁ᵏ⁺¹</span><span>fₕᵏ⁺¹</span><span>a₁ᵏ⁺¹</span><span>aₕᵏ⁺¹</span></div>
+                      <div class="attention-matrix mask-grid-10 conditioned-attention-matrix" aria-hidden="true">
+                        <i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell cross-chunk-condition"></i><i class="matrix-cell cross-chunk-condition"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
+                        <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
+                        <i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell action-token"></i><i class="matrix-cell action-token"></i>
                       </div>
                     </div>
                   </div>
@@ -127,7 +143,7 @@
               </section>
             </div>
           </div>
-          <figcaption id="pipeline-caption">Both methods predict before acting. Stream-WAM overlaps later prediction with continuous execution and opens the cross-chunk action-to-visual attention path.</figcaption>
+          <figcaption id="pipeline-caption">Standard Joint WAM keeps its two chunks attention-isolated. Stream-WAM preserves the same within-chunk masks and adds only the aligned action-prefix path from chunk k into the next chunk’s f1 future-video tokens.</figcaption>
         </figure>
       </section>
 

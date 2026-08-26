@@ -536,6 +536,37 @@ def test_hero_width_is_independent_from_article_breakouts() -> None:
     assert "width: var(--hero-shell)" in hero_shell.group(1)
 
 
+def test_hero_main_and_figure_share_the_second_desktop_grid_row() -> None:
+    _, html = parse_page()
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    hero_copy_start = html.index('<div class="hero-copy">')
+    lab_start = html.index('class="lab-lockup"', hero_copy_start)
+    hero_main_start = html.index('<div class="hero-main">', hero_copy_start)
+    figure_start = html.index('class="hero-figure', hero_main_start)
+    hero_main_markup = html[hero_main_start:figure_start]
+
+    assert hero_copy_start < lab_start < hero_main_start < figure_start
+    assert "lab-lockup" not in hero_main_markup
+    for class_name in (
+        "eyebrow",
+        "hero-lede",
+        "hero-actions",
+        "headline-results",
+    ):
+        assert f'class="{class_name}"' in hero_main_markup
+    assert 'id="hero-title"' in hero_main_markup
+
+    assert ".hero-copy { display: contents; }" in css
+    assert ".hero-main { grid-column: 1; grid-row: 2; }" in css
+    assert ".lab-lockup { grid-column: 1; grid-row: 1;" in css
+    assert ".hero-figure { grid-column: 2; grid-row: 2;" in css
+    assert "align-self: stretch" in css
+    stacked_css = css.split("@media (max-width: 1040px)", 1)[1].split(
+        "@media (max-width: 760px)", 1
+    )[0]
+    assert ".hero-copy { display: block; }" in stacked_css
+
+
 def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
     _, html = parse_page()
     css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
@@ -614,38 +645,29 @@ def test_attention_matrix_compares_visual_and_action_attention() -> None:
         )
     ]
 
-    assert pipeline_markup.count('class="attention-matrix compact-attention-matrix') == 2
+    assert pipeline_markup.count('class="attention-matrix mask-grid-10') == 2
     assert 'class="attention-panel attention-standard"' in pipeline_markup
     assert 'class="attention-panel attention-conditioned"' in pipeline_markup
-    assert pipeline_markup.count('class="matrix-cell cross-chunk-condition') == 1
+    assert pipeline_markup.count('class="matrix-cell cross-chunk-condition') == 2
     assert "Action-conditioned attention" in pipeline_markup
-    assert "Standard attention" in pipeline_markup
-    for token_label in ("Vₖ", "Aₖ", "Vₖ₊₁", "Aₖ₊₁"):
-        assert token_label in pipeline_markup
+    assert "Standard Joint WAM" in pipeline_markup
+    for token_label in (
+        "f₀ᵏ",
+        "f₁ᵏ",
+        "fₕᵏ",
+        "a₁ᵏ",
+        "aₕᵏ",
+        "f₀ᵏ⁺¹",
+        "f₁ᵏ⁺¹",
+        "fₕᵏ⁺¹",
+        "a₁ᵏ⁺¹",
+        "aₕᵏ⁺¹",
+    ):
+        assert pipeline_markup.count(token_label) >= 4
     assert "Allowed" in pipeline_markup
     assert "Masked" in pipeline_markup
-    assert 'class="attention-path-badge">Aₖ → Vₖ₊₁</span>' in pipeline_markup
-    for removed_copy in (
-        "Two-chunk directed attention",
-        "Committed Actions · Chunk k",
-        "Future Visual · Chunk k+1",
-        "Keys",
-        "Queries",
-    ):
-        assert removed_copy not in pipeline_markup
+    assert 'class="attention-path-badge">a-prefixᵏ → f₁ᵏ⁺¹</span>' in pipeline_markup
 
-    standard_future_visual_row = (
-        '<i class="matrix-cell visual-token"></i>'
-        '<i class="matrix-cell masked-cell cross-chunk-target"></i>'
-        '<i class="matrix-cell visual-token"></i>'
-        '<i class="matrix-cell masked-cell"></i>'
-    )
-    conditioned_future_visual_row = (
-        '<i class="matrix-cell visual-token"></i>'
-        '<i class="matrix-cell cross-chunk-condition"></i>'
-        '<i class="matrix-cell visual-token"></i>'
-        '<i class="matrix-cell masked-cell"></i>'
-    )
     compact_markup = re.sub(r">\s+<", "><", pipeline_markup)
     standard_panel = compact_markup[
         compact_markup.index('class="attention-panel attention-standard"') :
@@ -655,8 +677,53 @@ def test_attention_matrix_compares_visual_and_action_attention() -> None:
         compact_markup.index('class="attention-panel attention-conditioned"') :
         compact_markup.index("</section>", compact_markup.index('class="attention-panel attention-conditioned"'))
     ]
-    assert standard_future_visual_row in standard_panel
-    assert conditioned_future_visual_row in conditioned_panel
+
+    def cell_classes(panel: str) -> list[str]:
+        return re.findall(r'<i class="([^"]*\bmatrix-cell\b[^"]*)"></i>', panel)
+
+    standard_cells = cell_classes(standard_panel)
+    conditioned_cells = cell_classes(conditioned_panel)
+    assert len(standard_cells) == 100
+    assert len(conditioned_cells) == 100
+
+    visual = "matrix-cell visual-token"
+    action = "matrix-cell action-token"
+    masked = "matrix-cell masked-cell"
+    cross = "matrix-cell cross-chunk-condition"
+    expected = [masked] * 100
+    for offset in (0, 5):
+        expected[(offset + 0) * 10 + offset + 0] = visual
+        for row in (offset + 1, offset + 2):
+            for column in (offset + 0, offset + 1, offset + 2):
+                expected[row * 10 + column] = visual
+        for row in (offset + 3, offset + 4):
+            for column in (offset + 0, offset + 3, offset + 4):
+                expected[row * 10 + column] = action
+
+    assert standard_cells == expected
+    cross_indices = {(6 * 10) + 3, (6 * 10) + 4}
+    for index, (standard_cell, conditioned_cell) in enumerate(
+        zip(standard_cells, conditioned_cells, strict=True)
+    ):
+        if index in cross_indices:
+            assert standard_cell == masked
+            assert conditioned_cell == cross
+        else:
+            assert conditioned_cell == standard_cell
+
+    off_diagonal = [
+        (row * 10) + column
+        for row in range(10)
+        for column in range(10)
+        if (row < 5 <= column) or (column < 5 <= row)
+    ]
+    assert len(off_diagonal) == 50
+    assert all(standard_cells[index] == masked for index in off_diagonal)
+    assert all(
+        conditioned_cells[index] == masked
+        for index in off_diagonal
+        if index not in cross_indices
+    )
 
     mobile_css = css.split("@media (max-width: 760px)", 1)[1].split(
         "@media (prefers-reduced-motion: reduce)", 1
