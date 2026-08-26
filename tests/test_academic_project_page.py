@@ -522,51 +522,56 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
     ids = {element.attrib["id"] for element in root.iter() if "id" in element.attrib}
     text = " ".join(part.strip() for part in root.itertext() if part.strip())
 
-    assert root.attrib["viewBox"] == "0 0 1600 980"
+    assert root.attrib["viewBox"] == "0 0 1600 740"
     assert {
         "time-axis",
         "time-t0",
         "time-t1",
         "time-t2",
         "time-t3",
-        "row-cold-start",
-        "row-stream-1",
-        "row-stream-2",
-        "observation-0",
-        "observation-1",
+        "global-overview",
+        "overview-cold-start",
+        "overview-cycle-1",
+        "overview-cycle-2",
+        "overview-execution-0",
+        "overview-execution-1",
+        "overview-update-1",
+        "overview-update-2",
+        "overview-video-1",
+        "overview-action-1",
         "joint-wam-0",
-        "ac-update-1",
         "video-0",
-        "video-1",
         "action-0",
-        "action-ribbon-a0",
-        "action-ribbon-a1",
-        "condition-known-slots",
-        "condition-unknown-slots",
-        "observe-marker",
-        "inference-window",
-        "inference-end-tick",
-        "overlap-connectors",
-        "handoff-to-a1-8",
-        "overlap-to-known-slots",
-        "observation-to-update",
-        "slots-to-update",
-        "condition-to-video-v1",
+        "inset-selection",
+        "inset-callout",
+        "detail-inset",
+        "detail-inset-frame",
+        "inset-a0-before",
+        "inset-a0-overlap",
+        "inset-a0-lookahead",
+        "inset-a1-prefix",
+        "inset-a1-continuation",
+        "inset-observation",
+        "inset-known-context",
+        "inset-unknown-slots",
+        "inset-update",
+        "inset-video-1",
+        "inset-action-1",
     } <= ids
     for label in (
         "Cold start",
-        "Observation O₀",
+        "Streaming overview",
+        "Robot execution A₀",
+        "Robot execution A₁",
         "Joint WAM",
-        "AC-Stream update",
-        "A₀ · 32 actions",
-        "A₁ · 32 actions",
+        "AC-Stream update 1",
+        "AC-Stream update 2",
+        "One overlap window",
         "Observe O₁",
-        "AC-Stream inference",
         "A₀[8:16] = A₁[0:8]",
-        "16 condition slots",
-        "8 known action slots",
-        "8 unknown slots",
-        "resume at A₁[8]",
+        "known action context",
+        "unknown future slots",
+        "handoff",
     ):
         assert label in text
     for obsolete_label in (
@@ -575,10 +580,16 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "completion time varies",
     ):
         assert obsolete_label not in text
+    classes = " ".join(
+        element.attrib.get("class", "") for element in root.iter()
+    ).split()
+    assert "action-cell" not in classes
+    assert "condition-slot" not in classes
+    assert sum(element.attrib.get("id") == "detail-inset" for element in root.iter()) == 1
     assert not re.search(r"\b(?:VM|IDM|FDM|cache|caches)\b", text, re.IGNORECASE)
 
 
-def test_streamwam_method_svg_encodes_exact_action_overlap_and_condition_slots() -> None:
+def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_whitespace() -> None:
     assert METHOD_FIGURE_PATH.is_file()
     root = ET.parse(METHOD_FIGURE_PATH).getroot()
     by_id = {
@@ -586,57 +597,48 @@ def test_streamwam_method_svg_encodes_exact_action_overlap_and_condition_slots()
         for element in root.iter()
         if "id" in element.attrib
     }
-    svg_namespace = "{http://www.w3.org/2000/svg}"
-
-    a0_cells = by_id["action-ribbon-a0"].findall(f"{svg_namespace}rect")
-    a1_cells = by_id["action-ribbon-a1"].findall(f"{svg_namespace}rect")
-    known_slots = by_id["condition-known-slots"].findall(f"{svg_namespace}rect")
-    unknown_slots = by_id["condition-unknown-slots"].findall(f"{svg_namespace}rect")
-
-    assert len(a0_cells) == 32
-    assert len(a1_cells) == 32
-    assert len(known_slots) == 8
-    assert len(unknown_slots) == 8
-    assert [cell.attrib["id"] for cell in a0_cells] == [
-        f"a0-cell-{index}" for index in range(32)
-    ]
-    assert [cell.attrib["id"] for cell in a1_cells] == [
-        f"a1-cell-{index}" for index in range(32)
-    ]
-
-    def classes(element: ET.Element) -> set[str]:
-        return set(element.attrib.get("class", "").split())
-
-    assert all("executed" in classes(cell) for cell in a0_cells[:8])
-    assert all("shared" in classes(cell) for cell in a0_cells[8:16])
-    assert all("lookahead" in classes(cell) for cell in a0_cells[16:])
-    assert all("shared" in classes(cell) for cell in a1_cells[:8])
-    assert all("executed" in classes(cell) for cell in a1_cells[8:24])
-    assert all("lookahead" in classes(cell) for cell in a1_cells[24:])
-
-    for cells in (a0_cells, a1_cells):
-        x_positions = [float(cell.attrib["x"]) for cell in cells]
-        assert [right - left for left, right in zip(x_positions, x_positions[1:])] == [
-            30.0
-        ] * 31
-
-    for offset in range(8):
-        assert float(by_id[f"a0-cell-{offset + 8}"].attrib["x"]) == float(
-            by_id[f"a1-cell-{offset}"].attrib["x"]
-        )
-        assert float(by_id[f"known-slot-{offset}"].attrib["x"]) == float(
-            by_id[f"a0-cell-{offset + 8}"].attrib["x"]
+    def bounds(element_id: str) -> tuple[float, float, float, float]:
+        element = by_id[element_id]
+        left = float(element.attrib["x"])
+        top = float(element.attrib["y"])
+        return (
+            left,
+            top,
+            left + float(element.attrib["width"]),
+            top + float(element.attrib["height"]),
         )
 
-    observation_x = float(by_id["observe-marker"].attrib["data-x"])
-    inference_start_x = float(by_id["inference-window"].attrib["data-start-x"])
-    inference_end_x = float(by_id["inference-end-tick"].attrib["data-x"])
-    handoff_x = float(by_id["handoff-to-a1-8"].attrib["data-handoff-x"])
-    assert observation_x == inference_start_x == float(by_id["a0-cell-8"].attrib["x"])
-    assert inference_start_x < inference_end_x < handoff_x
-    assert inference_end_x not in {
-        float(cell.attrib["x"]) for cell in a0_cells
-    }
+    for execution_id, update_id in (
+        ("overview-execution-0", "overview-update-1"),
+        ("overview-execution-1", "overview-update-2"),
+    ):
+        execution = bounds(execution_id)
+        update = bounds(update_id)
+        assert execution[0] < update[0] < update[2] <= execution[2]
+
+    inset = bounds("detail-inset-frame")
+    assert 0 <= inset[0] < inset[2] <= 1600
+    assert 0 <= inset[1] < inset[3] <= 740
+    overview_boxes = [
+        bounds(element_id)
+        for element_id in (
+            "overview-execution-0",
+            "overview-execution-1",
+            "overview-update-1",
+            "overview-update-2",
+            "overview-video-1",
+            "overview-action-1",
+        )
+    ]
+    assert max(box[3] for box in overview_boxes) < inset[1]
+
+    a0_overlap = bounds("inset-a0-overlap")
+    a1_prefix = bounds("inset-a1-prefix")
+    assert a0_overlap[0] == a1_prefix[0]
+    assert a0_overlap[2] == a1_prefix[2]
+    observation = by_id["inset-observation"]
+    assert float(observation.attrib["x1"]) == a0_overlap[0]
+    assert float(observation.attrib["x2"]) == a0_overlap[0]
 
 
 def test_streamwam_method_svg_routes_both_inputs_to_update_and_actions_to_visual_future() -> None:
@@ -669,18 +671,18 @@ def test_streamwam_method_svg_routes_both_inputs_to_update_and_actions_to_visual
                 index += 1
         return x, y
 
-    update = by_id["ac-update-1"]
+    update = by_id["inset-update"]
     update_x = float(update.attrib["x"])
     update_y = float(update.attrib["y"])
     update_bottom = update_y + float(update.attrib["height"])
-    for path_id in ("observation-to-update", "slots-to-update"):
+    for path_id in ("inset-observation-input", "inset-context-input"):
         endpoint_x, endpoint_y = path_endpoint(path_id)
         assert endpoint_x == update_x - 7
         assert update_y <= endpoint_y <= update_bottom
 
     for path_id, target_id in (
-        ("condition-to-video-v1", "video-1"),
-        ("action-output-path-1", "action-output-1"),
+        ("inset-condition-to-video", "inset-video-1"),
+        ("inset-action-output", "inset-action-1"),
     ):
         endpoint_x, endpoint_y = path_endpoint(path_id)
         target = by_id[target_id]
@@ -690,13 +692,12 @@ def test_streamwam_method_svg_routes_both_inputs_to_update_and_actions_to_visual
         assert endpoint_x == target_x - 7
         assert target_y <= endpoint_y <= target_bottom
 
-    handoff_x, handoff_y = path_endpoint("handoff-to-a1-8")
-    a1_cell_8 = by_id["a1-cell-8"]
-    assert handoff_x == float(a1_cell_8.attrib["x"]) + float(a1_cell_8.attrib["width"]) / 2
-    assert handoff_y < float(a1_cell_8.attrib["y"])
-
-    assert by_id["overlap-to-known-slots"].attrib["data-source"] == "a0-8-16"
-    assert by_id["overlap-to-known-slots"].attrib["data-target"] == "condition-known-slots"
+    handoff_x, handoff_y = path_endpoint("inset-handoff")
+    continuation = by_id["inset-a1-continuation"]
+    continuation_left = float(continuation.attrib["x"])
+    continuation_right = continuation_left + float(continuation.attrib["width"])
+    assert continuation_left <= handoff_x <= continuation_right
+    assert handoff_y < float(continuation.attrib["y"])
 
 
 def test_streamwam_method_svg_reserves_readable_space_for_update_labels() -> None:
@@ -708,16 +709,17 @@ def test_streamwam_method_svg_reserves_readable_space_for_update_labels() -> Non
         if "id" in element.attrib
     }
 
-    assert float(by_id["observation-1"].attrib["width"]) >= 110
-    assert float(by_id["ac-update-1"].attrib["width"]) >= 130
-    assert float(by_id["video-1"].attrib["width"]) >= 120
+    assert float(by_id["overview-update-1"].attrib["width"]) >= 130
+    assert float(by_id["overview-update-2"].attrib["width"]) >= 130
+    assert float(by_id["inset-update"].attrib["width"]) >= 115
+    assert float(by_id["detail-inset-frame"].attrib["width"]) >= 850
 
 
 def test_streamwam_second_update_is_a_lighter_repetition() -> None:
     assert METHOD_FIGURE_PATH.is_file()
     root = ET.parse(METHOD_FIGURE_PATH).getroot()
     second_update = next(
-        element for element in root.iter() if element.attrib.get("id") == "row-stream-2"
+        element for element in root.iter() if element.attrib.get("id") == "overview-cycle-2"
     )
 
     assert 0.65 <= float(second_update.attrib.get("opacity", "1")) <= 0.8
