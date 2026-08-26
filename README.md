@@ -88,57 +88,92 @@ single-task rollout, and evaluation controls.
 
 ## Current results
 
-All StreamWAM models are initialized from FastWAM-Joint checkpoints and then
-further trained. The RoboCasa implementation builds on X-WAM, while the
-RoboTwin implementation builds on StarWAM.
+Stream-WAM is further trained from FastWAM-Joint on LIBERO. To evaluate the
+same streaming design across benchmarks and World Action Model families, the
+RoboCasa study builds on X-WAM and the RoboTwin 2.0 study builds on StarWAM.
 
-### LIBERO
+### Task performance
 
-We evaluate all methods on four LIBERO suites with 50 trials per task and 10
-tasks per suite. Success rates are reported as percentages, and `Average` is
-the arithmetic mean across LIBERO-10, LIBERO-Spatial, LIBERO-Goal, and
-LIBERO-Object. `Chunk Time` measures the average inference latency per action
-chunk, while `Episode Time` reports the average wall-clock duration for long-
-and short-horizon tasks.
+CD denotes one-step consistency distillation. We also report Stream-WAM
+ablations without action conditioning and without the slot encoder. Best and
+second-best results are shown in **bold** and <u>underlined</u>, respectively.
 
-| Method | LIBERO-10 | Spatial | Goal | Object | Average (%) ↑ | Chunk Time (ms) ↓ | Episode Time (s) ↓ Long / Short |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| FastWAM | 96.20 | 96.20 | 94.20 | 96.20 | 95.70 | 493.0 | 16.31 / 8.25 |
-| FastWAM-Joint-CD | 97.20 | 99.60 | 98.60 | 100.00 | 98.85 | 114.2 | 6.89 / 3.74 |
-| FastWAM-RTC | 58.40 | 76.20 | 77.00 | 83.40 | 73.75 | 142.3 | 6.23 / 3.20 |
-| StreamWAM | 96.60 | 98.80 | 97.40 | 100.00 | 98.20 | 41.0 | 5.36 / 3.15 |
-| w/o Action Conditioning | 94.40 | 96.40 | 96.60 | 97.60 | 96.25 | 35.1 | 5.20 / 2.92 |
-| w/o Slot Encoder | 95.60 | 98.40 | 96.80 | 99.80 | 97.65 | 36.3 | 5.31 / 3.01 |
+#### LIBERO
 
-StreamWAM achieves a 98.20% average success rate with a chunk latency of
-41.0 ms, providing a strong balance between control performance and streaming
-efficiency. It reduces chunk latency by approximately 12.0× compared with
-FastWAM and 2.8× compared with FastWAM-Joint-CD. Removing action conditioning
-decreases the average success rate by 1.95 percentage points, while removing
-the slot encoder results in a 0.55-point drop.
+LIBERO evaluation covers four suites with 10 tasks per suite and 50 trials per
+task. Success is averaged across Long, Spatial, Goal, and Object.
 
-### RoboCasa
-
-We evaluate on the standard RoboCasa protocol across 24 kitchen manipulation
-tasks, with 50 trials per task, and report the average success rate.
-
-| Method | Accuracy (%) ↑ | Chunk Time (ms) ↓ | Total Time (s) ↓ |
-|---|---:|---:|---:|
-| X-WAM | 75.42 | 374.07 | 17.36 |
-| X-WAM-CD | 75.33 | 134.37 | 13.04 |
-| Stream-WAM | 75.35 | 115.98 | 9.49 |
-
-### RoboTwin
-
-We evaluate 50 RoboTwin 2.0 tasks with 100 rollout episodes per task. `Clean`
-reports the success rate under the easy setting, while `Random` reports the
-success rate under the hard domain-randomization setting.
-
-| Method | Clean (%) ↑ | Random (%) ↑ | Total (%) ↑ | Chunk Time (ms) ↓ | Total Time (s) ↓ |
+| Method | Long | Spatial | Goal | Object | Average ↑ |
 |---|---:|---:|---:|---:|---:|
-| StarWAM | 84.8 | 86.0 | 85.4 | 189.3 | — |
-| StarWAM-CD | 79.0 | 79.2 | 79.1 | 81.6 | — |
-| StreamWAM | 87.2 | 88.8 | 87.6 | — | 112.2 |
+| OpenVLA | 53.7 | 84.7 | 79.2 | 88.4 | 76.5 |
+| π₀ | 85.2 | 96.8 | 95.8 | 98.8 | 94.1 |
+| π₀.₅ | 92.4 | <u>98.8</u> | <u>98.0</u> | 98.2 | 96.9 |
+| Motus | **97.6** | 96.8 | 96.6 | <u>99.8</u> | 97.7 |
+| Fast-WAM | 95.2 | 98.2 | 97.0 | **100.0** | 97.6 |
+| FastWAM-Joint-CD | <u>97.20</u> | **99.60** | **98.60** | **100.00** | **98.85** |
+| FastWAM-RTC | 58.40 | 76.20 | 77.00 | 83.40 | 73.75 |
+| Stream-WAM (Ours) | 96.60 | <u>98.80</u> | 97.40 | **100.00** | <u>98.20</u> |
+| Stream-WAM w/o Action Conditioning | 94.40 | 96.40 | 96.60 | 97.60 | 96.25 |
+| Stream-WAM w/o Slot Encoder | 95.60 | 98.40 | 96.80 | <u>99.80</u> | 97.65 |
+
+#### RoboTwin 2.0
+
+RoboTwin 2.0 evaluates 50 tasks with 100 rollout episodes per task. Clean
+reports the easy setting and Random reports the hard domain-randomization
+setting.
+
+| Method | Clean ↑ | Random ↑ | Total ↑ |
+|---|---:|---:|---:|
+| π₀ | 65.92 | 58.40 | 62.2 |
+| π₀.₅ | 82.74 | 76.76 | 79.8 |
+| Motus | <u>88.66</u> | 87.02 | <u>87.8</u> |
+| Motus from WAN2.2 | 77.56 | 77.00 | 77.3 |
+| Fast-WAM | **91.88** | **91.78** | **91.8** |
+| StarWAM-Joint | 84.8 | 86.0 | 85.4 |
+| StarWAM-CD | 79.0 | 79.2 | 79.1 |
+| Stream-WAM (Ours) | 87.2 | <u>88.8</u> | 87.6 |
+
+#### RoboCasa
+
+RoboCasa evaluation follows the standard 24-task protocol, covering 24
+kitchen manipulation tasks with 50 trials per task and reporting average
+success.
+
+| Method | Average Success ↑ |
+|---|---:|
+| π₀.₅ | 41.4% |
+| π₀-FAST | 61.2% |
+| π₀ | 62.5% |
+| Cosmos Policy | 67.1% |
+| X-WAM | **75.42%** |
+| X-WAM-CD | 75.33% |
+| Stream-WAM (Ours) | <u>75.35%</u> |
+
+### Inference efficiency
+
+Chunk Time measures the latency required to prepare the next action chunk.
+Episode Time captures the accumulated cost of inference, execution, and
+replanning over a complete rollout.
+
+| Benchmark | Method | Chunk Time | Episode Time |
+|---|---|---:|---:|
+| LIBERO | FastWAM | 493.0 ms | 16.31 s Long / 8.25 s Short |
+| LIBERO | FastWAM-Joint-CD | 114.2 ms | 6.89 s Long / 3.74 s Short |
+| LIBERO | FastWAM-RTC | 142.3 ms | 6.23 s Long / 3.20 s Short |
+| LIBERO | Stream-WAM | 41.0 ms | 5.36 s Long / 3.15 s Short |
+| LIBERO | Stream-WAM w/o Action Conditioning | 35.1 ms | 5.20 s Long / 2.92 s Short |
+| LIBERO | Stream-WAM w/o Slot Encoder | 36.3 ms | 5.31 s Long / 3.01 s Short |
+| RoboTwin 2.0 | StarWAM-Joint | 190.17 ms | 110.22 s |
+| RoboTwin 2.0 | StarWAM-CD | 81.21 ms | 102.59 s |
+| RoboTwin 2.0 | Stream-WAM | 47.09 ms | 77.48 s |
+| RoboCasa | X-WAM | 374.07 ms | 17.36 s |
+| RoboCasa | X-WAM-CD | 134.37 ms | 13.04 s |
+| RoboCasa | Stream-WAM | 115.98 ms | 9.49 s |
+
+Relative to the corresponding teacher, Stream-WAM reduces chunk latency by
+12.0× on LIBERO, 4.0× on RoboTwin 2.0, and 3.2× on RoboCasa. The corresponding
+end-to-end speedups are 3.0× and 2.6× for long and short LIBERO tasks, 1.4× on
+RoboTwin 2.0, and 1.8× on RoboCasa.
 
 ## Runtime layout
 

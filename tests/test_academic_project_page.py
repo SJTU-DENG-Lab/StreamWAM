@@ -818,12 +818,80 @@ def test_readme_leads_with_project_page_and_has_current_citation() -> None:
     assert "24 kitchen manipulation tasks" in normalized_readme
     assert "50 trials per task" in normalized_readme
     assert "average success" in normalized_readme
-    assert "| X-WAM | 75.42 | 374.07 | 17.36 |" in readme
-    assert "| X-WAM-CD | 75.33 | 134.37 | 13.04 |" in readme
-    assert "| Stream-WAM | 75.35 | 115.98 | 9.49 |" in readme
-    robocasa_section = readme.split("### RoboCasa", 1)[1].split("### RoboTwin", 1)[0]
-    for obsolete in ("504.00", "37.31", "135.21", "33.60", "136.76", "11.76", "| StreamWAM |"):
-        assert obsolete not in robocasa_section
+    current_results = readme.split("## Current results", 1)[1].split(
+        "## Runtime layout", 1
+    )[0]
+    expected_tables = (
+        """
+| Method | Long | Spatial | Goal | Object | Average ↑ |
+|---|---:|---:|---:|---:|---:|
+| OpenVLA | 53.7 | 84.7 | 79.2 | 88.4 | 76.5 |
+| π₀ | 85.2 | 96.8 | 95.8 | 98.8 | 94.1 |
+| π₀.₅ | 92.4 | <u>98.8</u> | <u>98.0</u> | 98.2 | 96.9 |
+| Motus | **97.6** | 96.8 | 96.6 | <u>99.8</u> | 97.7 |
+| Fast-WAM | 95.2 | 98.2 | 97.0 | **100.0** | 97.6 |
+| FastWAM-Joint-CD | <u>97.20</u> | **99.60** | **98.60** | **100.00** | **98.85** |
+| FastWAM-RTC | 58.40 | 76.20 | 77.00 | 83.40 | 73.75 |
+| Stream-WAM (Ours) | 96.60 | <u>98.80</u> | 97.40 | **100.00** | <u>98.20</u> |
+| Stream-WAM w/o Action Conditioning | 94.40 | 96.40 | 96.60 | 97.60 | 96.25 |
+| Stream-WAM w/o Slot Encoder | 95.60 | 98.40 | 96.80 | <u>99.80</u> | 97.65 |
+        """.strip(),
+        """
+| Method | Clean ↑ | Random ↑ | Total ↑ |
+|---|---:|---:|---:|
+| π₀ | 65.92 | 58.40 | 62.2 |
+| π₀.₅ | 82.74 | 76.76 | 79.8 |
+| Motus | <u>88.66</u> | 87.02 | <u>87.8</u> |
+| Motus from WAN2.2 | 77.56 | 77.00 | 77.3 |
+| Fast-WAM | **91.88** | **91.78** | **91.8** |
+| StarWAM-Joint | 84.8 | 86.0 | 85.4 |
+| StarWAM-CD | 79.0 | 79.2 | 79.1 |
+| Stream-WAM (Ours) | 87.2 | <u>88.8</u> | 87.6 |
+        """.strip(),
+        """
+| Method | Average Success ↑ |
+|---|---:|
+| π₀.₅ | 41.4% |
+| π₀-FAST | 61.2% |
+| π₀ | 62.5% |
+| Cosmos Policy | 67.1% |
+| X-WAM | **75.42%** |
+| X-WAM-CD | 75.33% |
+| Stream-WAM (Ours) | <u>75.35%</u> |
+        """.strip(),
+        """
+| Benchmark | Method | Chunk Time | Episode Time |
+|---|---|---:|---:|
+| LIBERO | FastWAM | 493.0 ms | 16.31 s Long / 8.25 s Short |
+| LIBERO | FastWAM-Joint-CD | 114.2 ms | 6.89 s Long / 3.74 s Short |
+| LIBERO | FastWAM-RTC | 142.3 ms | 6.23 s Long / 3.20 s Short |
+| LIBERO | Stream-WAM | 41.0 ms | 5.36 s Long / 3.15 s Short |
+| LIBERO | Stream-WAM w/o Action Conditioning | 35.1 ms | 5.20 s Long / 2.92 s Short |
+| LIBERO | Stream-WAM w/o Slot Encoder | 36.3 ms | 5.31 s Long / 3.01 s Short |
+| RoboTwin 2.0 | StarWAM-Joint | 190.17 ms | 110.22 s |
+| RoboTwin 2.0 | StarWAM-CD | 81.21 ms | 102.59 s |
+| RoboTwin 2.0 | Stream-WAM | 47.09 ms | 77.48 s |
+| RoboCasa | X-WAM | 374.07 ms | 17.36 s |
+| RoboCasa | X-WAM-CD | 134.37 ms | 13.04 s |
+| RoboCasa | Stream-WAM | 115.98 ms | 9.49 s |
+        """.strip(),
+    )
+    for expected_table in expected_tables:
+        assert expected_table in current_results
+    for obsolete in (
+        "75.83",
+        "189.3",
+        "81.6",
+        "112.2",
+        "504.00",
+        "37.31",
+        "135.21",
+        "33.60",
+        "136.76",
+        "11.76",
+        "| StreamWAM |",
+    ):
+        assert obsolete not in current_results
     for field in (
         "@misc{denglab2026streamwam,",
         "title        = {Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation}",
