@@ -604,15 +604,29 @@ def test_streamwam_method_svg_encodes_exact_action_overlap_and_condition_slots()
         f"a1-cell-{index}" for index in range(32)
     ]
 
-    assert float(by_id["a0-cell-8"].attrib["x"]) == float(
-        by_id["a1-cell-0"].attrib["x"]
-    )
-    assert float(by_id["a0-cell-15"].attrib["x"]) == float(
-        by_id["a1-cell-7"].attrib["x"]
-    )
-    assert float(by_id["handoff-to-a1-8"].attrib["data-target-x"]) == float(
-        by_id["a1-cell-8"].attrib["x"]
-    )
+    def classes(element: ET.Element) -> set[str]:
+        return set(element.attrib.get("class", "").split())
+
+    assert all("executed" in classes(cell) for cell in a0_cells[:8])
+    assert all("shared" in classes(cell) for cell in a0_cells[8:16])
+    assert all("lookahead" in classes(cell) for cell in a0_cells[16:])
+    assert all("shared" in classes(cell) for cell in a1_cells[:8])
+    assert all("executed" in classes(cell) for cell in a1_cells[8:24])
+    assert all("lookahead" in classes(cell) for cell in a1_cells[24:])
+
+    for cells in (a0_cells, a1_cells):
+        x_positions = [float(cell.attrib["x"]) for cell in cells]
+        assert [right - left for left, right in zip(x_positions, x_positions[1:])] == [
+            30.0
+        ] * 31
+
+    for offset in range(8):
+        assert float(by_id[f"a0-cell-{offset + 8}"].attrib["x"]) == float(
+            by_id[f"a1-cell-{offset}"].attrib["x"]
+        )
+        assert float(by_id[f"known-slot-{offset}"].attrib["x"]) == float(
+            by_id[f"a0-cell-{offset + 8}"].attrib["x"]
+        )
 
     observation_x = float(by_id["observe-marker"].attrib["data-x"])
     inference_start_x = float(by_id["inference-window"].attrib["data-start-x"])
@@ -620,6 +634,9 @@ def test_streamwam_method_svg_encodes_exact_action_overlap_and_condition_slots()
     handoff_x = float(by_id["handoff-to-a1-8"].attrib["data-handoff-x"])
     assert observation_x == inference_start_x == float(by_id["a0-cell-8"].attrib["x"])
     assert inference_start_x < inference_end_x < handoff_x
+    assert inference_end_x not in {
+        float(cell.attrib["x"]) for cell in a0_cells
+    }
 
 
 def test_streamwam_method_svg_routes_both_inputs_to_update_and_actions_to_visual_future() -> None:
@@ -630,9 +647,54 @@ def test_streamwam_method_svg_routes_both_inputs_to_update_and_actions_to_visual
         if "id" in element.attrib
     }
 
-    assert by_id["observation-to-update"].attrib["data-target"] == "ac-update-1"
-    assert by_id["slots-to-update"].attrib["data-target"] == "ac-update-1"
-    assert by_id["condition-to-video-v1"].attrib["data-target"] == "video-1"
+    def path_endpoint(element_id: str) -> tuple[float, float]:
+        tokens = re.findall(r"[MLHV]|-?\d+(?:\.\d+)?", by_id[element_id].attrib["d"])
+        x = y = 0.0
+        index = 0
+        command = ""
+        while index < len(tokens):
+            token = tokens[index]
+            if token in {"M", "L", "H", "V"}:
+                command = token
+                index += 1
+                continue
+            if command in {"M", "L"}:
+                x, y = float(tokens[index]), float(tokens[index + 1])
+                index += 2
+            elif command == "H":
+                x = float(token)
+                index += 1
+            elif command == "V":
+                y = float(token)
+                index += 1
+        return x, y
+
+    update = by_id["ac-update-1"]
+    update_x = float(update.attrib["x"])
+    update_y = float(update.attrib["y"])
+    update_bottom = update_y + float(update.attrib["height"])
+    for path_id in ("observation-to-update", "slots-to-update"):
+        endpoint_x, endpoint_y = path_endpoint(path_id)
+        assert endpoint_x == update_x - 7
+        assert update_y <= endpoint_y <= update_bottom
+
+    for path_id, target_id in (
+        ("condition-to-video-v1", "video-1"),
+        ("action-output-path-1", "action-output-1"),
+    ):
+        endpoint_x, endpoint_y = path_endpoint(path_id)
+        target = by_id[target_id]
+        target_x = float(target.attrib["x"])
+        target_y = float(target.attrib["y"])
+        target_bottom = target_y + float(target.attrib["height"])
+        assert endpoint_x == target_x - 7
+        assert target_y <= endpoint_y <= target_bottom
+
+    handoff_x, handoff_y = path_endpoint("handoff-to-a1-8")
+    a1_cell_8 = by_id["a1-cell-8"]
+    assert handoff_x == float(a1_cell_8.attrib["x"]) + float(a1_cell_8.attrib["width"]) / 2
+    assert handoff_y < float(a1_cell_8.attrib["y"])
+
     assert by_id["overlap-to-known-slots"].attrib["data-source"] == "a0-8-16"
     assert by_id["overlap-to-known-slots"].attrib["data-target"] == "condition-known-slots"
 

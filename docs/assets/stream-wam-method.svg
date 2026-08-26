@@ -87,9 +87,9 @@
 
     <g id="inference-window" data-start-x="540">
       <text class="gold-label" x="645" y="337">AC-Stream inference</text>
-      <line x1="540" y1="352" x2="750" y2="352" stroke="#a97920" stroke-width="5"/>
+      <line x1="540" y1="352" x2="765" y2="352" stroke="#a97920" stroke-width="5"/>
       <line x1="540" y1="343" x2="540" y2="361" stroke="#8f5d08" stroke-width="1.5"/>
-      <line id="inference-end-tick" data-x="750" x1="750" y1="343" x2="750" y2="361" stroke="#8f5d08" stroke-width="1.5"/>
+      <line id="inference-end-tick" data-x="765" x1="765" y1="343" x2="765" y2="361" stroke="#8f5d08" stroke-width="1.5"/>
     </g>
 
     <path class="connector-plain" d="M300 402 V390 H538 V402"/>
@@ -147,7 +147,7 @@
       <text class="gold-label" x="659" y="534">A₀[8:16] = A₁[0:8]</text>
     </g>
 
-    <path id="handoff-to-a1-8" data-handoff-x="780" data-target-x="780" class="connector" d="M780 480 V548 H792 V568"/>
+    <path id="handoff-to-a1-8" data-handoff-x="780" data-target-x="794" class="connector" d="M780 480 V548 H794 V568"/>
     <text class="block-label" x="902" y="548">handoff · resume at A₁[8]</text>
 
     <text class="ribbon-label" x="112" y="599">A₁ · 32 actions</text>
@@ -242,12 +242,12 @@
       <tspan x="1120" dy="19">update</tspan>
     </text>
 
-    <path class="connector" d="M1200 770 H1243"/>
+    <path id="action-output-path-1" class="connector" d="M1200 770 H1273"/>
     <path id="condition-to-video-v1" data-target="video-1" class="condition-path" d="M1200 730 H1262 V710 H1273"/>
     <text class="gold-label" x="1264" y="688">action-conditioned</text>
     <rect id="video-1" x="1280" y="690" width="150" height="46" rx="4" fill="#e3ebf6" stroke="#466a99" stroke-width="1.3"/>
     <text class="symbol-label" x="1355" y="719">visual future V₁</text>
-    <rect x="1280" y="758" width="150" height="46" rx="4" fill="#dcece7" stroke="#397c73" stroke-width="1.3"/>
+    <rect id="action-output-1" x="1280" y="758" width="150" height="46" rx="4" fill="#dcece7" stroke="#397c73" stroke-width="1.3"/>
     <text class="symbol-label" x="1355" y="787">action chunk A₁</text>
     <path class="connector-plain" d="M1355 804 V866"/>
   </g>
