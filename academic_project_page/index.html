@@ -42,7 +42,7 @@
             <span>DENG Lab ↗</span>
           </a>
           <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Stream-WAM</p>
-          <h1 id="hero-title">Streaming Your World-Action Model for Real-Time Robot Manipulation.</h1>
+          <h1 id="hero-title"><span>Streaming Your</span> <span class="title-accent-model">World-Action Model</span> <span>for</span> <span class="title-accent-control">Real-Time Robot Manipulation.</span></h1>
           <p class="hero-lede"><strong>Stream-WAM</strong> introduces <strong>action-conditioned streaming</strong> for world-action models. It overlaps world-action inference with robot execution and feeds the <strong>committed action prefix</strong> back into future-video generation, so the model imagines what comes next with knowledge of the motion already underway. The robot keeps acting while its next world-action chunk is prepared.</p>
           <div class="hero-actions" aria-label="Project resources">
             <a class="button button-primary" href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">View code ↗</a>
@@ -50,9 +50,58 @@
             <span class="button button-pending" aria-disabled="true">Paper · Coming Soon</span>
           </div>
         </div>
-        <figure class="hero-figure">
-          <img src="assets/libero-drawer.webp" alt="Robot arm placing a black bowl into an open cabinet drawer in LIBERO" width="1344" height="672">
-          <figcaption>Successful LIBERO rollout frames. Rollout film · Coming Soon.</figcaption>
+        <figure class="hero-figure pipeline-figure" aria-labelledby="pipeline-caption">
+          <div class="pipeline-visual" role="img" aria-labelledby="pipeline-graphic-title" aria-describedby="pipeline-description pipeline-caption">
+            <span class="sr-only" id="pipeline-graphic-title">Comparison of inference and execution strategies</span>
+            <p class="sr-only" id="pipeline-description">Three control loops are compared. Synchronous WAM alternates inference and execution, leaving the robot waiting. Naive asynchronous inference overlaps execution but breaks at the handoff because the model does not know the motion already committed. Stream-WAM keeps execution continuous while inference runs, feeds the committed action prefix through action-conditioned attention, and jointly produces a visual future and the next action chunk.</p>
+            <div class="pipeline-heading" aria-hidden="true">
+              <div><span>Streaming control loop</span><strong>Inference × Execution</strong></div>
+              <div class="pipeline-legend"><span class="legend-inference">Inference</span><span class="legend-execution">Execution</span></div>
+            </div>
+
+            <div class="strategy-row strategy-sync" aria-hidden="true">
+              <div class="strategy-label"><strong>Synchronous WAM</strong><span>Stop · think · act</span></div>
+              <div class="strategy-timeline">
+                <i class="pipeline-playhead"></i>
+                <span class="pipeline-block inference sync-inference-one">Inference</span>
+                <span class="pipeline-block execution sync-execution-one">Execution</span>
+                <span class="pipeline-block inference sync-inference-two">Inference</span>
+                <span class="pipeline-block execution sync-execution-two">Execution</span>
+              </div>
+            </div>
+
+            <div class="strategy-row strategy-naive" aria-hidden="true">
+              <div class="strategy-label"><strong>Naive Async</strong><span>Overlap · uncertain handoff</span></div>
+              <div class="strategy-timeline">
+                <i class="pipeline-playhead"></i>
+                <span class="pipeline-block execution async-execution-one">Execution</span>
+                <span class="pipeline-block inference async-inference">Inference</span>
+                <span class="pipeline-block execution async-execution-two">Execution</span>
+                <span class="handoff-break"><b></b><b></b><b></b></span>
+              </div>
+            </div>
+
+            <div class="strategy-row strategy-stream" aria-hidden="true">
+              <div class="strategy-label"><strong>Stream-WAM</strong><span>Think while acting</span></div>
+              <div class="strategy-timeline">
+                <i class="pipeline-playhead"></i>
+                <span class="pipeline-block execution stream-execution-one">Execution</span>
+                <span class="pipeline-block inference stream-inference">Inference</span>
+                <span class="pipeline-block execution stream-execution-two">Execution</span>
+                <span class="prefix-marker">Action Prefix</span>
+                <span class="smooth-handoff" aria-hidden="true">→</span>
+              </div>
+            </div>
+
+            <div class="attention-panel" aria-hidden="true">
+              <div class="attention-inputs"><span>Current Observation</span><span class="prefix-input">Action Prefix</span></div>
+              <span class="attention-arrow">→</span>
+              <div class="attention-core"><small>Directed feedback</small><strong>Action-Conditioned Attention</strong></div>
+              <span class="attention-arrow">→</span>
+              <div class="attention-output">Visual Future + Next Action Chunk</div>
+            </div>
+          </div>
+          <figcaption id="pipeline-caption">Stream-WAM overlaps inference with execution and feeds the committed action prefix into future-video generation for a continuous handoff.</figcaption>
         </figure>
         <div class="headline-results" aria-label="Selected results">
           <p><strong>98.20%</strong><span>LIBERO average success</span></p>

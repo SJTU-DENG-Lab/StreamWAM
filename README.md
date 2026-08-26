@@ -2,6 +2,7 @@
   <h1>StreamWAM</h1>
   <h3>Streaming World-Action Models for Robotic Manipulation</h3>
 
+  <a href="https://sjtu-deng-lab.github.io/StreamWAM/"><img src="https://img.shields.io/badge/Project-Page-087D70?logo=githubpages&logoColor=white" alt="Project Page"></a>
   <a href="https://github.com/SJTU-DENG-Lab/StreamWAM"><img src="https://img.shields.io/badge/GitHub-Code-111827?logo=github" alt="GitHub Code"></a>
   <a href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM"><img src="https://img.shields.io/badge/%F0%9F%A4%97-Checkpoint-FFD21E" alt="Hugging Face Checkpoint"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-6B5BFF" alt="Apache 2.0 License"></a>
@@ -170,3 +171,19 @@ StreamWAM builds on ideas and open-source work from
 [LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO),
 [Wan2.2](https://github.com/Wan-Video/Wan2.2), and
 [Cosmos-Predict2](https://github.com/nvidia-cosmos/cosmos-predict2).
+
+## Citation
+
+The arXiv entry is not public yet. For now, please cite the
+[project page](https://sjtu-deng-lab.github.io/StreamWAM/):
+
+```bibtex
+@misc{denglab2026streamwam,
+  title        = {Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation},
+  author       = {{DENG Lab}},
+  year         = {2026},
+  howpublished = {Project page},
+  organization = {Shanghai Jiao Tong University},
+  url          = {https://sjtu-deng-lab.github.io/StreamWAM/}
+}
+```

@@ -111,7 +111,7 @@ class PageParser(HTMLParser):
             self.current_h3_id = None
             self.current_h3_text = []
         if tag == "h1" and self.hero_title_text is not None:
-            self.hero_title = " ".join(self.hero_title_text).strip()
+            self.hero_title = " ".join(" ".join(self.hero_title_text).split())
             self.hero_title_text = None
         if tag == "p" and self.eyebrow_text is not None:
             self.eyebrow = " ".join(self.eyebrow_text).strip()
@@ -428,7 +428,7 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
     assert "broader analysis, limitations, and failure cases" in visible_text
     assert "Model lineage." in visible_text
     assert "Code and models are available now" in visible_text
-    assert "Successful LIBERO rollout frames." in visible_text
+    assert "Action-Conditioned Attention" in visible_text
     assert theme_colors == ["#f7f5ef"]
     assert not any(token in html.casefold() for token in ("todo", "tbd", "lorem ipsum"))
 
@@ -456,6 +456,59 @@ def test_masthead_and_hero_scale_like_the_visual_reference() -> None:
     lead_rule = re.search(r"\.hero-lede\s*\{([^}]*)\}", css)
     assert lead_rule is not None
     assert re.search(r"font-size:\s*clamp\(18px,\s*1\.55vw,\s*22px\)", lead_rule.group(1))
+
+
+def test_hero_visual_compares_streaming_strategies_without_numeric_timing() -> None:
+    parser, html = parse_page()
+    visible_text = " ".join(parser.text_parts)
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    pipeline_markup = html[
+        html.index('<div class="pipeline-visual"') : html.index(
+            '<figcaption id="pipeline-caption"'
+        )
+    ]
+
+    for label in (
+        "Synchronous WAM",
+        "Naive Async",
+        "Stream-WAM",
+        "Inference",
+        "Execution",
+        "Action Prefix",
+        "Action-Conditioned Attention",
+        "Visual Future + Next Action Chunk",
+    ):
+        assert label in visible_text
+
+    assert "assets/libero-drawer.webp" not in html
+    assert "title-accent-model" in html
+    assert "title-accent-control" in html
+    assert 'aria-describedby="pipeline-description pipeline-caption"' in pipeline_markup
+    assert 'class="sr-only" id="pipeline-description"' in pipeline_markup
+    assert "--pipeline-detail-size: .68rem" in css
+    assert not re.search(r"\b\d+\s*(?:actions?|ms|seconds?)\b", pipeline_markup, re.I)
+    assert "@keyframes pipeline-sweep" in css
+    assert "@keyframes attention-flow" in css
+    assert "@media (prefers-reduced-motion: reduce)" in css
+    reduced_motion = css.split("@media (prefers-reduced-motion: reduce)", 1)[1]
+    assert ".pipeline-playhead { display: none; }" in reduced_motion
+    assert ".attention-arrow { animation: none; }" in reduced_motion
+
+
+def test_readme_leads_with_project_page_and_has_current_citation() -> None:
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+
+    assert readme.index("Project-Page") < readme.index("GitHub-Code")
+    assert readme.rstrip().endswith("```")
+    for field in (
+        "@misc{denglab2026streamwam,",
+        "title        = {Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation}",
+        "author       = {{DENG Lab}}",
+        "year         = {2026}",
+        "organization = {Shanghai Jiao Tong University}",
+        "url          = {https://sjtu-deng-lab.github.io/StreamWAM/}",
+    ):
+        assert field in readme
 
 
 def test_page_is_a_linear_text_first_research_article() -> None:
