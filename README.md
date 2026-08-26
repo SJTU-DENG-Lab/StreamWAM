@@ -124,9 +124,9 @@ tasks, with 50 trials per task, and report the average success rate.
 
 | Method | Accuracy (%) ↑ | Chunk Time (ms) ↓ | Total Time (s) ↓ |
 |---|---:|---:|---:|
-| X-WAM | 75.42 | 504.00 | 37.31 |
-| X-WAM-CD | 75.83 | 135.21 | 33.60 |
-| StreamWAM | 75.35 | 136.76 | 11.76 |
+| X-WAM | 75.42 | 374.07 | 17.36 |
+| X-WAM-CD | 75.83 | 134.37 | 13.04 |
+| StreamWAM | 75.35 | 115.98 | 9.49 |
 
 ### RoboTwin
 

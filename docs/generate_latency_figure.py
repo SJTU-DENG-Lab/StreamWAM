@@ -44,9 +44,11 @@ ROBOTWIN_METHODS = ("StarWAM\nJoint", "StarWAM\nCD", "Stream-WAM")
 ROBOTWIN_CHUNK = (190.17, 81.21, 47.09)
 ROBOTWIN_EPISODE = (110.22, 102.59, 77.48)
 ROBOCASA_METHODS = ("X-WAM", "X-WAM\nCD", "Stream-WAM")
-ROBOCASA_CHUNK = (504.00, 135.21, 136.76)
-ROBOCASA_EPISODE = (37.31, 33.60, 11.76)
+ROBOCASA_CHUNK = (374.07, 134.37, 115.98)
+ROBOCASA_EPISODE = (17.36, 13.04, 9.49)
 LIBERO_CHUNK_YMAX = 520
+ROBOCASA_CHUNK_YMAX = 410
+ROBOCASA_EPISODE_YMAX = 20
 
 
 def _style_axis(axis: Axes, *, ylabel: str, title: str) -> None:
@@ -226,7 +228,7 @@ def render_chunk_time(output_path: Path) -> None:
     )
     _draw_three_method_panel(
         axes[2], title="RoboCasa", ylabel="Milliseconds", methods=ROBOCASA_METHODS,
-        values=ROBOCASA_CHUNK, ceiling=550,
+        values=ROBOCASA_CHUNK, ceiling=ROBOCASA_CHUNK_YMAX,
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(output_path, dpi=200, facecolor=PAPER)
@@ -242,7 +244,7 @@ def render_episode_time(output_path: Path) -> None:
     )
     _draw_three_method_panel(
         axes[2], title="RoboCasa", ylabel="Seconds", methods=ROBOCASA_METHODS,
-        values=ROBOCASA_EPISODE, ceiling=42,
+        values=ROBOCASA_EPISODE, ceiling=ROBOCASA_EPISODE_YMAX,
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(output_path, dpi=200, facecolor=PAPER)

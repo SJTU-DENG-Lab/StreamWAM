@@ -277,7 +277,7 @@
 
           <div class="efficiency-intro reading-column">
             <p><strong>Inference efficiency.</strong> Task success alone does not reveal how much inference interrupts robot execution. We therefore measure chunk latency, the time required to prepare the next action chunk, together with end to end episode time, which captures the accumulated cost of inference, execution, and replanning over a complete rollout.</p>
-            <p>Stream-WAM reduces chunk latency by 12.0× on LIBERO relative to FastWAM, 4.0× on RoboTwin 2.0 relative to StarWAM-Joint, and 3.7× on RoboCasa relative to X-WAM. These latency gains yield end to end speedups of 3.0× and 2.6× on long and short LIBERO tasks, 1.4× on RoboTwin 2.0, and 3.2× on RoboCasa.</p>
+            <p>Stream-WAM reduces chunk latency by 12.0× on LIBERO relative to FastWAM, 4.0× on RoboTwin 2.0 relative to StarWAM-Joint, and 3.2× on RoboCasa relative to X-WAM. These latency gains yield end to end speedups of 3.0× and 2.6× on long and short LIBERO tasks, 1.4× on RoboTwin 2.0, and 1.8× on RoboCasa.</p>
           </div>
           <figure class="latency-figure breakout" aria-labelledby="chunk-time-caption">
             <div class="latency-viewport">
@@ -308,9 +308,9 @@
                 <tr><th scope="row">RoboTwin 2.0</th><td>StarWAM-Joint</td><td>190.17 ms</td><td>110.22 s</td></tr>
                 <tr><th scope="row">RoboTwin 2.0</th><td>StarWAM-CD</td><td>81.21 ms</td><td>102.59 s</td></tr>
                 <tr><th scope="row">RoboTwin 2.0</th><td>Stream-WAM</td><td>47.09 ms</td><td>77.48 s</td></tr>
-                <tr><th scope="row">RoboCasa</th><td>X-WAM</td><td>504.00 ms</td><td>37.31 s</td></tr>
-                <tr><th scope="row">RoboCasa</th><td>X-WAM-CD</td><td>135.21 ms</td><td>33.60 s</td></tr>
-                <tr><th scope="row">RoboCasa</th><td>Stream-WAM</td><td>136.76 ms</td><td>11.76 s</td></tr>
+                <tr><th scope="row">RoboCasa</th><td>X-WAM</td><td>374.07 ms</td><td>17.36 s</td></tr>
+                <tr><th scope="row">RoboCasa</th><td>X-WAM-CD</td><td>134.37 ms</td><td>13.04 s</td></tr>
+                <tr><th scope="row">RoboCasa</th><td>Stream-WAM</td><td>115.98 ms</td><td>9.49 s</td></tr>
               </tbody>
             </table>
             </div>

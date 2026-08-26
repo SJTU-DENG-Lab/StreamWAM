@@ -314,7 +314,7 @@ def test_page_publishes_the_current_benchmark_results() -> None:
     expected_fragments = (
         "98.20%",
         "41.0 ms",
-        "11.76 s",
+        "9.49 s",
         "96.60",
         "98.80",
         "97.40",
@@ -451,6 +451,7 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
     assert "Our evaluations use four NVIDIA H100 GPUs" in visible_text
     assert "12.0× on LIBERO" in visible_text
     assert "3.2× on RoboCasa" in visible_text
+    assert "1.8× on RoboCasa" in visible_text
     assert "broader analysis, limitations, and failure cases" in visible_text
     assert "Citation" in visible_text
     assert "Action-conditioned attention" in visible_text
@@ -817,6 +818,9 @@ def test_readme_leads_with_project_page_and_has_current_citation() -> None:
     assert "24 kitchen manipulation tasks" in normalized_readme
     assert "50 trials per task" in normalized_readme
     assert "average success" in normalized_readme
+    assert "| X-WAM | 75.42 | 374.07 | 17.36 |" in readme
+    assert "| X-WAM-CD | 75.83 | 134.37 | 13.04 |" in readme
+    assert "| StreamWAM | 75.35 | 115.98 | 9.49 |" in readme
     for field in (
         "@misc{denglab2026streamwam,",
         "title        = {Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation}",
@@ -1028,10 +1032,10 @@ def test_results_narrative_reports_protocol_and_speedups() -> None:
         "We also conduct ablation studies on Stream-WAM by removing action conditioning or the slot encoder to evaluate the contribution of each component",
         "12.0× on LIBERO",
         "4.0× on RoboTwin 2.0",
-        "3.7× on RoboCasa",
+        "3.2× on RoboCasa relative to X-WAM",
         "3.0× and 2.6× on long and short LIBERO tasks",
         "1.4× on RoboTwin 2.0",
-        "3.2× on RoboCasa",
+        "1.8× on RoboCasa",
     ):
         assert fact in visible_text
 
@@ -1193,9 +1197,9 @@ def test_static_latency_figure_has_an_accessible_exact_data_table() -> None:
         ["RoboTwin 2.0", "StarWAM-Joint", "190.17 ms", "110.22 s"],
         ["RoboTwin 2.0", "StarWAM-CD", "81.21 ms", "102.59 s"],
         ["RoboTwin 2.0", "Stream-WAM", "47.09 ms", "77.48 s"],
-        ["RoboCasa", "X-WAM", "504.00 ms", "37.31 s"],
-        ["RoboCasa", "X-WAM-CD", "135.21 ms", "33.60 s"],
-        ["RoboCasa", "Stream-WAM", "136.76 ms", "11.76 s"],
+        ["RoboCasa", "X-WAM", "374.07 ms", "17.36 s"],
+        ["RoboCasa", "X-WAM-CD", "134.37 ms", "13.04 s"],
+        ["RoboCasa", "Stream-WAM", "115.98 ms", "9.49 s"],
     ]
 
 
@@ -1214,6 +1218,7 @@ def test_latency_generator_writes_two_wide_nonempty_pngs(tmp_path: Path) -> None
         contents = output.read_bytes()
         assert contents.startswith(b"\x89PNG\r\n\x1a\n")
         assert len(contents) > 50_000
+        assert contents == (PAGE_ROOT / "assets" / output.name).read_bytes()
         with Image.open(output) as image:
             assert image.size == (2400, 900)
 
@@ -1229,9 +1234,11 @@ def test_latency_generator_uses_the_authoritative_values() -> None:
     assert module.LIBERO_SHORT == (8.25, 3.74, 3.20, 3.15, 2.92, 3.01)
     assert module.ROBOTWIN_CHUNK == (190.17, 81.21, 47.09)
     assert module.ROBOTWIN_EPISODE == (110.22, 102.59, 77.48)
-    assert module.ROBOCASA_CHUNK == (504.00, 135.21, 136.76)
-    assert module.ROBOCASA_EPISODE == (37.31, 33.60, 11.76)
+    assert module.ROBOCASA_CHUNK == (374.07, 134.37, 115.98)
+    assert module.ROBOCASA_EPISODE == (17.36, 13.04, 9.49)
     assert module.LIBERO_CHUNK_YMAX == 520
+    assert module.ROBOCASA_CHUNK_YMAX == 410
+    assert module.ROBOCASA_EPISODE_YMAX == 20
     assert tuple(label.replace("\n", " ") for label in module.LIBERO_METHODS) == (
         "FastWAM",
         "Joint-CD",
