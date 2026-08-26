@@ -519,7 +519,7 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
     ids = {element.attrib["id"] for element in root.iter() if "id" in element.attrib}
     text = " ".join(part.strip() for part in root.itertext() if part.strip())
 
-    assert root.attrib["viewBox"] == "0 0 1600 860"
+    assert root.attrib["viewBox"] == "0 0 1600 980"
     assert {
         "time-axis",
         "time-t0",
@@ -531,47 +531,51 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "row-stream-2",
         "observation-0",
         "observation-1",
-        "observation-2",
         "joint-wam-0",
         "ac-update-1",
-        "ac-update-2",
         "video-0",
         "video-1",
-        "video-2",
         "action-0",
-        "action-1",
-        "action-2",
-        "execution-0",
-        "execution-1",
-        "aligned-prefix-1",
-        "aligned-prefix-2",
-        "prefix-input-1",
-        "prefix-input-2",
-        "prefix-to-video-1",
-        "prefix-to-video-2",
-        "action-prefix-clamp-1",
-        "action-prefix-clamp-2",
-        "action-handoff-0",
-        "action-handoff-1",
-        "time-cursor",
+        "action-ribbon-a0",
+        "action-ribbon-a1",
+        "condition-known-slots",
+        "condition-unknown-slots",
+        "observe-marker",
+        "inference-window",
+        "inference-end-tick",
+        "overlap-connectors",
+        "handoff-to-a1-8",
+        "overlap-to-known-slots",
+        "observation-to-update",
+        "slots-to-update",
+        "condition-to-video-v1",
     } <= ids
     for label in (
         "Cold start",
-        "Streaming update 1",
-        "Streaming update 2",
         "Observation O₀",
         "Joint WAM",
         "AC-Stream update",
-        "Aligned action prefix",
-        "Action-conditioned video V₁",
-        "Next action chunk A₁",
-        "Executing A₀",
+        "A₀ · 32 actions",
+        "A₁ · 32 actions",
+        "Observe O₁",
+        "AC-Stream inference",
+        "A₀[8:16] = A₁[0:8]",
+        "16 condition slots",
+        "8 known action slots",
+        "8 unknown slots",
+        "resume at A₁[8]",
     ):
         assert label in text
+    for obsolete_label in (
+        "Aligned action prefix",
+        "Next chunk ready",
+        "completion time varies",
+    ):
+        assert obsolete_label not in text
     assert not re.search(r"\b(?:VM|IDM|FDM|cache|caches)\b", text, re.IGNORECASE)
 
 
-def test_streamwam_method_svg_geometry_keeps_prediction_inside_execution_window() -> None:
+def test_streamwam_method_svg_encodes_exact_action_overlap_and_condition_slots() -> None:
     assert METHOD_FIGURE_PATH.is_file()
     root = ET.parse(METHOD_FIGURE_PATH).getroot()
     by_id = {
@@ -579,62 +583,55 @@ def test_streamwam_method_svg_geometry_keeps_prediction_inside_execution_window(
         for element in root.iter()
         if "id" in element.attrib
     }
-    required = {
-        "execution-0",
-        "execution-1",
-        "ac-update-1",
-        "ac-update-2",
-        "time-t0",
-        "time-t1",
-        "time-t2",
-        "time-t3",
-        "video-1",
-        "video-2",
-        "action-1",
-        "action-2",
-        "prefix-input-1",
-        "prefix-input-2",
-        "prefix-to-video-1",
-        "prefix-to-video-2",
-        "action-handoff-0",
-        "action-handoff-1",
+    svg_namespace = "{http://www.w3.org/2000/svg}"
+
+    a0_cells = by_id["action-ribbon-a0"].findall(f"{svg_namespace}rect")
+    a1_cells = by_id["action-ribbon-a1"].findall(f"{svg_namespace}rect")
+    known_slots = by_id["condition-known-slots"].findall(f"{svg_namespace}rect")
+    unknown_slots = by_id["condition-unknown-slots"].findall(f"{svg_namespace}rect")
+
+    assert len(a0_cells) == 32
+    assert len(a1_cells) == 32
+    assert len(known_slots) == 8
+    assert len(unknown_slots) == 8
+    assert [cell.attrib["id"] for cell in a0_cells] == [
+        f"a0-cell-{index}" for index in range(32)
+    ]
+    assert [cell.attrib["id"] for cell in a1_cells] == [
+        f"a1-cell-{index}" for index in range(32)
+    ]
+
+    assert float(by_id["a0-cell-8"].attrib["x"]) == float(
+        by_id["a1-cell-0"].attrib["x"]
+    )
+    assert float(by_id["a0-cell-15"].attrib["x"]) == float(
+        by_id["a1-cell-7"].attrib["x"]
+    )
+    assert float(by_id["handoff-to-a1-8"].attrib["data-target-x"]) == float(
+        by_id["a1-cell-8"].attrib["x"]
+    )
+
+    observation_x = float(by_id["observe-marker"].attrib["data-x"])
+    inference_start_x = float(by_id["inference-window"].attrib["data-start-x"])
+    inference_end_x = float(by_id["inference-end-tick"].attrib["data-x"])
+    handoff_x = float(by_id["handoff-to-a1-8"].attrib["data-handoff-x"])
+    assert observation_x == inference_start_x == float(by_id["a0-cell-8"].attrib["x"])
+    assert inference_start_x < inference_end_x < handoff_x
+
+
+def test_streamwam_method_svg_routes_both_inputs_to_update_and_actions_to_visual_future() -> None:
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    by_id = {
+        element.attrib["id"]: element
+        for element in root.iter()
+        if "id" in element.attrib
     }
-    assert required <= by_id.keys()
 
-    times = [float(by_id[f"time-t{index}"].attrib["x1"]) for index in range(4)]
-    assert times[1] - times[0] == times[2] - times[1] == times[3] - times[2]
-
-    def rectangle_bounds(element_id: str) -> tuple[float, float, float, float]:
-        element = by_id[element_id]
-        x = float(element.attrib["x"])
-        y = float(element.attrib["y"])
-        return x, y, x + float(element.attrib["width"]), y + float(element.attrib["height"])
-
-    def path_end(element_id: str) -> tuple[float, float]:
-        match = re.search(
-            r"L\s*([0-9.]+)\s+([0-9.]+)\s*$",
-            by_id[element_id].attrib["d"],
-        )
-        assert match is not None
-        return float(match.group(1)), float(match.group(2))
-
-    for cycle, start_time, end_time in ((1, times[1], times[2]), (2, times[2], times[3])):
-        execution = rectangle_bounds(f"execution-{cycle - 1}")
-        update = rectangle_bounds(f"ac-update-{cycle}")
-        video = rectangle_bounds(f"video-{cycle}")
-        action = rectangle_bounds(f"action-{cycle}")
-        assert execution[0] == start_time
-        assert execution[2] == end_time
-        assert execution[0] < update[0] < update[2] <= execution[2]
-        assert video[2] <= end_time
-        assert action[2] <= end_time
-        assert path_end(f"prefix-input-{cycle}")[0] == update[0]
-        assert update[1] <= path_end(f"prefix-input-{cycle}")[1] <= update[3]
-        assert path_end(f"prefix-to-video-{cycle}")[0] == video[0]
-        assert video[1] <= path_end(f"prefix-to-video-{cycle}")[1] <= video[3]
-
-    assert path_end("action-handoff-0")[0] == times[1]
-    assert path_end("action-handoff-1")[0] == times[2]
+    assert by_id["observation-to-update"].attrib["data-target"] == "ac-update-1"
+    assert by_id["slots-to-update"].attrib["data-target"] == "ac-update-1"
+    assert by_id["condition-to-video-v1"].attrib["data-target"] == "video-1"
+    assert by_id["overlap-to-known-slots"].attrib["data-source"] == "a0-8-16"
+    assert by_id["overlap-to-known-slots"].attrib["data-target"] == "condition-known-slots"
 
 
 def test_streamwam_method_svg_reserves_readable_space_for_update_labels() -> None:
@@ -646,11 +643,9 @@ def test_streamwam_method_svg_reserves_readable_space_for_update_labels() -> Non
         if "id" in element.attrib
     }
 
-    for cycle in (1, 2):
-        assert float(by_id[f"observation-{cycle}"].attrib["width"]) >= 110
-        assert float(by_id[f"ac-update-{cycle}"].attrib["width"]) >= 110
-        assert float(by_id[f"video-{cycle}"].attrib["width"]) >= 120
-        assert float(by_id[f"action-{cycle}"].attrib["width"]) >= 120
+    assert float(by_id["observation-1"].attrib["width"]) >= 110
+    assert float(by_id["ac-update-1"].attrib["width"]) >= 130
+    assert float(by_id["video-1"].attrib["width"]) >= 120
 
 
 def test_streamwam_second_update_is_a_lighter_repetition() -> None:
@@ -674,7 +669,7 @@ def test_streamwam_method_svg_uses_flat_academic_style() -> None:
         assert float(rectangle.attrib.get("rx", "0")) <= 6
 
 
-def test_streamwam_method_svg_animates_only_the_time_cursor() -> None:
+def test_streamwam_method_svg_is_fully_static_and_accessible() -> None:
     assert METHOD_FIGURE_PATH.is_file()
     root = ET.parse(METHOD_FIGURE_PATH).getroot()
     svg_source = METHOD_FIGURE_PATH.read_text(encoding="utf-8")
@@ -684,19 +679,9 @@ def test_streamwam_method_svg_animates_only_the_time_cursor() -> None:
     assert root.attrib["aria-labelledby"] == "streamwam-method-title streamwam-method-desc"
     assert root.find(f"{svg_namespace}title") is not None
     assert root.find(f"{svg_namespace}desc") is not None
-    assert set(re.findall(r"@keyframes\s+([\w-]+)", svg_source)) == {
-        "method-time-cursor"
-    }
-    animated_selectors = re.findall(
-        r"([.#][\w-]+)\s*\{[^{}]*animation\s*:",
-        svg_source,
-    )
-    assert set(animated_selectors) == {".time-cursor"}
-    assert re.search(
-        r"@media\s*\(prefers-reduced-motion:\s*reduce\).*?\.time-cursor\s*\{[^}]*animation:\s*none\s*!important",
-        svg_source,
-        re.DOTALL,
-    )
+    assert "@keyframes" not in svg_source
+    assert "animation:" not in svg_source
+    assert "time-cursor" not in svg_source
 
 
 def test_method_figure_scrolls_inside_its_mobile_viewport() -> None:
