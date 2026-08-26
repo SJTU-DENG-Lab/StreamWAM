@@ -348,6 +348,25 @@ def test_every_local_page_reference_resolves() -> None:
     assert missing == []
 
 
+def test_local_css_and_script_use_matching_release_versions() -> None:
+    parser, _ = parse_page()
+    local_assets = [
+        attrs.get("href") or attrs.get("src")
+        for tag, attrs in parser.attributes
+        if tag in {"link", "script"}
+        and (
+            attrs.get("href", "").startswith("styles.css")
+            or attrs.get("src", "").startswith("script.js")
+        )
+    ]
+
+    assert len(local_assets) == 2
+    versions = [urlparse(value).query for value in local_assets if value]
+    assert len(versions) == 2
+    assert versions[0] == versions[1]
+    assert re.fullmatch(r"v=\d{8}-\d+", versions[0])
+
+
 def test_project_page_uses_standard_docs_directory() -> None:
     assert PAGE_ROOT.joinpath("index.html").is_file()
     assert not REPO_ROOT.joinpath("academic_project_page").exists()
@@ -457,7 +476,7 @@ def test_masthead_and_hero_scale_like_the_visual_reference() -> None:
 
     title_rule = re.search(r"\.hero h1\s*\{([^}]*)\}", css)
     assert title_rule is not None
-    assert re.search(r"font-size:\s*clamp\(46px,\s*4\.15vw,\s*66px\)", title_rule.group(1))
+    assert re.search(r"font-size:\s*clamp\(46px,\s*4\.15vw,\s*72px\)", title_rule.group(1))
 
     lead_rule = re.search(r"\.hero-lede\s*\{([^}]*)\}", css)
     assert lead_rule is not None
@@ -472,7 +491,8 @@ def test_wide_hero_accents_only_streaming_and_real_time() -> None:
     assert '<span class="title-accent-realtime">Real-Time</span>' in html
     assert "title-accent-model" not in html
     assert "title-accent-control" not in html
-    assert "--shell: min(1480px" in css
+    assert "--shell: min(1220px" in css
+    assert "--hero-shell: min(1680px" in css
     realtime_rule = re.search(r"\.title-accent-realtime\s*\{([^}]*)\}", css)
     assert realtime_rule is not None
     assert "white-space: nowrap" in realtime_rule.group(1)
@@ -493,6 +513,27 @@ def test_headline_metrics_follow_actions_and_use_libero_speedups() -> None:
         assert label in metric_markup
     assert metric_markup.count("vs FastWAM") == 2
     assert "RoboCasa total time" not in metric_markup
+
+
+def test_headline_metrics_use_compact_button_scale() -> None:
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    container = re.search(r"\.headline-results\s*\{([^}]*)\}", css)
+    item = re.search(r"\.headline-results p\s*\{([^}]*)\}", css)
+
+    assert container is not None
+    assert item is not None
+    assert "box-shadow: none" in container.group(1)
+    assert "background: transparent" in container.group(1)
+    assert "min-height: 54px" in item.group(1)
+    assert "max-height: 68px" in item.group(1)
+
+
+def test_hero_width_is_independent_from_article_breakouts() -> None:
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+    hero_shell = re.search(r"\.hero\.shell\s*\{([^}]*)\}", css)
+
+    assert hero_shell is not None
+    assert "width: var(--hero-shell)" in hero_shell.group(1)
 
 
 def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
