@@ -978,7 +978,7 @@ def test_attention_matrix_compares_visual_and_action_attention() -> None:
             for column in (offset + 0, offset + 1, offset + 2):
                 expected[row * 10 + column] = visual
         for row in (offset + 3, offset + 4):
-            for column in (offset + 0, offset + 3, offset + 4):
+            for column in range(offset, offset + 5):
                 expected[row * 10 + column] = action
 
     assert standard_cells == expected
