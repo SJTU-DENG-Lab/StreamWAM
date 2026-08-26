@@ -272,15 +272,15 @@ tbody tr:last-child > * { border-bottom: 0; }
   .runtime-label span { font-size: .54rem; }
   .attention-heading-row { display: block; margin-left: 30px; }
   .matrix-legend { justify-content: flex-start; margin-top: 8px; }
-  .matrix-shell { padding: 9px; }
-  .matrix-key-axis, .matrix-column-groups, .matrix-column-labels { margin-left: 82px; }
+  .matrix-shell { padding: 6px; }
+  .matrix-key-axis, .matrix-column-groups, .matrix-column-labels { margin-left: 66px; }
   .chunk-group { display: block; text-align: center; }
   .chunk-group span { display: none; }
   .matrix-column-labels { gap: 4px; }
   .matrix-column-labels span, .matrix-row-labels span { font-size: .43rem; }
-  .matrix-body { grid-template-columns: 24px 52px minmax(0,1fr); gap: 3px; }
+  .matrix-body { grid-template-columns: 18px 42px minmax(0,1fr); gap: 2px; }
   .matrix-row-labels { grid-template-rows: repeat(4,minmax(34px,1fr)); gap: 4px; }
-  .attention-matrix { grid-template-columns: repeat(4,minmax(28px,1fr)); grid-template-rows: repeat(4,minmax(34px,1fr)); gap: 4px; padding: 5px; }
+  .attention-matrix { grid-template-columns: repeat(4,minmax(0,1fr)); grid-template-rows: repeat(4,minmax(34px,1fr)); gap: 4px; padding: 5px; }
   .matrix-cell { min-height: 34px; border-radius: 5px; }
   .cross-chunk-condition::after { font-size: .4rem; }
   .attention-callout { flex-wrap: wrap; gap: 6px; font-size: .47rem; text-align: center; }
@@ -304,6 +304,13 @@ tbody tr:last-child > * { border-bottom: 0; }
   .latency-viewport { border-radius: 12px; }
   .latency-image-link { min-width: 900px; }
   .site-footer .shell { grid-template-columns: 1fr; gap: 7px; }
+}
+
+@media (max-width: 360px) {
+  .pipeline-visual { padding: 14px; }
+  .runtime-comparison, .attention-diagram { padding: 9px; }
+  .matrix-column-labels span, .matrix-row-labels span { font-size: .38rem; }
+  .cross-chunk-condition::after { content: "A→V"; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -593,6 +593,7 @@ def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
 
 def test_attention_matrix_compares_visual_and_action_attention() -> None:
     _, html = parse_page()
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
     pipeline_markup = html[
         html.index('<div class="pipeline-visual"') : html.index(
             '<figcaption id="pipeline-caption"'
@@ -615,6 +616,28 @@ def test_attention_matrix_compares_visual_and_action_attention() -> None:
     assert "Masked" in pipeline_markup
     assert "Stream-WAM" in pipeline_markup
     assert "committed actions from Chunk k condition only the future visual tokens in Chunk k+1" in pipeline_markup
+
+    future_visual_row = (
+        '<i class="matrix-cell visual-token"></i>'
+        '<i class="matrix-cell cross-chunk-condition"></i>'
+        '<i class="matrix-cell visual-token"></i>'
+        '<i class="matrix-cell masked-cell"></i>'
+    )
+    next_actions_row = (
+        '<i class="matrix-cell visual-token"></i>'
+        '<i class="matrix-cell action-token"></i>'
+        '<i class="matrix-cell visual-token"></i>'
+        '<i class="matrix-cell action-token"></i>'
+    )
+    compact_markup = re.sub(r">\s+<", "><", pipeline_markup)
+    assert future_visual_row in compact_markup
+    assert next_actions_row in compact_markup
+
+    mobile_css = css.split("@media (max-width: 760px)", 1)[1].split(
+        "@media (prefers-reduced-motion: reduce)", 1
+    )[0]
+    assert "repeat(4,minmax(0,1fr))" in mobile_css
+    assert "repeat(4,minmax(28px,1fr))" not in mobile_css
 
 
 def test_readme_leads_with_project_page_and_has_current_citation() -> None:
