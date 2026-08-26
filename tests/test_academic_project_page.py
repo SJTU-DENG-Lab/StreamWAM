@@ -286,7 +286,7 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
     assert "MLSys Team" not in visible_text
     assert "RTC-AC" not in html
     assert "AC-StreamWAM" not in html
-    assert "Ours" not in html
+    assert html.count(">Stream-WAM (Ours)<") == 3
     assert "StreamWAM" not in visible_text
 
     deng_logos = [
@@ -321,7 +321,7 @@ def test_page_publishes_the_current_benchmark_results() -> None:
         "87.2",
         "88.8",
         "87.6",
-        "50 target tasks",
+        "24 kitchen manipulation tasks",
         "100 rollout episodes per task",
     )
     for fragment in expected_fragments:
@@ -447,7 +447,7 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
     assert parser.eyebrow == "Stream-WAM"
     assert "Task performance." in visible_text
     assert "Inference efficiency." in visible_text
-    assert "All evaluations use four NVIDIA H100 GPUs" in visible_text
+    assert "Our evaluations use four NVIDIA H100 GPUs" in visible_text
     assert "12.0× on LIBERO" in visible_text
     assert "3.2× on RoboCasa" in visible_text
     assert "broader analysis, limitations, and failure cases" in visible_text
@@ -806,6 +806,7 @@ def test_attention_matrix_compares_visual_and_action_attention() -> None:
 
 def test_readme_leads_with_project_page_and_has_current_citation() -> None:
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    normalized_readme = " ".join(readme.split())
 
     assert readme.index("Project-Page") < readme.index("GitHub-Code")
     runtime = readme.index("## Runtime layout")
@@ -813,6 +814,9 @@ def test_readme_leads_with_project_page_and_has_current_citation() -> None:
     license_heading = readme.index("## License")
     assert runtime < citation < license_heading
     assert readme[runtime:citation].rstrip().endswith("```")
+    assert "24 kitchen manipulation tasks" in normalized_readme
+    assert "50 trials per task" in normalized_readme
+    assert "average success" in normalized_readme
     for field in (
         "@misc{denglab2026streamwam,",
         "title        = {Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation}",
@@ -952,7 +956,7 @@ def test_all_benchmark_tables_are_visible_without_tabs() -> None:
     assert parser.captions == [
         "LIBERO success results",
         "RoboTwin 2.0 clean and randomized results",
-        "RoboCasa target benchmark results",
+        "RoboCasa 24-task average success results",
         "Exact latency values shown in the figure",
     ]
     assert "data-tabs" not in html
@@ -1013,15 +1017,19 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
             ["Fast-WAM", "95.2", "98.2", "97.0", "100.0", "97.6"],
             ["FastWAM-Joint-CD", "97.20", "99.60", "98.60", "100.00", "98.85"],
             ["FastWAM-RTC", "58.40", "76.20", "77.00", "83.40", "73.75"],
-            ["Stream-WAM", "96.60", "98.80", "97.40", "100.00", "98.20"],
+            ["Stream-WAM (Ours)", "96.60", "98.80", "97.40", "100.00", "98.20"],
             ["Stream-WAM w/o Action Conditioning", "94.40", "96.40", "96.60", "97.60", "96.25"],
             ["Stream-WAM w/o Slot Encoder", "95.60", "98.40", "96.80", "99.80", "97.65"],
         ],
         "benchmark-robocasa": [
-            ["Method", "Accuracy ↑"],
+            ["Method", "Average Success ↑"],
+            ["π₀.₅", "41.4%"],
+            ["π₀-FAST", "61.2%"],
+            ["π₀", "62.5%"],
+            ["Cosmos Policy", "67.1%"],
             ["X-WAM", "75.42%"],
             ["X-WAM-CD", "75.83%"],
-            ["Stream-WAM", "75.35%"],
+            ["Stream-WAM (Ours)", "75.35%"],
         ],
         "benchmark-robotwin": [
             ["Method", "Clean ↑", "Random ↑", "Total ↑"],
@@ -1032,7 +1040,7 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
             ["Fast-WAM", "91.88", "91.78", "91.8"],
             ["StarWAM-Joint", "84.8", "86.0", "85.4"],
             ["StarWAM-CD", "79.0", "79.2", "79.1"],
-            ["Stream-WAM", "87.2", "88.8", "87.6"],
+            ["Stream-WAM (Ours)", "87.2", "88.8", "87.6"],
         ],
     }
 
@@ -1051,6 +1059,10 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
             ["", "", "", "", "second", ""],
         ],
         "benchmark-robocasa": [
+            ["", ""],
+            ["", ""],
+            ["", ""],
+            ["", ""],
             ["", ""],
             ["", "second"],
             ["", "best"],
@@ -1071,7 +1083,9 @@ def test_benchmark_tables_and_protocols_match_the_authoritative_results() -> Non
 
     section_text = {name: " ".join(parts) for name, parts in parsed.section_text.items()}
     assert all(fragment in section_text["benchmark-libero"] for fragment in ("four suites", "10 tasks per suite", "50 trials per task", "long and short tasks"))
-    assert all(fragment in section_text["benchmark-robocasa"] for fragment in ("50 target tasks", "50 trials per task", "average task success"))
+    assert all(fragment in section_text["benchmark-robocasa"] for fragment in ("24 kitchen manipulation tasks", "50 trials per task", "average success"))
+    _, html = parse_page()
+    assert "https://www.sota2.com/research/sota/robotic-manipulation-on-robocasa?utm_source=chatgpt.com" in html
     assert all(fragment in section_text["benchmark-robotwin"] for fragment in ("50 tasks", "100 rollout episodes per task", "Clean", "Random", "domain-randomization"))
 
 

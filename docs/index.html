@@ -201,7 +201,7 @@
 
         <section class="article-section experiments" id="experiments" aria-label="Current results">
           <div class="reading-column">
-            <p class="lead"><strong>Task performance.</strong> To evaluate Stream-WAM across different World Action Model families, we begin by further training FastWAM-Joint with our streaming approach on LIBERO. We then extend the same design to X-WAM on RoboCasa and StarWAM on RoboTwin 2.0 to examine its applicability across benchmarks and model families. All evaluations use four NVIDIA H100 GPUs.</p>
+            <p class="lead"><strong>Task performance.</strong> To evaluate Stream-WAM across different World Action Model families, we begin by further training FastWAM-Joint with our streaming approach on LIBERO. We then extend the same design to X-WAM on RoboCasa and StarWAM on RoboTwin 2.0 to examine its applicability across benchmarks and model families. Our evaluations use four NVIDIA H100 GPUs.</p>
             <p>We compare Stream-WAM with general purpose robot policies and World Action Model baselines in both task performance and inference efficiency. The performance tables summarize success across Long, Spatial, Goal, and Object in LIBERO, the clean and randomized settings of RoboTwin 2.0, and the RoboCasa target tasks. Best and second best results are shown in <strong>bold</strong> and <u>underlined</u>, respectively.</p>
           </div>
 
@@ -222,7 +222,7 @@
                   <tr><th scope="row">Fast-WAM</th><td>95.2</td><td>98.2</td><td>97.0</td><td><strong>100.0</strong></td><td>97.6</td></tr>
                   <tr><th scope="row">FastWAM-Joint-CD</th><td><u>97.20</u></td><td><strong>99.60</strong></td><td><strong>98.60</strong></td><td><strong>100.00</strong></td><td><strong>98.85</strong></td></tr>
                   <tr><th scope="row">FastWAM-RTC</th><td>58.40</td><td>76.20</td><td>77.00</td><td>83.40</td><td>73.75</td></tr>
-                  <tr><th scope="row">Stream-WAM</th><td>96.60</td><td><u>98.80</u></td><td>97.40</td><td><strong>100.00</strong></td><td><u>98.20</u></td></tr>
+                  <tr><th scope="row">Stream-WAM (Ours)</th><td>96.60</td><td><u>98.80</u></td><td>97.40</td><td><strong>100.00</strong></td><td><u>98.20</u></td></tr>
                   <tr><th scope="row">Stream-WAM w/o Action Conditioning</th><td>94.40</td><td>96.40</td><td>96.60</td><td>97.60</td><td>96.25</td></tr>
                   <tr><th scope="row">Stream-WAM w/o Slot Encoder</th><td>95.60</td><td>98.40</td><td>96.80</td><td><u>99.80</u></td><td>97.65</td></tr>
                 </tbody>
@@ -247,7 +247,7 @@
                   <tr><th scope="row">Fast-WAM</th><td><strong>91.88</strong></td><td><strong>91.78</strong></td><td><strong>91.8</strong></td></tr>
                   <tr><th scope="row">StarWAM-Joint</th><td>84.8</td><td>86.0</td><td>85.4</td></tr>
                   <tr><th scope="row">StarWAM-CD</th><td>79.0</td><td>79.2</td><td>79.1</td></tr>
-                  <tr><th scope="row">Stream-WAM</th><td>87.2</td><td><u>88.8</u></td><td>87.6</td></tr>
+                  <tr><th scope="row">Stream-WAM (Ours)</th><td>87.2</td><td><u>88.8</u></td><td>87.6</td></tr>
                 </tbody>
               </table>
             </div>
@@ -256,16 +256,20 @@
           <section class="benchmark breakout" id="benchmark-robocasa" aria-labelledby="robocasa-title">
             <div class="benchmark-intro">
               <h3 id="robocasa-title">RoboCasa</h3>
-              <p>The RoboCasa target benchmark evaluates 50 target tasks with 50 trials per task and reports average task success.</p>
+              <p>RoboCasa evaluation follows the standard 24-task protocol, covering 24 kitchen manipulation tasks with 50 trials per task and reporting average success. Published policy results from the <a href="https://www.sota2.com/research/sota/robotic-manipulation-on-robocasa?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">RoboCasa leaderboard</a> and the <a href="https://arxiv.org/abs/2601.16163" target="_blank" rel="noopener noreferrer">Cosmos Policy study</a> are included as reference points.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable RoboCasa results table">
               <table>
-                <caption>RoboCasa target benchmark results</caption>
-                <thead><tr><th scope="col">Method</th><th scope="col">Accuracy ↑</th></tr></thead>
+                <caption>RoboCasa 24-task average success results</caption>
+                <thead><tr><th scope="col">Method</th><th scope="col">Average Success ↑</th></tr></thead>
                 <tbody>
+                  <tr><th scope="row">π₀.₅</th><td>41.4%</td></tr>
+                  <tr><th scope="row">π₀-FAST</th><td>61.2%</td></tr>
+                  <tr><th scope="row">π₀</th><td>62.5%</td></tr>
+                  <tr><th scope="row">Cosmos Policy</th><td>67.1%</td></tr>
                   <tr><th scope="row">X-WAM</th><td><u>75.42%</u></td></tr>
                   <tr><th scope="row">X-WAM-CD</th><td><strong>75.83%</strong></td></tr>
-                  <tr><th scope="row">Stream-WAM</th><td>75.35%</td></tr>
+                  <tr><th scope="row">Stream-WAM (Ours)</th><td>75.35%</td></tr>
                 </tbody>
               </table>
             </div>

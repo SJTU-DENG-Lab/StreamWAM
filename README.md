@@ -119,8 +119,8 @@ the slot encoder results in a 0.55-point drop.
 
 ### RoboCasa
 
-We evaluate on the RoboCasa target benchmark across 50 target tasks, with 50
-trials per task, and report the average task success rate.
+We evaluate on the standard RoboCasa protocol across 24 kitchen manipulation
+tasks, with 50 trials per task, and report the average success rate.
 
 | Method | Accuracy (%) ↑ | Chunk Time (ms) ↓ | Total Time (s) ↓ |
 |---|---:|---:|---:|
