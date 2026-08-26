@@ -25,6 +25,8 @@
       .mono{font:600 16px/1 ui-monospace,SFMono-Regular,Consolas,monospace;fill:#28302c;text-anchor:middle}
       .time{font:500 16px/1 ui-monospace,SFMono-Regular,Consolas,monospace;fill:#28302c;text-anchor:middle}
       .legend{font:500 13px/1.2 Inter,ui-sans-serif,system-ui,sans-serif;fill:#59615c}
+      .anchor-end{text-anchor:end}
+      .anchor-start{text-anchor:start}
       .secondary rect,.secondary path{opacity:.74}
     </style>
   </defs>
@@ -79,7 +81,7 @@
       <path class="gold-path" d="M905 188 H938"/>
       <text class="gold-label" x="920" y="170">action-conditioned</text>
       <path class="connector" d="M1027 240 H1043 V138 H1050"/>
-      <text class="small" x="1018" y="278">handoff</text>
+      <text id="overview-handoff-label" class="small" x="1090" y="278">handoff</text>
     </g>
 
     <g id="overview-cycle-2" class="secondary">
@@ -123,9 +125,9 @@
 
     <line id="inset-observation" x1="830" y1="394" x2="830" y2="531" stroke="#56605b" stroke-width="1.2"/>
     <circle cx="830" cy="394" r="4" fill="#fff" stroke="#56605b"/>
-    <text class="small" x="790" y="400">Observe O₁</text>
+    <text id="inset-observation-label" class="small anchor-end" x="820" y="400">Observe O₁</text>
     <line x1="830" y1="401" x2="994" y2="401" stroke="#a97920" stroke-width="4"/>
-    <text class="gold-label" x="912" y="394">AC-Stream inference</text>
+    <text id="inset-inference-label" class="gold-label anchor-start" x="840" y="394">AC-Stream inference</text>
 
     <text class="mono" x="610" y="510">A₁</text>
     <rect id="inset-a1-prefix" x="830" y="487" width="180" height="38" rx="3" fill="#f2dfad" stroke="#a97920" stroke-width="1.2"/>

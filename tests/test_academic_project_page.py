@@ -624,6 +624,8 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
     assert max(selection[1], selected_execution[1]) < min(
         selection[3], selected_execution[3]
     )
+    handoff_label = by_id["overview-handoff-label"]
+    assert float(handoff_label.attrib["x"]) >= selection[2] + 50
 
     inset = bounds("detail-inset-frame")
     assert 0 <= inset[0] < inset[2] <= 1600
@@ -648,6 +650,13 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
     observation = by_id["inset-observation"]
     assert float(observation.attrib["x1"]) == a0_overlap[0]
     assert float(observation.attrib["x2"]) == a0_overlap[0]
+    observation_x = float(observation.attrib["x1"])
+    observation_label = by_id["inset-observation-label"]
+    inference_label = by_id["inset-inference-label"]
+    assert "anchor-end" in observation_label.attrib.get("class", "").split()
+    assert "anchor-start" in inference_label.attrib.get("class", "").split()
+    assert float(observation_label.attrib["x"]) <= observation_x - 10
+    assert float(inference_label.attrib["x"]) >= observation_x + 10
 
 
 def test_streamwam_method_svg_routes_both_inputs_to_update_and_actions_to_visual_future() -> None:
