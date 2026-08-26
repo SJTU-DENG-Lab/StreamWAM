@@ -82,8 +82,8 @@ Expected: FAIL because desktop rows remain `10px` and the label/title sizes rema
 
 - [ ] **Step 3: Implement the minimal CSS and cache-key changes**
 
-Set both desktop mask row grids and cells to `16px`, widen the row-label gutter and matching column-label offset, apply the approved font sizes, and bump both HTML asset keys from `20260826-9` to `20260826-10`.
+Set both desktop mask row grids and cells to `16px`, widen the row-label gutter and matching column-label offset, apply the approved font sizes, and advance both HTML asset keys to the final `20260826-11` version used by the runtime-alignment correction.
 
 - [ ] **Step 4: Verify behavior and deployment**
 
-Run the full pytest, Node syntax, and diff checks. In a real browser at 1440px, confirm computed token labels are at least `9.5px`, both panels remain inside the hero card, and the attention comparison uses the former bottom gap. Recheck 390px and 320px containment, request read-only review, then commit, push, wait for Pages, and verify live asset key `20260826-10`.
+Run the full pytest, Node syntax, and diff checks. In a real browser at 1440px, confirm computed token labels are at least `9.5px`, both panels remain inside the hero card, and the attention comparison uses the former bottom gap. Recheck 390px and 320px containment, request read-only review, then commit, push, wait for Pages, and verify live asset key `20260826-11`.
