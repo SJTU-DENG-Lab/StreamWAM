@@ -120,7 +120,7 @@ cursor at `t₀` or hides it without changing the diagram.
 
 ## Verification
 
-- The SVG parses as valid XML and rasterizes at 1600 px and 900 px.
+- The SVG parses as valid XML and rasterizes at 1600 px and 1100 px.
 - The time landmarks, update rows, prediction blocks, execution bars, aligned
   prefix, conditioned visual outputs, and forward handoffs are present.
 - Every asynchronous prediction block begins during its current execution bar

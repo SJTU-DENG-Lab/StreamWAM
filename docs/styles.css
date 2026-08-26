@@ -179,7 +179,7 @@ button { font: inherit; }
 .editorial-act em, .editorial-act cite { color: var(--ink); font-family: var(--serif); }
 
 .method-figure { width: min(1420px,calc(100vw - 48px)); margin: 64px auto 0; }
-.method-figure-viewport { overflow-x: auto; border: 1px solid rgba(40,34,24,.13); border-radius: 24px; outline: none; background: #f7f5ef; box-shadow: 0 18px 46px rgba(45,28,7,.08); scrollbar-color: #a5cfc7 transparent; scrollbar-width: thin; }
+.method-figure-viewport { overflow-x: auto; border-block: 1px solid rgba(40,34,24,.18); border-inline: 0; border-radius: 0; outline: none; background: #fff; box-shadow: none; scrollbar-color: #a5cfc7 transparent; scrollbar-width: thin; }
 .method-figure-viewport:focus-visible { outline: 2px solid var(--teal); outline-offset: 5px; }
 .method-figure-artwork { width: 100%; height: auto; display: block; }
 .method-figure figcaption { max-width: 900px; margin: 17px auto 0; color: var(--dim); font-size: .79rem; line-height: 1.65; text-align: center; }
@@ -282,8 +282,8 @@ tbody tr:last-child > * { border-bottom: 0; }
   .article-header h2 { font-size: 1.2rem; }
   .article-header > p, .article-section p, .editorial-act p { font-size: 1rem; line-height: 1.82; }
   .method-figure { width: 100%; margin-top: 48px; }
-  .method-figure-viewport { border-radius: 14px; }
-  .method-figure-artwork { width: auto; min-width: 900px; height: auto; }
+  .method-figure-viewport { border-radius: 0; }
+  .method-figure-artwork { width: auto; min-width: 1100px; height: auto; }
   .method-figure figcaption { padding-inline: 15px; text-align: left; }
   .benchmark { width: 100%; }
   .efficiency-intro { margin-top: 80px; }

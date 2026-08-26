@@ -16,7 +16,7 @@
 - Omit exact action counts, delay values, latency numbers, `VM`, `IDM`, `FDM`, and cache terminology.
 - Use thin charcoal connectors, square or slightly rounded modules, muted gray/blue/green/gold fills, and no gradients, shadows, glow, illustrations, or decorative checkmarks.
 - Animate only a thin time cursor; the complete method must remain visible at every animation frame.
-- Preserve the existing narrow-screen contained horizontal viewport.
+- Preserve a narrow-screen contained horizontal viewport with a `1100px` minimum artwork width.
 
 ---
 
@@ -159,7 +159,7 @@ Keep a complete SVG `<title>` and `<desc>`.
 
 - [ ] **Step 6: Update page copy and shell styling**
 
-Change the hidden description to the Task 1 text, bump the shared CSS/JS and SVG asset versions, and remove the method shell's rounded card/shadow treatment. Retain `overflow-x: auto`, focus outline, caption, and mobile `min-width: 900px`.
+Change the hidden description to the Task 1 text, bump the shared CSS/JS and SVG asset versions, and remove the method shell's rounded card/shadow treatment. Retain `overflow-x: auto`, focus outline, caption, and mobile `min-width: 1100px`.
 
 - [ ] **Step 7: Run focused and full page tests until GREEN**
 
@@ -188,7 +188,7 @@ Expected: all tests pass.
 
 ```bash
 ffmpeg -loglevel error -y -i docs/assets/stream-wam-method.svg -frames:v 1 /tmp/streamwam-academic-1600.png
-ffmpeg -loglevel error -y -i docs/assets/stream-wam-method.svg -vf scale=900:-1 -frames:v 1 /tmp/streamwam-academic-900.png
+ffmpeg -loglevel error -y -i docs/assets/stream-wam-method.svg -vf scale=1100:-1 -frames:v 1 /tmp/streamwam-academic-1100.png
 ```
 
 - [ ] **Step 2: Inspect causal and typographic readability**

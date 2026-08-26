@@ -461,7 +461,7 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
     assert not any(token in html.casefold() for token in ("todo", "tbd", "lorem ipsum"))
 
 
-def test_interwoven_method_figure_replaces_the_three_card_summary() -> None:
+def test_academic_spacetime_method_figure_replaces_the_illustrated_timeline() -> None:
     parser, html = parse_page()
     figure_images = [
         attrs
@@ -475,10 +475,10 @@ def test_interwoven_method_figure_replaces_the_three_card_summary() -> None:
         "continuation to enter the control stream at the next handoff."
     )
     description = (
-        "An interwoven timeline shows Stream-WAM predicting the next joint visual "
-        "and action chunk while the robot continuously executes the current chunk. "
-        "A committed action prefix is routed only into the next visual future before "
-        "the prepared action continuation joins robot execution at handoff."
+        "A spacetime diagram shows Stream-WAM predicting each next video-action "
+        "chunk during execution. The aligned action prefix conditions only the next "
+        "visual prediction, and each prepared action chunk begins at the following "
+        "handoff without a planned pause."
     )
 
     assert len(figure_images) == 1
@@ -513,40 +513,168 @@ def test_method_figure_extended_description_uses_the_existing_screen_reader_clas
     assert re.search(r"\.sr-only\s*\{", css)
 
 
-def test_streamwam_method_svg_encodes_interwoven_streaming_semantics() -> None:
+def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
     assert METHOD_FIGURE_PATH.is_file()
     root = ET.parse(METHOD_FIGURE_PATH).getroot()
     ids = {element.attrib["id"] for element in root.iter() if "id" in element.attrib}
     text = " ".join(part.strip() for part in root.itertext() if part.strip())
 
-    assert root.attrib["viewBox"] == "0 0 1600 760"
+    assert root.attrib["viewBox"] == "0 0 1600 860"
     assert {
-        "execution-rail",
-        "prediction-startup",
-        "prediction-streaming",
-        "action-prefix-bridge",
-        "future-visual-target",
-        "condition-slots",
-        "handoff",
+        "time-axis",
+        "time-t0",
+        "time-t1",
+        "time-t2",
+        "time-t3",
+        "row-cold-start",
+        "row-stream-1",
+        "row-stream-2",
+        "observation-0",
+        "observation-1",
+        "observation-2",
+        "joint-wam-0",
+        "ac-update-1",
+        "ac-update-2",
+        "video-0",
+        "video-1",
+        "video-2",
+        "action-0",
+        "action-1",
+        "action-2",
+        "execution-0",
+        "execution-1",
+        "aligned-prefix-1",
+        "aligned-prefix-2",
+        "prefix-input-1",
+        "prefix-input-2",
+        "prefix-to-video-1",
+        "prefix-to-video-2",
+        "action-prefix-clamp-1",
+        "action-prefix-clamp-2",
+        "action-handoff-0",
+        "action-handoff-1",
+        "time-cursor",
     } <= ids
     for label in (
-        "Observe",
-        "Think while acting",
-        "Handoff",
-        "Current observation",
-        "World-action prediction",
-        "Robot execution",
-        "Committed action prefix",
-        "Action-conditioned visual future",
-        "Next action chunk",
-        "Next chunk ready",
-        "Continuous control",
+        "Cold start",
+        "Streaming update 1",
+        "Streaming update 2",
+        "Observation O₀",
+        "Joint WAM",
+        "AC-Stream update",
+        "Aligned action prefix",
+        "Action-conditioned video V₁",
+        "Next action chunk A₁",
+        "Executing A₀",
     ):
         assert label in text
     assert not re.search(r"\b(?:VM|IDM|FDM|cache|caches)\b", text, re.IGNORECASE)
 
 
-def test_streamwam_method_svg_is_complete_without_motion() -> None:
+def test_streamwam_method_svg_geometry_keeps_prediction_inside_execution_window() -> None:
+    assert METHOD_FIGURE_PATH.is_file()
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    by_id = {
+        element.attrib["id"]: element
+        for element in root.iter()
+        if "id" in element.attrib
+    }
+    required = {
+        "execution-0",
+        "execution-1",
+        "ac-update-1",
+        "ac-update-2",
+        "time-t0",
+        "time-t1",
+        "time-t2",
+        "time-t3",
+        "video-1",
+        "video-2",
+        "action-1",
+        "action-2",
+        "prefix-input-1",
+        "prefix-input-2",
+        "prefix-to-video-1",
+        "prefix-to-video-2",
+        "action-handoff-0",
+        "action-handoff-1",
+    }
+    assert required <= by_id.keys()
+
+    times = [float(by_id[f"time-t{index}"].attrib["x1"]) for index in range(4)]
+    assert times[1] - times[0] == times[2] - times[1] == times[3] - times[2]
+
+    def rectangle_bounds(element_id: str) -> tuple[float, float, float, float]:
+        element = by_id[element_id]
+        x = float(element.attrib["x"])
+        y = float(element.attrib["y"])
+        return x, y, x + float(element.attrib["width"]), y + float(element.attrib["height"])
+
+    def path_end(element_id: str) -> tuple[float, float]:
+        match = re.search(
+            r"L\s*([0-9.]+)\s+([0-9.]+)\s*$",
+            by_id[element_id].attrib["d"],
+        )
+        assert match is not None
+        return float(match.group(1)), float(match.group(2))
+
+    for cycle, start_time, end_time in ((1, times[1], times[2]), (2, times[2], times[3])):
+        execution = rectangle_bounds(f"execution-{cycle - 1}")
+        update = rectangle_bounds(f"ac-update-{cycle}")
+        video = rectangle_bounds(f"video-{cycle}")
+        action = rectangle_bounds(f"action-{cycle}")
+        assert execution[0] == start_time
+        assert execution[2] == end_time
+        assert execution[0] < update[0] < update[2] <= execution[2]
+        assert video[2] <= end_time
+        assert action[2] <= end_time
+        assert path_end(f"prefix-input-{cycle}")[0] == update[0]
+        assert update[1] <= path_end(f"prefix-input-{cycle}")[1] <= update[3]
+        assert path_end(f"prefix-to-video-{cycle}")[0] == video[0]
+        assert video[1] <= path_end(f"prefix-to-video-{cycle}")[1] <= video[3]
+
+    assert path_end("action-handoff-0")[0] == times[1]
+    assert path_end("action-handoff-1")[0] == times[2]
+
+
+def test_streamwam_method_svg_reserves_readable_space_for_update_labels() -> None:
+    assert METHOD_FIGURE_PATH.is_file()
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    by_id = {
+        element.attrib["id"]: element
+        for element in root.iter()
+        if "id" in element.attrib
+    }
+
+    for cycle in (1, 2):
+        assert float(by_id[f"observation-{cycle}"].attrib["width"]) >= 110
+        assert float(by_id[f"ac-update-{cycle}"].attrib["width"]) >= 110
+        assert float(by_id[f"video-{cycle}"].attrib["width"]) >= 120
+        assert float(by_id[f"action-{cycle}"].attrib["width"]) >= 120
+
+
+def test_streamwam_second_update_is_a_lighter_repetition() -> None:
+    assert METHOD_FIGURE_PATH.is_file()
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    second_update = next(
+        element for element in root.iter() if element.attrib.get("id") == "row-stream-2"
+    )
+
+    assert 0.65 <= float(second_update.attrib.get("opacity", "1")) <= 0.8
+
+
+def test_streamwam_method_svg_uses_flat_academic_style() -> None:
+    assert METHOD_FIGURE_PATH.is_file()
+    root = ET.parse(METHOD_FIGURE_PATH).getroot()
+    svg_namespace = "{http://www.w3.org/2000/svg}"
+
+    for tag in ("filter", "linearGradient", "radialGradient"):
+        assert root.findall(f".//{svg_namespace}{tag}") == []
+    for rectangle in root.findall(f".//{svg_namespace}rect"):
+        assert float(rectangle.attrib.get("rx", "0")) <= 6
+
+
+def test_streamwam_method_svg_animates_only_the_time_cursor() -> None:
     assert METHOD_FIGURE_PATH.is_file()
     root = ET.parse(METHOD_FIGURE_PATH).getroot()
     svg_source = METHOD_FIGURE_PATH.read_text(encoding="utf-8")
@@ -556,101 +684,19 @@ def test_streamwam_method_svg_is_complete_without_motion() -> None:
     assert root.attrib["aria-labelledby"] == "streamwam-method-title streamwam-method-desc"
     assert root.find(f"{svg_namespace}title") is not None
     assert root.find(f"{svg_namespace}desc") is not None
-    for animation_name in (
-        "method-flow",
-        "method-reveal",
-        "method-prefix",
-        "method-future",
-        "method-handoff",
-    ):
-        assert f"@keyframes {animation_name}" in svg_source
-    reduced_motion = re.search(
-        r"@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{(.*?)\}\s*\}",
-        svg_source,
-        re.DOTALL,
-    )
-    assert reduced_motion is not None
-    assert "animation: none !important" in reduced_motion.group(1)
-    assert "opacity: 1 !important" in reduced_motion.group(1)
-
-
-def test_streamwam_method_svg_arrowheads_do_not_scale_with_thick_rails() -> None:
-    assert METHOD_FIGURE_PATH.is_file()
-    root = ET.parse(METHOD_FIGURE_PATH).getroot()
-    svg_namespace = "{http://www.w3.org/2000/svg}"
-    markers = root.findall(f".//{svg_namespace}marker")
-
-    assert markers
-    assert all(marker.attrib.get("markerUnits") == "userSpaceOnUse" for marker in markers)
-
-
-def test_streamwam_execution_track_leaves_clearance_for_its_label() -> None:
-    assert METHOD_FIGURE_PATH.is_file()
-    root = ET.parse(METHOD_FIGURE_PATH).getroot()
-    execution_track = next(
-        element for element in root.iter() if element.attrib.get("id") == "execution-track"
-    )
-    track_start = float(re.match(r"M([0-9.]+)", execution_track.attrib["d"]).group(1))
-
-    assert track_start >= 350
-
-
-def test_streamwam_prediction_finishes_before_a_forward_handoff() -> None:
-    assert METHOD_FIGURE_PATH.is_file()
-    root = ET.parse(METHOD_FIGURE_PATH).getroot()
-    elements_by_id = {
-        element.attrib["id"]: element
-        for element in root.iter()
-        if "id" in element.attrib
+    assert set(re.findall(r"@keyframes\s+([\w-]+)", svg_source)) == {
+        "method-time-cursor"
     }
-    handoff_x = float(elements_by_id["handoff-landmark"].attrib["x1"])
-    prediction_card = elements_by_id["streaming-prediction-card"]
-    prediction_end = float(prediction_card.attrib["x"]) + float(
-        prediction_card.attrib["width"]
+    animated_selectors = re.findall(
+        r"([.#][\w-]+)\s*\{[^{}]*animation\s*:",
+        svg_source,
     )
-    action_handoff = elements_by_id["prepared-action-handoff"].attrib["d"]
-    action_start = float(re.match(r"M([0-9.]+)", action_handoff).group(1))
-    action_end = float(re.search(r"([0-9.]+)\s+[0-9.]+$", action_handoff).group(1))
-    handoff_node_x = float(elements_by_id["handoff-node"].attrib["cx"])
-    continuation_start = float(
-        re.match(r"M([0-9.]+)", elements_by_id["execution-continuation"].attrib["d"]).group(1)
-    )
-
-    assert prediction_end <= handoff_x
-    assert action_start < action_end == handoff_x
-    assert handoff_node_x == continuation_start == handoff_x
-
-
-def test_streamwam_reveal_animation_never_deforms_explanatory_content() -> None:
-    assert METHOD_FIGURE_PATH.is_file()
-    svg_source = METHOD_FIGURE_PATH.read_text(encoding="utf-8")
-    reveal_keyframes = re.search(
-        r"@keyframes method-reveal\s*\{(.*?)\}\s*@keyframes",
+    assert set(animated_selectors) == {".time-cursor"}
+    assert re.search(
+        r"@media\s*\(prefers-reduced-motion:\s*reduce\).*?\.time-cursor\s*\{[^}]*animation:\s*none\s*!important",
         svg_source,
         re.DOTALL,
     )
-
-    assert reveal_keyframes is not None
-    assert "scale" not in reveal_keyframes.group(1)
-
-
-def test_streamwam_next_action_strip_sits_below_its_label() -> None:
-    assert METHOD_FIGURE_PATH.is_file()
-    root = ET.parse(METHOD_FIGURE_PATH).getroot()
-    next_action_label = next(
-        element for element in root.iter() if element.attrib.get("id") == "next-action-label"
-    )
-    next_action_strip = next(
-        element for element in root.iter() if element.attrib.get("id") == "next-action-strip"
-    )
-    strip_transform = re.match(
-        r"translate\(([0-9.]+)\s+([0-9.]+)\)",
-        next_action_strip.attrib["transform"],
-    )
-    strip_y = float(strip_transform.group(2))
-    label_y = float(next_action_label.attrib["y"])
-
-    assert strip_y >= label_y + 6
 
 
 def test_method_figure_scrolls_inside_its_mobile_viewport() -> None:
@@ -662,7 +708,7 @@ def test_method_figure_scrolls_inside_its_mobile_viewport() -> None:
     assert re.search(r"overflow-x:\s*auto", viewport_rule.group(1))
     assert mobile_rule is not None
     assert re.search(
-        r"\.method-figure-artwork\s*\{[^}]*min-width:\s*900px",
+        r"\.method-figure-artwork\s*\{[^}]*min-width:\s*1100px",
         mobile_rule.group(1),
     )
 
