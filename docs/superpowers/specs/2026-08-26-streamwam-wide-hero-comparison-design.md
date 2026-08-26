@@ -90,4 +90,3 @@ then explain action-conditioned attention with a compact token matrix.
 - Render at 1440×1000, 1024×900, and 390×844; verify no horizontal overflow,
   readable metric cards, correct animation proportions, and an intelligible
   attention matrix.
-

@@ -520,8 +520,18 @@ def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
     assert 'aria-describedby="pipeline-description pipeline-caption"' in pipeline_markup
     assert 'class="sr-only" id="pipeline-description"' in pipeline_markup
     assert not re.search(r"\b\d+\s*(?:actions?|ms|seconds?)\b", pipeline_markup, re.I)
-    assert "@keyframes generation-reveal" in css
+    for animation_name in (
+        "generation-reveal-sync-one",
+        "generation-reveal-sync-two",
+        "generation-reveal-stream-one",
+        "generation-reveal-stream-two",
+    ):
+        assert f"@keyframes {animation_name}" in css
+        assert f"animation: {animation_name} 7s linear infinite" in css
     assert "@keyframes timeline-sweep" in css
+    cursor_rule = re.search(r"\.timeline-cursor\s*\{([^}]*)\}", css)
+    assert cursor_rule is not None
+    assert "animation: timeline-sweep 7s linear infinite" in cursor_rule.group(1)
     assert "@media (prefers-reduced-motion: reduce)" in css
     reduced_motion = css.split("@media (prefers-reduced-motion: reduce)", 1)[1]
     assert ".generation-window" in reduced_motion
@@ -544,8 +554,11 @@ def test_attention_matrix_compares_visual_and_action_attention() -> None:
     assert "Action-conditioned attention" in pipeline_markup
     assert "Visual token" in pipeline_markup
     assert "Action token" in pipeline_markup
+    assert "Allowed" in pipeline_markup
+    assert "Masked" in pipeline_markup
     assert "Standard WAM" in pipeline_markup
     assert "Stream-WAM" in pipeline_markup
+    assert "Filled cells indicate allowed attention" in pipeline_markup
 
 
 def test_readme_leads_with_project_page_and_has_current_citation() -> None:

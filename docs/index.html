@@ -58,7 +58,7 @@
         <figure class="hero-figure pipeline-figure" aria-labelledby="pipeline-caption">
           <div class="pipeline-visual" role="group" aria-labelledby="pipeline-graphic-title" aria-describedby="pipeline-description pipeline-caption">
             <span class="sr-only" id="pipeline-graphic-title">Synchronous WAM and Stream-WAM runtime and attention comparison</span>
-            <p class="sr-only" id="pipeline-description">The synchronous world-action model alternates long model-update windows with short robot motion, creating idle gaps. Stream-WAM overlaps short model updates with a continuous execution rail. Its attention mask additionally lets the committed action prefix condition future visual tokens.</p>
+            <p class="sr-only" id="pipeline-description">The synchronous world-action model alternates long model-update windows with short robot motion, creating idle gaps. Stream-WAM overlaps short model updates with a continuous execution rail. Its attention mask additionally lets the committed action prefix condition future visual tokens. Filled cells indicate allowed attention, while dark outlined cells indicate masked connections.</p>
             <div class="pipeline-heading">
               <div><span>Streaming control loop</span><strong>Model update × Robot motion</strong></div>
               <div class="pipeline-legend" aria-label="Runtime legend"><span class="legend-generation">Model update</span><span class="legend-execution">Robot motion</span></div>
@@ -91,7 +91,7 @@
 
               <section class="attention-diagram" aria-labelledby="attention-title">
                 <div class="visual-section-heading"><span>02</span><strong id="attention-title">Action-conditioned attention</strong></div>
-                <div class="matrix-legend"><span class="visual-key">Visual token</span><span class="action-key">Action token</span></div>
+                <div class="matrix-legend"><span class="visual-key">Visual token</span><span class="action-key">Action token</span><span class="allowed-key">Allowed</span><span class="masked-key">Masked</span></div>
                 <div class="matrix-comparison">
                   <div class="matrix-panel">
                     <strong>Standard WAM</strong><span>Separated streams</span>

@@ -228,4 +228,3 @@ git push origin main
 ```
 
 Request a read-only review across the implementation commits before pushing. After push, wait for the Pages workflow to succeed and verify the live HTML contains `attention-matrix`, `4.74 s`, and `3.4×`.
-
