@@ -87,3 +87,28 @@ Set both desktop mask row grids and cells to `16px`, widen the row-label gutter 
 - [ ] **Step 4: Verify behavior and deployment**
 
 Run the full pytest, Node syntax, and diff checks. In a real browser at 1440px, confirm computed token labels are at least `9.5px`, both panels remain inside the hero card, and the attention comparison uses the former bottom gap. Recheck 390px and 320px containment, request read-only review, then commit, push, wait for Pages, and verify live asset key `20260826-11`.
+
+---
+
+### Task 3: Refine the control-loop heading
+
+**Files:**
+- Modify: `tests/test_academic_project_page.py`
+- Modify: `docs/styles.css`
+- Modify: `docs/index.html`
+
+**Interfaces:**
+- Consumes: Existing `.pipeline-heading > div:first-child span` selector and unchanged `Streaming control loop` markup.
+- Produces: A readable sans-serif interface heading without affecting `.pipeline-legend`.
+
+- [ ] **Step 1: Write and verify the failing test**
+
+Add a focused page contract requiring the heading rule to use `font-family: inherit`, `font-size: .875rem`, `font-weight: 760`, `letter-spacing: -.01em`, and color `#dce6eb`. Run `pytest -q tests/test_academic_project_page.py -k control_loop_heading`; expect failure against the current `.62rem` monospace rule.
+
+- [ ] **Step 2: Implement and verify**
+
+Apply only the approved heading declarations, bump both asset keys to `20260826-12`, then run the full pytest suite, `node --check docs/script.js`, and `git diff --check`. Browser-check 1440px and 390px to confirm the heading and legend do not overlap or cause horizontal overflow.
+
+- [ ] **Step 3: Review and deploy**
+
+Request read-only review, fix Critical or Important findings, commit, push `main`, wait for Pages success, and verify the live page loads `styles.css?v=20260826-12`.
