@@ -563,10 +563,24 @@ def test_runtime_visual_has_two_tracks_without_old_flow_copy() -> None:
     assert 'aria-describedby="pipeline-description pipeline-caption"' in pipeline_markup
     assert 'class="sr-only" id="pipeline-description"' in pipeline_markup
     assert not re.search(r"\b\d+\s*(?:actions?|ms|seconds?)\b", pipeline_markup, re.I)
-    for label in ("World-Action Prediction", "Robot Execution", "Committed Actions"):
+    for label in ("Model Prediction", "Robot Execution"):
         assert label in pipeline_markup
-    for old_label in ("Model update", "Robot motion", "Action prefix"):
+    for old_label in (
+        "World-Action Prediction × Robot Execution",
+        "World-Action Prediction",
+        "Committed Actions",
+        "Model update",
+        "Robot motion",
+        "Action prefix",
+    ):
         assert old_label not in pipeline_markup
+    assert 'class="committed-actions-segment"' not in pipeline_markup
+    legend_rule = re.search(r"\.pipeline-legend span\s*\{([^}]*)\}", css)
+    assert legend_rule is not None
+    assert "text-transform: uppercase" not in legend_rule.group(1)
+    visual_rule = re.search(r"\.pipeline-visual\s*\{([^}]*)\}", css)
+    assert visual_rule is not None
+    assert "min-height: 680px" not in visual_rule.group(1)
     assert "@keyframes timeline-reveal" in css
     assert "generation-reveal-sync" not in css
     assert "generation-reveal-stream" not in css
@@ -600,44 +614,55 @@ def test_attention_matrix_compares_visual_and_action_attention() -> None:
         )
     ]
 
-    assert 'class="attention-matrix two-chunk-matrix"' in pipeline_markup
-    assert pipeline_markup.count('class="chunk-group') >= 2
-    assert pipeline_markup.count('class="matrix-cell visual-token') >= 3
-    assert pipeline_markup.count('class="matrix-cell action-token') >= 3
-    assert pipeline_markup.count('class="matrix-cell cross-chunk-condition') >= 1
+    assert pipeline_markup.count('class="attention-matrix compact-attention-matrix') == 2
+    assert 'class="attention-panel attention-standard"' in pipeline_markup
+    assert 'class="attention-panel attention-conditioned"' in pipeline_markup
+    assert pipeline_markup.count('class="matrix-cell cross-chunk-condition') == 1
     assert "Action-conditioned attention" in pipeline_markup
-    assert "Chunk k" in pipeline_markup
-    assert "Chunk k+1" in pipeline_markup
-    assert "Future Visual" in pipeline_markup
-    assert "Committed Actions" in pipeline_markup
-    assert "Queries" in pipeline_markup
-    assert "Keys" in pipeline_markup
+    assert "Standard attention" in pipeline_markup
+    for token_label in ("Vₖ", "Aₖ", "Vₖ₊₁", "Aₖ₊₁"):
+        assert token_label in pipeline_markup
     assert "Allowed" in pipeline_markup
     assert "Masked" in pipeline_markup
-    assert "Stream-WAM" in pipeline_markup
-    assert "committed actions from Chunk k condition only the future visual tokens in Chunk k+1" in pipeline_markup
+    assert 'class="attention-path-badge">Aₖ → Vₖ₊₁</span>' in pipeline_markup
+    for removed_copy in (
+        "Two-chunk directed attention",
+        "Committed Actions · Chunk k",
+        "Future Visual · Chunk k+1",
+        "Keys",
+        "Queries",
+    ):
+        assert removed_copy not in pipeline_markup
 
-    future_visual_row = (
+    standard_future_visual_row = (
+        '<i class="matrix-cell visual-token"></i>'
+        '<i class="matrix-cell masked-cell cross-chunk-target"></i>'
+        '<i class="matrix-cell visual-token"></i>'
+        '<i class="matrix-cell masked-cell"></i>'
+    )
+    conditioned_future_visual_row = (
         '<i class="matrix-cell visual-token"></i>'
         '<i class="matrix-cell cross-chunk-condition"></i>'
         '<i class="matrix-cell visual-token"></i>'
         '<i class="matrix-cell masked-cell"></i>'
     )
-    next_actions_row = (
-        '<i class="matrix-cell visual-token"></i>'
-        '<i class="matrix-cell action-token"></i>'
-        '<i class="matrix-cell visual-token"></i>'
-        '<i class="matrix-cell action-token"></i>'
-    )
     compact_markup = re.sub(r">\s+<", "><", pipeline_markup)
-    assert future_visual_row in compact_markup
-    assert next_actions_row in compact_markup
+    standard_panel = compact_markup[
+        compact_markup.index('class="attention-panel attention-standard"') :
+        compact_markup.index('class="attention-panel attention-conditioned"')
+    ]
+    conditioned_panel = compact_markup[
+        compact_markup.index('class="attention-panel attention-conditioned"') :
+        compact_markup.index("</section>", compact_markup.index('class="attention-panel attention-conditioned"'))
+    ]
+    assert standard_future_visual_row in standard_panel
+    assert conditioned_future_visual_row in conditioned_panel
 
     mobile_css = css.split("@media (max-width: 760px)", 1)[1].split(
         "@media (prefers-reduced-motion: reduce)", 1
     )[0]
-    assert "repeat(4,minmax(0,1fr))" in mobile_css
-    assert "repeat(4,minmax(28px,1fr))" not in mobile_css
+    assert ".attention-comparison" in mobile_css
+    assert "grid-template-columns: 1fr" in mobile_css
 
 
 def test_readme_leads_with_project_page_and_has_current_citation() -> None:
