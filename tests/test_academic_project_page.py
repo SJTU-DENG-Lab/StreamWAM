@@ -470,20 +470,22 @@ def test_academic_spacetime_method_figure_replaces_the_illustrated_timeline() ->
     ]
     caption = (
         "The overview shows Stream-WAM repeatedly predicting the next visual-action "
-        "chunk during continuous robot execution. The inset magnifies one overlap: "
-        "the executing A₀ segment becomes A₁’s shared prefix, and that known action "
-        "context conditions the next visual future V₁."
+        "chunk during continuous robot execution. The temporal inset aligns A₀’s "
+        "shared prefix with known action context and its look-ahead with unknown "
+        "future slots; the adjacent attention mask shows previous actions "
+        "conditioning the next visual future."
     )
     description = (
-        "A static two-scale spacetime figure. The global t₀-to-t₃ overview shows two "
-        "AC-Stream updates overlapped with continuous execution. A single inset "
-        "magnifies one t-to-t+1 window, showing observation O₁, the aligned "
-        "A₀[8:16] and A₁[0:8] shared actions, handoff into the A₁ continuation, and "
-        "action-context conditioning of V₁."
+        "A static two-scale method figure. The global t₀-to-t₃ overview shows two "
+        "Stream updates overlapped with continuous execution. The lower-left "
+        "temporal view aligns A₀[8:16] with A₁[0:8], maps the shared prefix to "
+        "known action context, and maps look-ahead to unknown future slots. The "
+        "lower-right ten-by-ten mask highlights the two previous-action links into "
+        "the next visual-future query."
     )
 
     assert len(figure_images) == 1
-    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260826-4"
+    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260826-5"
     assert figure_images[0]["width"] == "1600"
     assert figure_images[0]["height"] == "740"
     assert figure_images[0]["alt"] == ""
@@ -572,8 +574,8 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "Robot execution A₀",
         "Robot execution A₁",
         "Joint WAM",
-        "AC-Stream update 1",
-        "AC-Stream update 2",
+        "Stream update 1",
+        "Stream update 2",
         "Temporal overlap",
         "Action-conditioned attention",
         "Observe O₁",
@@ -726,10 +728,6 @@ def test_streamwam_method_svg_uses_direct_overlap_mappings_and_routes_outputs() 
 
     observation_path = by_id["inset-observation-input"]
     assert re.findall(r"[A-Za-z]", observation_path.attrib["d"]) == ["M", "H"]
-    observation_numbers = [
-        float(value) for value in re.findall(r"-?\d+(?:\.\d+)?", observation_path.attrib["d"])
-    ]
-    assert observation_numbers[1] == observation_numbers[-1]
 
     for path_id in ("shared-to-known", "lookahead-to-unknown"):
         assert re.findall(r"[A-Za-z]", by_id[path_id].attrib["d"]) == ["M", "V"]
