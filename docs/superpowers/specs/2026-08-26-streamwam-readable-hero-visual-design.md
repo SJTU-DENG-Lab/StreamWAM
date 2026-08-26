@@ -9,7 +9,7 @@ Improve the first-screen runtime and attention graphic at desktop widths without
 - Remove the decorative `01` and `02` badges while retaining the two section headings.
 - Render `Streaming control loop` as a clear interface heading rather than a code label: use the site's sans-serif stack at `14px`, weight `760`, compact tracking, and a brighter neutral color while leaving the adjacent legend unchanged.
 - Give the graphic more desktop width by shifting the hero column ratio toward the right and increasing the graphic column's minimum width.
-- Enlarge the `a-prefixᵏ → f₁ᵏ⁺¹` badge, both attention panel titles, chunk headings, and row/column token labels.
+- Enlarge both attention panel titles, the row/column token labels, and the replacement `Action conditioned` badge.
 - Use the unused space below the attention comparison: at desktop widths, each of the ten mask rows and cells must be at least `16px` high, token labels must be approximately `10px`, and the attention comparison should extend toward the bottom of the hero graphic with only normal card padding remaining.
 - Remove the visible `Chunk k` and `Chunk k+1` headings from both attention panels. Label both five-token groups simply as `f₀ f₁ fₕ a₁ aₕ`, using the matrix divider to distinguish the groups, and replace the formula badge with `Action conditioned`.
 - Preserve the existing two-chunk 10×10 masks exactly.
