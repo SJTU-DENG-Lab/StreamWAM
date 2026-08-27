@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Redraw the method inset so A₀[8:16] visibly feeds both the A₁ hard prefix and the 8+8 condition-slot assembly used by AC-Stream.
+**Goal:** Redraw the method inset so A₁ shared actions visibly feed both the slot assembly and Stream Update as separate inputs.
 
 **Architecture:** Keep the existing SVG and page shell. Protect the code-faithful labels, routing, accessibility copy, and removal of misleading arrows with the existing XML/HTML test suite, then minimally update the SVG and page copy.
 
@@ -11,9 +11,13 @@
 ## Global Constraints
 
 - Do not use the label `known action context`.
-- Use `shared actions`, `shared action slots · 8`, `unknown slots · 8`, and `16 condition slots`.
-- O₁ follows A₀[0:8]; A₀[8:16] feeds both A₁[0:8] and the shared-action slots.
+- Use `shared actions`, `shared action slots`, `unknown action slots`, and `condition slots`.
+- Do not display `· 8`, `· 16`, or `· 24` count suffixes.
+- O₁ follows A₀[0:8]; A₀[8:16] aligns with A₁[0:8].
+- A₁ shared actions feed the shared-action slots and Stream Update through two separate visible paths.
+- The combined condition slots also feed Stream Update independently.
 - A₁[8:32] must not point to the unknown slots.
+- Keep both slot labels on one line.
 - Preserve the existing 1600×740 canvas and overall two-scale layout.
 
 ---
@@ -30,13 +34,13 @@
 
 - [ ] **Step 1: Write the failing test**
 
-Update the existing method-figure tests to require `shared actions`, `shared action slots · 8`, `unknown slots · 8`, `16 condition slots`, `shared-to-action-prefix`, and `shared-to-condition-slots`. Require the old labels and false slot arrow to be absent.
+Update the existing method-figure tests to require `shared actions`, `shared action slots`, `unknown action slots`, `condition slots`, `shared-to-condition-slots`, and `shared-actions-to-update`. Require count suffixes and the old A₀-to-slots bypass path to be absent. Verify that the slot path begins at A₁ shared actions, both slot labels contain no `tspan`, and both the direct action path and condition path terminate at `Stream Update`.
 
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pytest -q tests/test_academic_project_page.py -k 'method_figure or spacetime'`
 
-Expected: FAIL because the current SVG still contains `known action context`, `shared prefix`, and `continuation-to-unknown`.
+Expected: FAIL because the current SVG still uses count suffixes, wrapped slot labels, and routes slots from A₀ instead of A₁.
 
 - [ ] **Step 3: Commit with the implementation**
 
@@ -55,11 +59,11 @@ The tests and static asset form one user-visible unit and will be committed toge
 
 - [ ] **Step 1: Implement the minimal SVG change**
 
-Rename the overlap and prefix labels to `shared actions`; label A₀[0:8] as executed and A₀[16:32] as remaining A₀. Replace the lower context blocks with two adjacent eight-slot blocks under one `16 condition slots` label. Draw separate routes from the shared A₀ segment to the A₁ prefix and the condition-slot strip. Remove decorative overview arrows and the obsolete attention prose.
+Label both overlap blocks `shared actions`; use `executed actions`, `remaining actions`, and `predicted actions` elsewhere. Widen the slot blocks so `shared action slots` and `unknown action slots` remain on one line. Route A₁ shared actions directly downward into the shared-action slots and separately into Stream Update. Keep the combined condition-slot route into Stream Update.
 
 - [ ] **Step 2: Update accessible HTML copy**
 
-Describe O₁ after A₀[0:8], the reuse of A₀[8:16] as A₁[0:8], and the 8+8 slot assembly. Bump the SVG query string to `v=20260827-1`.
+Describe O₁ after A₀[0:8], the shared A₀/A₁ region, and the separate action-prefix and condition-slot inputs. Bump the SVG query string to `v=20260827-2`.
 
 - [ ] **Step 3: Verify the focused tests pass**
 
@@ -79,5 +83,4 @@ Render the SVG to PNG at full width and inspect it for readable labels, clean ar
 
 - [ ] **Step 6: Commit**
 
-Run: `git add docs/assets/stream-wam-method.svg docs/index.html tests/test_academic_project_page.py docs/superpowers/specs/2026-08-27-streamwam-code-faithful-slot-routing-design.md docs/superpowers/plans/2026-08-27-streamwam-code-faithful-slot-routing.md && git commit -m "fix: clarify Stream-WAM slot routing"`
-
+Run: `git add docs/assets/stream-wam-method.svg docs/index.html tests/test_academic_project_page.py docs/superpowers/specs/2026-08-27-streamwam-code-faithful-slot-routing-design.md docs/superpowers/plans/2026-08-27-streamwam-code-faithful-slot-routing.md && git commit -m "fix: simplify Stream-WAM shared-action routing"`
