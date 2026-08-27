@@ -160,7 +160,7 @@ button { font: inherit; }
 .rollout-showcase { padding-block: clamp(52px,5vw,72px); border-top: 1px solid var(--line); background: var(--results-bg); }
 .rollout-showcase-heading { max-width: 820px; margin-bottom: 16px; }
 .rollout-showcase-heading h2 { margin: 0; color: var(--ink); font-family: var(--serif); font-size: clamp(1.2rem,1.7vw,1.45rem); font-weight: 600; line-height: 1.2; letter-spacing: -.018em; }
-.rollout-demo-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.rollout-demo-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
 .rollout-demo-card { min-width: 0; overflow: hidden; border: 1px solid rgba(40,34,24,.13); border-radius: 16px; background: var(--paper); box-shadow: 0 12px 28px rgba(45,28,7,.06); }
 .rollout-demo-card-stream { border-color: rgba(8,125,112,.42); box-shadow: 0 12px 28px rgba(8,125,112,.1); }
 .rollout-demo-caption { padding: 9px 13px 10px; border-top: 1px solid var(--line); }
@@ -334,7 +334,7 @@ tbody tr:last-child > * { border-bottom: 0; }
   .benchmark { width: 100%; }
   .rollout-showcase { padding-block: 48px; }
   .rollout-showcase-heading { margin-bottom: 18px; }
-  .rollout-demo-grid { gap: 12px; }
+  .rollout-demo-grid { grid-template-columns: 1fr; gap: 12px; }
   .rollout-demo-caption { padding: 8px 11px 9px; }
   .efficiency-intro { margin-top: 80px; }
   .latency-viewport { border-radius: 12px; }
