@@ -208,14 +208,14 @@
 
         <section class="article-section experiments" id="experiments" aria-label="Current results">
           <div class="reading-column">
-            <p class="lead"><strong>Task performance.</strong> To evaluate Stream-WAM across different World Action Model families, we begin by further training FastWAM-Joint with our streaming approach on LIBERO. We then extend the same design to X-WAM on RoboCasa and StarWAM on RoboTwin 2.0 to examine its applicability across benchmarks and model families. Our evaluations use four NVIDIA H100 GPUs.</p>
-            <p>We compare Stream-WAM with general purpose robot policies and World Action Model baselines in task performance and inference efficiency. CD refers to one-step consistency distillation. We also conduct ablation studies on Stream-WAM by removing action conditioning or the slot encoder to evaluate the contribution of each component. The tables report results on LIBERO, RoboTwin 2.0, and RoboCasa; best and second best results are shown in <strong>bold</strong> and <u>underlined</u>, respectively.</p>
+            <p class="lead"><strong>Task performance.</strong> To evaluate Stream-WAM across WAM families, we further train FastWAM-Joint with the streaming approach on LIBERO and apply the same design to StarWAM on RoboTwin 2.0 and X-WAM on RoboCasa. All evaluations use four NVIDIA H100 GPUs.</p>
+            <p>We compare against general purpose robot policies and WAM baselines on task performance, and against WAM baselines on inference efficiency. CD denotes one-step consistency distillation. On LIBERO, we also ablate action conditioning and the slot encoder to assess each component. Best and second best task results are shown in <strong>bold</strong> and <u>underlined</u>, respectively.</p>
           </div>
 
           <section class="benchmark breakout" id="benchmark-libero" aria-labelledby="libero-title">
             <div class="benchmark-intro">
               <h3 id="libero-title">LIBERO</h3>
-              <p>LIBERO evaluation covers four suites with 10 tasks per suite and 50 trials per task. Success is averaged across Long, Spatial, Goal, and Object; latency for long and short tasks is reported separately below.</p>
+              <p>LIBERO evaluation covers four suites: Long, Spatial, Goal, and Object, with 10 tasks per suite and 50 trials per task. We report average success across suites; Episode Time is reported separately for Long and Short tasks in the efficiency results.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable LIBERO results table">
               <table>
@@ -263,7 +263,7 @@
           <section class="benchmark breakout" id="benchmark-robocasa" aria-labelledby="robocasa-title">
             <div class="benchmark-intro">
               <h3 id="robocasa-title">RoboCasa</h3>
-              <p>RoboCasa evaluation follows the standard 24-task protocol, covering 24 kitchen manipulation tasks with 50 trials per task and reporting average success.</p>
+              <p>RoboCasa follows the standard 24-task protocol, with 50 trials per kitchen manipulation task and average success reported across tasks.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable RoboCasa results table">
               <table>
@@ -283,8 +283,8 @@
           </section>
 
           <div class="efficiency-intro reading-column">
-            <p><strong>Inference efficiency.</strong> Task success alone does not reveal how much inference interrupts robot execution. We therefore measure chunk latency, the time required to prepare the next action chunk, together with end to end episode time, which captures the accumulated cost of inference, execution, and replanning over a complete rollout.</p>
-            <p>Relative to FastWAM on LIBERO, Stream-WAM reduces chunk latency from 493.0 ms to 41.0 ms (12.0×); total time falls from 16.31 s to 5.36 s on Long tasks (3.0×) and from 8.25 s to 3.15 s on Short tasks (2.6×). Relative to StarWAM-Joint on RoboTwin 2.0, chunk latency decreases from 190.17 ms to 47.09 ms (4.0×) and total time from 110.22 s to 77.48 s (1.4×). Relative to X-WAM on RoboCasa, chunk latency decreases from 374.07 ms to 115.98 ms (3.2×) and total time from 17.36 s to 9.49 s (1.8×).</p>
+            <p><strong>Inference efficiency.</strong> Task success alone does not characterize runtime efficiency. We therefore report Chunk Time, the latency required to prepare the next action chunk, and Episode Time, the duration of a complete rollout, including inference, execution, and replanning.</p>
+            <p>Across all three benchmarks, Stream-WAM reduces both runtime measures while maintaining comparable task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to StarWAM-Joint, Chunk Time falls from 190.17 ms to 47.09 ms and Episode Time from 110.22 s to 77.48 s, while overall success increases from 85.4 to 87.6. On RoboCasa, relative to X-WAM, Stream-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).</p>
           </div>
           <figure class="latency-figure breakout" aria-labelledby="chunk-time-caption">
             <div class="latency-viewport">
@@ -303,7 +303,7 @@
             <figcaption id="episode-time-caption">Episode Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa. LIBERO reports Long and Short tasks separately.</figcaption>
             <div class="sr-only">
             <table class="latency-data">
-              <caption id="latency-data-caption">Exact latency values shown in the figure</caption>
+              <caption id="latency-data-caption">Exact runtime values shown in the figures</caption>
               <thead><tr><th scope="col">Benchmark</th><th scope="col">Method</th><th scope="col">Chunk Time</th><th scope="col">Episode Time</th></tr></thead>
               <tbody>
                 <tr><th scope="row">LIBERO</th><td>FastWAM</td><td>493.0 ms</td><td>16.31 s Long / 8.25 s Short</td></tr>

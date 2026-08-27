@@ -88,20 +88,15 @@ single-task rollout, and evaluation controls.
 
 ## Current results
 
-Stream-WAM is further trained from FastWAM-Joint on LIBERO. To evaluate the
-same streaming design across benchmarks and World Action Model families, the
-RoboCasa study builds on X-WAM and the RoboTwin 2.0 study builds on StarWAM.
-
 ### Task performance
 
-CD denotes one-step consistency distillation. We also report Stream-WAM
-ablations without action conditioning and without the slot encoder. Best and
-second-best results are shown in **bold** and <u>underlined</u>, respectively.
+To evaluate Stream-WAM across WAM families, we further train FastWAM-Joint with the streaming approach on LIBERO and apply the same design to StarWAM on RoboTwin 2.0 and X-WAM on RoboCasa. All evaluations use four NVIDIA H100 GPUs.
+
+We compare against general purpose robot policies and WAM baselines on task performance, and against WAM baselines on inference efficiency. CD denotes one-step consistency distillation. On LIBERO, we also ablate action conditioning and the slot encoder to assess each component. Best and second best task results are shown in **bold** and <u>underlined</u>, respectively.
 
 #### LIBERO
 
-LIBERO evaluation covers four suites with 10 tasks per suite and 50 trials per
-task. Success is averaged across Long, Spatial, Goal, and Object.
+LIBERO evaluation covers four suites: Long, Spatial, Goal, and Object, with 10 tasks per suite and 50 trials per task. We report average success across suites; Episode Time is reported separately for Long and Short tasks in the efficiency results.
 
 | Method | Long | Spatial | Goal | Object | Average ↑ |
 |---|---:|---:|---:|---:|---:|
@@ -135,9 +130,7 @@ setting.
 
 #### RoboCasa
 
-RoboCasa evaluation follows the standard 24-task protocol, covering 24
-kitchen manipulation tasks with 50 trials per task and reporting average
-success.
+RoboCasa follows the standard 24-task protocol, with 50 trials per kitchen manipulation task and average success reported across tasks.
 
 | Method | Average Success ↑ |
 |---|---:|
@@ -151,9 +144,7 @@ success.
 
 ### Inference efficiency
 
-Chunk Time measures the latency required to prepare the next action chunk.
-Episode Time captures the accumulated cost of inference, execution, and
-replanning over a complete rollout.
+Task success alone does not characterize runtime efficiency. We therefore report Chunk Time, the latency required to prepare the next action chunk, and Episode Time, the duration of a complete rollout, including inference, execution, and replanning.
 
 | Benchmark | Method | Chunk Time | Episode Time |
 |---|---|---:|---:|
@@ -170,13 +161,7 @@ replanning over a complete rollout.
 | RoboCasa | X-WAM-CD | 134.37 ms | 13.04 s |
 | RoboCasa | Stream-WAM | 115.98 ms | 9.49 s |
 
-Relative to FastWAM on LIBERO, Stream-WAM reduces chunk latency from 493.0 ms
-to 41.0 ms (12.0×); total time falls from 16.31 s to 5.36 s on Long tasks
-(3.0×) and from 8.25 s to 3.15 s on Short tasks (2.6×). Relative to
-StarWAM-Joint on RoboTwin 2.0, chunk latency decreases from 190.17 ms to
-47.09 ms (4.0×) and total time from 110.22 s to 77.48 s (1.4×). Relative to
-X-WAM on RoboCasa, chunk latency decreases from 374.07 ms to 115.98 ms (3.2×)
-and total time from 17.36 s to 9.49 s (1.8×).
+Across all three benchmarks, Stream-WAM reduces both runtime measures while maintaining comparable task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to StarWAM-Joint, Chunk Time falls from 190.17 ms to 47.09 ms and Episode Time from 110.22 s to 77.48 s, while overall success increases from 85.4 to 87.6. On RoboCasa, relative to X-WAM, Stream-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).
 
 ## Runtime layout
 
