@@ -388,10 +388,9 @@
         </section>
 
         <section class="article-section reading-column" id="discussion" aria-label="Discussion">
-          <p class="lead">Stream-WAM reframes streaming as a relationship between execution and prediction, not only as a way to schedule the same computation earlier.</p>
-          <p>The first provisional conclusion is that action conditioning provides a direct link between the robot motion underway and the visual future used for its next decision. It gives asynchronous prediction a model-level account of what execution is doing during inference.</p>
-          <p>The second is that streaming performance needs to be read jointly with control success. Chunk time, end-to-end time, and task outcomes describe different parts of the system; none alone establishes that a robot can act continuously and successfully.</p>
-          <p>The third is about the scope of this preview. The technical report will carry the broader analysis, limitations, and failure cases. Until then, this page presents the method motivation, released artifacts, evaluation protocols, and current tables without filling those missing sections with speculative claims.</p>
+          <p class="lead">Stream-WAM enables a World Action Model to prepare its next prediction while the robot continues executing the current action chunk.</p>
+          <p>At its core, the shared actions between adjacent chunks are not treated only as an action continuity constraint. They condition future video generation, allowing the predicted visual trajectory to account for the motion already underway before guiding the next action continuation. One-step consistency distillation and the accelerated runtime further reduce generation latency so that prediction can remain within the available execution window.</p>
+          <p>Results on LIBERO, RoboCasa, RoboTwin 2.0, and the real robot experiment show that this design reduces Chunk Time and Episode Time while preserving competitive task success. Taken together, the results support a simple conclusion: real-time WAM deployment requires both fast inference and alignment between ongoing execution and predicted world evolution; latency and task success should therefore be evaluated together.</p>
         </section>
 
         <section class="reference-rail breakout" id="references" aria-labelledby="references-title">
