@@ -14,8 +14,8 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <title>Stream-WAM — Streaming World-Action Models</title>
-    <link rel="stylesheet" href="styles.css?v=20260827-25">
-    <script src="script.js?v=20260827-18" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260827-28">
+    <script src="script.js?v=20260827-20" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#article">Skip to article</a>
@@ -148,6 +148,53 @@
         </figure>
       </section>
 
+      <section class="rollout-showcase" id="real-robot-demo" aria-labelledby="real-robot-demo-title">
+        <div class="shell">
+          <div class="rollout-showcase-heading">
+            <p class="eyebrow">Real robot demonstrations</p>
+            <h2 id="real-robot-demo-title">From synchronous inference to streaming control.</h2>
+            <p>The same manipulation task is shown with two synchronized camera views. Select a rollout to compare how each inference strategy affects the continuity and completion time of robot execution.</p>
+          </div>
+          <div class="rollout-demo-grid">
+            <article class="rollout-demo-card">
+              <div class="real-robot-player">
+                <video class="real-robot-video" controls preload="none" playsinline poster="assets/real-robot/joint-wam.jpg" width="1280" height="360" aria-label="Joint WAM real robot rollout from two synchronized camera views">
+                  <source data-src="assets/real-robot/joint-wam.mp4" type="video/mp4">
+                </video>
+                <button class="real-robot-load" type="button" aria-label="Play the Joint WAM real robot rollout"><span aria-hidden="true">▶</span> Play rollout</button>
+                <div class="real-robot-view-labels" aria-hidden="true"><span>Front view</span><span>Side view</span></div>
+              </div>
+              <div class="rollout-demo-caption"><h3>Joint WAM</h3><p>Synchronous inference pauses robot execution while preparing the next action chunk.</p></div>
+              <noscript><a href="assets/real-robot/joint-wam.mp4">Open the Joint WAM rollout</a></noscript>
+            </article>
+
+            <article class="rollout-demo-card">
+              <div class="real-robot-player">
+                <video class="real-robot-video" controls preload="none" playsinline poster="assets/real-robot/distilled-wam.jpg" width="1280" height="360" aria-label="Distilled WAM 1V10A real robot rollout from two synchronized camera views">
+                  <source data-src="assets/real-robot/distilled-wam.mp4" type="video/mp4">
+                </video>
+                <button class="real-robot-load" type="button" aria-label="Play the Distilled WAM 1V10A real robot rollout"><span aria-hidden="true">▶</span> Play rollout</button>
+                <div class="real-robot-view-labels" aria-hidden="true"><span>Front view</span><span>Side view</span></div>
+              </div>
+              <div class="rollout-demo-caption"><h3>Distilled WAM <small>1V10A</small></h3><p>One-step distilled inference shortens each pause but retains synchronous execution.</p></div>
+              <noscript><a href="assets/real-robot/distilled-wam.mp4">Open the Distilled WAM rollout</a></noscript>
+            </article>
+
+            <article class="rollout-demo-card rollout-demo-card-stream">
+              <div class="real-robot-player">
+                <video class="real-robot-video" controls preload="none" playsinline poster="assets/real-robot/stream-wam.jpg" width="1280" height="360" aria-label="Stream-WAM real robot rollout from two synchronized camera views">
+                  <source data-src="assets/real-robot/stream-wam.mp4" type="video/mp4">
+                </video>
+                <button class="real-robot-load" type="button" aria-label="Play the Stream-WAM real robot rollout"><span aria-hidden="true">▶</span> Play rollout</button>
+                <div class="real-robot-view-labels" aria-hidden="true"><span>Front view</span><span>Side view</span></div>
+              </div>
+              <div class="rollout-demo-caption"><h3>Stream-WAM <small>Ours</small></h3><p>Action-conditioned streaming prepares the next chunk while the robot continues moving.</p></div>
+              <noscript><a href="assets/real-robot/stream-wam.mp4">Open the Stream-WAM rollout</a></noscript>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <article class="longform" id="article">
         <aside class="article-toc">
           <nav aria-labelledby="article-toc-title" aria-hidden="true" inert>
@@ -277,6 +324,24 @@
                   <tr><th scope="row">X-WAM</th><td><strong>75.42%</strong></td></tr>
                   <tr><th scope="row">X-WAM-CD</th><td>75.33%</td></tr>
                   <tr><th scope="row">Stream-WAM (Ours)</th><td><u>75.35%</u></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="benchmark breakout" id="benchmark-real-robot" aria-labelledby="real-robot-title">
+            <div class="benchmark-intro">
+              <h3 id="real-robot-title">Real robot evaluation</h3>
+              <p>We evaluate standard Joint WAM inference, its distilled 1V10A variant, and Stream-WAM on the same real robot manipulation task. Stream-WAM reduces Chunk Time to 67.8 ms and completes the rollout in 33 s.</p>
+            </div>
+            <div class="table-scroll" tabindex="0" aria-label="Scrollable real robot evaluation table">
+              <table>
+                <caption>Real robot inference and rollout time</caption>
+                <thead><tr><th scope="col">Method</th><th scope="col">Inference strategy</th><th scope="col">Chunk Time ↓</th><th scope="col">Episode Time ↓</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">Joint WAM</th><td>Synchronous</td><td>667.1 ms</td><td>68 s</td></tr>
+                  <tr><th scope="row">Distilled WAM (1V10A)</th><td>One-step distilled</td><td>402.7 ms</td><td>60 s</td></tr>
+                  <tr><th scope="row">Stream-WAM (Ours)</th><td>Action-conditioned streaming</td><td><strong>67.8 ms</strong></td><td><strong>33 s</strong></td></tr>
                 </tbody>
               </table>
             </div>

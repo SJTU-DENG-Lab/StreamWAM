@@ -142,6 +142,16 @@ RoboCasa follows the standard 24-task protocol, with 50 trials per kitchen manip
 | X-WAM-CD | 75.33% |
 | Stream-WAM (Ours) | <u>75.35%</u> |
 
+#### Real robot evaluation
+
+We compare standard Joint WAM inference, its distilled 1V10A variant, and Stream-WAM on the same real robot manipulation task. The project page provides each rollout from two synchronized camera views.
+
+| Method | Chunk Time | Episode Time |
+|---|---:|---:|
+| Joint WAM | 667.1 ms | 68 s |
+| Distilled WAM (1V10A) | 402.7 ms | 60 s |
+| Stream-WAM (Ours) | **67.8 ms** | **33 s** |
+
 ### Inference efficiency
 
 Task success alone does not characterize runtime efficiency. We therefore report Chunk Time, the latency required to prepare the next action chunk, and Episode Time, the duration of a complete rollout, including inference, execution, and replanning.

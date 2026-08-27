@@ -157,6 +157,27 @@ button { font: inherit; }
 .headline-results small { align-self: start; margin-top: 3px; color: var(--dim); font-size: .48rem; line-height: 1.2; white-space: nowrap; }
 .headline-results small b { margin-right: 3px; padding: 2px 4px; border-radius: 4px; color: var(--violet); background: var(--violet-soft); font-weight: 840; }
 
+.rollout-showcase { padding-block: clamp(68px,7vw,96px); border-top: 1px solid var(--line); background: var(--results-bg); }
+.rollout-showcase-heading { max-width: 760px; margin-bottom: 28px; }
+.rollout-showcase-heading .eyebrow { margin: 0 0 11px; }
+.rollout-showcase-heading h2 { margin: 0; color: var(--ink); font-family: var(--serif); font-size: clamp(1.75rem,3vw,2.6rem); font-weight: 600; line-height: 1.12; letter-spacing: -.03em; }
+.rollout-showcase-heading > p:last-child { margin: 15px 0 0; color: var(--muted); font-size: .94rem; line-height: 1.7; }
+.rollout-demo-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.rollout-demo-card { min-width: 0; overflow: hidden; border: 1px solid rgba(40,34,24,.13); border-radius: 16px; background: var(--paper); box-shadow: 0 12px 28px rgba(45,28,7,.06); }
+.rollout-demo-card-stream { border-color: rgba(8,125,112,.42); box-shadow: 0 12px 28px rgba(8,125,112,.1); }
+.rollout-demo-caption { padding: 15px 16px 17px; }
+.rollout-demo-caption h3 { margin: 0; color: var(--ink); font-family: var(--serif); font-size: 1.03rem; font-weight: 600; line-height: 1.25; }
+.rollout-demo-caption h3 small { margin-left: 4px; color: var(--teal-deep); font-family: inherit; font-size: .63em; font-weight: 760; letter-spacing: .04em; text-transform: uppercase; }
+.rollout-demo-caption p { margin: 6px 0 0; color: var(--dim); font-size: .72rem; line-height: 1.55; }
+.rollout-demo-card noscript a { display: block; padding: 0 16px 14px; color: var(--teal-deep); font-size: .72rem; }
+.real-robot-player { position: relative; overflow: hidden; background: #101412; }
+.real-robot-video { width: 100%; height: auto; aspect-ratio: 32/9; display: block; object-fit: cover; }
+.real-robot-load { position: absolute; z-index: 2; top: 50%; left: 50%; display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border: 1px solid rgba(255,255,255,.62); border-radius: 999px; color: white; background: rgba(17,24,22,.82); box-shadow: 0 8px 24px rgba(0,0,0,.2); cursor: pointer; font-size: .66rem; font-weight: 760; letter-spacing: .035em; transform: translate(-50%,-50%); backdrop-filter: blur(8px); }
+.real-robot-load:hover, .real-robot-load:focus-visible { background: var(--teal-deep); }
+.real-robot-view-labels { position: absolute; z-index: 1; top: 7px; right: 7px; left: 7px; display: grid; grid-template-columns: repeat(2,1fr); pointer-events: none; }
+.real-robot-view-labels span { width: max-content; padding: 3px 6px; border-radius: 999px; color: white; background: rgba(17,24,22,.68); font-size: .48rem; font-weight: 720; letter-spacing: .035em; }
+.real-robot-view-labels span:last-child { justify-self: end; }
+
 .longform { position: relative; border-top: 1px solid var(--line); background: var(--paper); }
 .article-toc { position: absolute; top: 72px; bottom: 100px; left: max(2px,calc(50% - 700px)); width: 138px; visibility: hidden; }
 .article-toc.is-ready { visibility: visible; }
@@ -207,6 +228,7 @@ table { width: 100%; min-width: 620px; border-collapse: collapse; font-variant-n
 #benchmark-libero table { min-width: 720px; }
 #benchmark-robocasa table { min-width: 420px; }
 #benchmark-robotwin table { min-width: 540px; }
+#benchmark-real-robot table { min-width: 620px; }
 caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 th, td { padding: 13px 14px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
 thead th { color: var(--dim); background: var(--orange-soft); font-size: .64rem; letter-spacing: .045em; text-transform: uppercase; }
@@ -312,6 +334,11 @@ tbody tr:last-child > * { border-bottom: 0; }
   .method-figure-artwork { width: auto; min-width: 1100px; height: auto; }
   .method-figure figcaption { padding-inline: 15px; text-align: left; }
   .benchmark { width: 100%; }
+  .rollout-showcase { padding-block: 58px; }
+  .rollout-showcase-heading { margin-bottom: 22px; }
+  .rollout-demo-grid { grid-template-columns: 1fr; gap: 14px; }
+  .rollout-demo-caption { padding: 13px 14px 15px; }
+  .real-robot-load { padding: 9px 13px; }
   .efficiency-intro { margin-top: 80px; }
   .latency-viewport { border-radius: 12px; }
   .latency-image-link { min-width: 900px; }

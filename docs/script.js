@@ -117,3 +117,23 @@ if (articleToc && articleTocNav && tocOccluders.length) {
   updateTocVisibility();
   articleToc.classList.add("is-ready");
 }
+
+document.querySelectorAll(".rollout-demo-card").forEach((card) => {
+  const video = card.querySelector(".real-robot-video");
+  const source = video?.querySelector("source[data-src]");
+  const loadButton = card.querySelector(".real-robot-load");
+
+  if (!video || !source || !loadButton) return;
+
+  loadButton.addEventListener("click", () => {
+    if (!source.src) {
+      source.src = source.dataset.src;
+      video.load();
+    }
+
+    loadButton.hidden = true;
+    card.classList.add("is-loaded");
+    const playback = video.play();
+    if (playback?.catch) playback.catch(() => {});
+  });
+});
