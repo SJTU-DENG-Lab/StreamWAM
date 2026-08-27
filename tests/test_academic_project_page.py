@@ -470,23 +470,23 @@ def test_academic_spacetime_method_figure_replaces_the_illustrated_timeline() ->
     ]
     caption = (
         "The overview shows Stream-WAM repeatedly predicting the next visual-action "
-        "chunk during continuous robot execution. The temporal inset places known "
-        "action context and unknown future slots beneath A₁’s shared prefix and "
-        "continuation; the adjacent attention mask shows previous actions conditioning "
-        "the next visual future."
+        "chunk during continuous robot execution. The temporal inset samples O₁ after "
+        "A₀[0:8] and reuses A₀[8:16] both as A₁[0:8] and as eight shared action "
+        "slots; eight unknown slots complete the 16-slot condition input for the next "
+        "visual future."
     )
     description = (
         "A static two-scale method figure. The global t₀-to-t₃ overview shows two "
         "Stream updates overlapped with continuous execution. The lower-left "
-        "temporal view aligns A₀[8:16] with A₁[0:8], positions known action context "
-        "beneath A₁’s shared prefix, and positions unknown future slots beneath its "
-        "continuation. The "
-        "lower-right ten-by-ten mask highlights the two previous-action links into "
+        "temporal view marks O₁ after A₀[0:8], then routes A₀[8:16] both into the "
+        "hard action prefix A₁[0:8] and into eight shared action slots. Eight unknown "
+        "slots are appended to form 16 condition slots for visual-future generation. "
+        "The lower-right ten-by-ten mask highlights the two shared-action links into "
         "the next visual-future query."
     )
 
     assert len(figure_images) == 1
-    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260826-6"
+    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260827-1"
     assert figure_images[0]["width"] == "1600"
     assert figure_images[0]["height"] == "740"
     assert figure_images[0]["alt"] == ""
@@ -554,12 +554,14 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "inset-divider",
         "inset-a0-before",
         "inset-a0-overlap",
-        "inset-a0-lookahead",
-        "inset-shared-prefix",
+        "inset-a0-remaining",
+        "inset-a1-action-prefix",
         "inset-a1-continuation",
         "inset-observation",
-        "inset-known-context",
+        "inset-shared-action-slots",
         "inset-unknown-slots",
+        "shared-to-action-prefix",
+        "shared-to-condition-slots",
         "inset-update",
         "inset-video-1",
         "inset-action-1",
@@ -578,12 +580,14 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "Temporal overlap",
         "Action-conditioned attention",
         "A₀[8:16] = A₁[0:8]",
-        "execute",
-        "shared prefix",
-        "look-ahead",
-        "new actions",
-        "known action context",
-        "unknown future slots",
+        "executed · 8",
+        "shared actions · 8",
+        "remaining A₀ · 16",
+        "action prefix · 8",
+        "predicted actions · 24",
+        "shared action slots · 8",
+        "unknown slots · 8",
+        "16 condition slots",
         "Stream Update",
     ):
         assert label in text
@@ -597,6 +601,11 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "handoff",
         "Observe O₁",
         "predict A₁ while A₀ continues",
+        "known action context",
+        "unknown future slots",
+        "shared prefix",
+        "look-ahead",
+        "to next visual future",
     ):
         assert obsolete_label not in text
     classes = " ".join(
@@ -670,20 +679,17 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
     assert temporal_panel[2] < divider_x < attention_panel[0]
 
     a0_overlap = bounds("inset-a0-overlap")
-    shared_prefix = bounds("inset-shared-prefix")
-    assert a0_overlap[0] == shared_prefix[0]
-    assert a0_overlap[2] == shared_prefix[2]
-    known_context = bounds("inset-known-context")
-    assert shared_prefix[0] == known_context[0]
-    assert shared_prefix[2] == known_context[2]
-    assert shared_prefix[3] < known_context[1]
-    lookahead = bounds("inset-a0-lookahead")
+    action_prefix = bounds("inset-a1-action-prefix")
+    assert a0_overlap[0] == action_prefix[0]
+    assert a0_overlap[2] == action_prefix[2]
+    shared_slots = bounds("inset-shared-action-slots")
     unknown_slots = bounds("inset-unknown-slots")
-    assert lookahead[0] == unknown_slots[0]
-    assert lookahead[2] == unknown_slots[2]
+    assert action_prefix[0] == shared_slots[0]
+    assert shared_slots[2] == unknown_slots[0]
+    assert unknown_slots[2] == action_prefix[2]
+    assert action_prefix[3] < shared_slots[1]
     continuation = bounds("inset-a1-continuation")
-    assert continuation[0] == unknown_slots[0]
-    assert continuation[3] < unknown_slots[1]
+    assert continuation[0] == action_prefix[2]
     observation = by_id["inset-observation"]
     assert float(observation.attrib["x1"]) == a0_overlap[0]
     assert float(observation.attrib["x2"]) == a0_overlap[0]
@@ -695,6 +701,11 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
         and "connector" in element.attrib.get("class", "").split()
     ]
     assert len(connector_paths) == 1
+    assert not any(
+        "gold-path" in element.attrib.get("class", "").split()
+        for cycle_id in ("overview-cycle-1", "overview-cycle-2")
+        for element in by_id[cycle_id].iter()
+    )
 
 
 def test_streamwam_method_svg_uses_direct_overlap_mappings_and_routes_outputs() -> None:
@@ -739,32 +750,57 @@ def test_streamwam_method_svg_uses_direct_overlap_mappings_and_routes_outputs() 
     observation_path = by_id["inset-observation-input"]
     assert re.findall(r"[A-Za-z]", observation_path.attrib["d"]) == ["M", "H"]
 
-    for path_id, source_id, target_id, expected_class in (
-        ("shared-to-known", "inset-shared-prefix", "inset-known-context", "gold-path"),
-        (
-            "continuation-to-unknown",
-            "inset-a1-continuation",
-            "inset-unknown-slots",
-            "connector",
-        ),
-    ):
-        path = by_id[path_id]
-        assert re.findall(r"[A-Za-z]", path.attrib["d"]) == ["M", "V"]
-        path_x, source_y, target_y = [
-            float(value) for value in re.findall(r"-?\d+(?:\.\d+)?", path.attrib["d"])
-        ]
-        source = by_id[source_id]
-        target = by_id[target_id]
-        source_left = float(source.attrib["x"])
-        source_right = source_left + float(source.attrib["width"])
-        source_bottom = float(source.attrib["y"]) + float(source.attrib["height"])
-        target_center = float(target.attrib["x"]) + float(target.attrib["width"]) / 2
-        target_top = float(target.attrib["y"])
-        assert source_left <= path_x <= source_right
-        assert path_x == target_center
-        assert source_y == source_bottom
-        assert target_y == target_top - 7
-        assert expected_class in path.attrib.get("class", "").split()
+    shared = by_id["inset-a0-overlap"]
+    shared_left = float(shared.attrib["x"])
+    shared_right = shared_left + float(shared.attrib["width"])
+    shared_bottom = float(shared.attrib["y"]) + float(shared.attrib["height"])
+    action_prefix_path = by_id["shared-to-action-prefix"]
+    action_prefix_coordinates = [
+        float(value)
+        for value in re.findall(r"-?\d+(?:\.\d+)?", action_prefix_path.attrib["d"])
+    ]
+    action_source_x, action_source_y = action_prefix_coordinates[:2]
+    action_endpoint_x, action_endpoint_y = path_endpoint("shared-to-action-prefix")
+    action_prefix = by_id["inset-a1-action-prefix"]
+    action_prefix_left = float(action_prefix.attrib["x"])
+    action_prefix_right = action_prefix_left + float(action_prefix.attrib["width"])
+    action_prefix_top = float(action_prefix.attrib["y"])
+    action_prefix_bottom = action_prefix_top + float(action_prefix.attrib["height"])
+    assert shared_left <= action_source_x <= shared_right
+    assert action_source_y == shared_bottom
+    assert action_prefix_left <= action_endpoint_x <= action_prefix_right
+    assert action_endpoint_y == action_prefix_top - 7
+    assert "gold-path" in action_prefix_path.attrib.get("class", "").split()
+
+    slot_path = by_id["shared-to-condition-slots"]
+    slot_commands = re.findall(r"[A-Za-z]", slot_path.attrib["d"])
+    slot_coordinates = [
+        float(value) for value in re.findall(r"-?\d+(?:\.\d+)?", slot_path.attrib["d"])
+    ]
+    (
+        slot_source_x,
+        slot_source_y,
+        branch_y,
+        bypass_x,
+        slot_entry_y,
+        _,
+    ) = slot_coordinates
+    slot_endpoint_x, slot_endpoint_y = path_endpoint("shared-to-condition-slots")
+    shared_slots = by_id["inset-shared-action-slots"]
+    shared_slots_left = float(shared_slots.attrib["x"])
+    shared_slots_top = float(shared_slots.attrib["y"])
+    shared_slots_bottom = shared_slots_top + float(shared_slots.attrib["height"])
+    assert slot_commands == ["M", "V", "H", "V", "H"]
+    assert shared_left <= slot_source_x <= shared_right
+    assert slot_source_y == shared_bottom < action_prefix_top
+    assert shared_bottom < branch_y < action_prefix_top
+    assert bypass_x < action_prefix_left
+    assert slot_entry_y == slot_endpoint_y > action_prefix_bottom
+    assert slot_endpoint_x == shared_slots_left - 7
+    assert shared_slots_top <= slot_endpoint_y <= shared_slots_bottom
+    assert "gold-path" in slot_path.attrib.get("class", "").split()
+
+    assert "continuation-to-unknown" not in by_id
 
     for path_id, target_id in (
         ("inset-condition-to-video", "inset-video-1"),
