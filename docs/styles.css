@@ -218,6 +218,14 @@ tbody tr:last-child > * { border-bottom: 0; }
 .latency-plot { width: 100%; height: auto; display: block; }
 .latency-figure figcaption { margin-top: 16px; color: var(--dim); font-size: .72rem; line-height: 1.55; }
 
+.reference-section { margin-top: clamp(48px,6vw,72px); }
+.reference-section h2 { margin: 0; font-family: var(--serif); font-size: clamp(1.8rem,3.2vw,2.45rem); font-weight: 600; line-height: 1.1; letter-spacing: -.03em; }
+.reference-list { margin: 24px 0 0; padding-left: 1.5rem; }
+.reference-list li { margin-bottom: 14px; padding-left: .45rem; color: var(--muted); font-size: .79rem; line-height: 1.65; }
+.reference-list li::marker { color: var(--dim); font-weight: 700; }
+.reference-list em { color: var(--ink); }
+.reference-list a, .reference-cite, .reference-cite-group a { color: var(--teal); font-weight: 720; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.reference-cite-group { white-space: nowrap; }
 .project-endmatter { margin-top: clamp(48px,6vw,72px); }
 .project-endmatter h2 { margin: 0; font-family: var(--serif); font-size: clamp(2.15rem,4vw,3rem); font-weight: 600; line-height: 1.08; letter-spacing: -.035em; }
 .citation-card { position: relative; margin-top: 24px; }

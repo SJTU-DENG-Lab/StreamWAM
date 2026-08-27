@@ -274,7 +274,8 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
     assert parser.lab_lockup_regions == ["main"]
     assert "Think ahead. Act now." not in visible_text
     assert "Streaming Your World-Action Model for Real-Time Robot Manipulation." in visible_text
-    assert "committed action prefix" in visible_text
+    assert "shared actions" in visible_text
+    assert "committed action prefix" not in visible_text
     assert "action-conditioned" in visible_text.lower()
     assert "Coming Soon" in visible_text
 
@@ -442,11 +443,14 @@ def test_page_exposes_a_complete_research_story_without_draft_placeholders() -> 
         if tag == "meta" and attrs.get("name") == "theme-color"
     ]
 
-    assert "Why capable world-action models still make robots wait" in visible_text
-    assert "Asynchrony removes the wait, but exposes a boundary" in visible_text
+    assert "World Action Models and the Real-Time Gap" in visible_text
+    assert "Asynchronous Strategies and the Missing World Coupling" in visible_text
     assert "Stream-WAM conditions the visual future on the action already underway" in visible_text
-    assert "inference-time RTC" in visible_text
-    assert "prefix-conditioned" in visible_text
+    assert "Real-time chunking (RTC)" in visible_text
+    assert "Prefix-conditioned methods" in visible_text
+    assert "Training-Time RTC" in visible_text
+    assert "FDM grounding" in visible_text
+    assert "additional future-state prediction" in visible_text
     assert parser.eyebrow == "Stream-WAM"
     assert "Task performance." in visible_text
     assert "Inference efficiency." in visible_text
@@ -1506,6 +1510,39 @@ def test_discussion_ends_with_copyable_citation_and_open_source_actions() -> Non
     assert re.search(r"background:\s*#[0-9a-fA-F]{6}", citation_rule.group(1))
 
 
+def test_references_precede_citation_and_resolve_inline_citations() -> None:
+    _, html = parse_page()
+    css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
+
+    references_start = html.index('<section class="reference-section" id="references"')
+    citation_start = html.index('<section class="project-endmatter" id="resources"')
+    assert references_start < citation_start
+
+    reference_ids = (
+        "ref-fast-wam",
+        "ref-wam-real-time",
+        "ref-rtc",
+        "ref-training-time-rtc",
+        "ref-lingbot-va",
+    )
+    for reference_id in reference_ids:
+        assert f'id="{reference_id}"' in html
+        assert f'href="#{reference_id}"' in html
+
+    for arxiv_url in (
+        "https://arxiv.org/abs/2603.16666",
+        "https://arxiv.org/abs/2608.01880",
+        "https://arxiv.org/abs/2506.07339",
+        "https://arxiv.org/abs/2512.05964",
+        "https://arxiv.org/abs/2607.08639",
+    ):
+        assert f'href="{arxiv_url}"' in html
+
+    reference_rule = re.search(r"\.reference-section\s*\{([^}]*)\}", css)
+    assert reference_rule is not None
+    assert "background" not in reference_rule.group(1)
+
+
 def test_citation_copy_button_uses_clipboard_and_local_preview_fallback() -> None:
     subprocess.run(["node", str(CITATION_COPY_HARNESS_PATH)], check=True, cwd=REPO_ROOT)
 
@@ -1520,7 +1557,7 @@ def test_page_is_a_linear_text_first_research_article() -> None:
 
     assert parser.tags.count("article") >= 1
     assert article_ids == list(ARTICLE_SECTION_IDS)
-    assert parser.article_paragraph_count >= 35
+    assert parser.article_paragraph_count >= 30
     assert "chapter-index" not in html
     assert "future-slots" not in html
 
@@ -1533,7 +1570,7 @@ def test_article_opens_with_a_compact_abstract_without_a_contents_menu() -> None
     assert "Abstract" in visible_text
     assert "World Action Models (WAMs) jointly generate future visual observations and robot actions" in visible_text
     assert "synchronous execution leaves the robot idle during inference" in visible_text
-    assert "Actions already committed to execution condition future video generation" in visible_text
+    assert "Shared actions across adjacent chunks condition future video generation" in visible_text
     assert "guides a consistent action continuation" in visible_text
     assert "A streaming model should know what the robot is already doing." not in visible_text
     assert "In this article" not in visible_text
@@ -1560,7 +1597,7 @@ def test_article_opens_with_three_detailed_editorial_acts() -> None:
 
     assert [section["id"] for section in act_sections] == ["act-wam", "act-async", "act-streamwam"]
     assert all("editorial-act" in section.get("class", "").split() for section in act_sections)
-    assert parser.act_body_paragraph_count >= 18
+    assert parser.act_body_paragraph_count >= 15
     assert parser.act_heading_tags == []
     assert [section.get("aria-label") for section in act_sections] == [
         "The deployment problem",
