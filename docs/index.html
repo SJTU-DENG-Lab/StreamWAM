@@ -14,7 +14,7 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <title>Stream-WAM — Streaming World-Action Models</title>
-    <link rel="stylesheet" href="styles.css?v=20260827-31">
+    <link rel="stylesheet" href="styles.css?v=20260827-32">
     <script src="script.js?v=20260827-20" defer></script>
   </head>
   <body>
@@ -162,7 +162,10 @@
                 <button class="real-robot-load" type="button" aria-label="Play the Joint WAM real robot rollout"><span class="sr-only">Play the Joint WAM rollout</span></button>
                 <div class="real-robot-view-labels" aria-hidden="true"><span>Front view</span><span>Side view</span></div>
               </div>
-              <div class="rollout-demo-caption"><h3>Joint WAM</h3></div>
+              <div class="rollout-demo-caption">
+                <h3>Joint WAM</h3>
+                <p class="rollout-demo-metrics"><span>Chunk Time <strong>667.1 ms</strong></span><span>Total Time <strong>68 s</strong></span></p>
+              </div>
               <noscript><a href="assets/real-robot/joint-wam.mp4?v=vertical-20260827">Open the Joint WAM rollout</a></noscript>
             </article>
 
@@ -174,7 +177,10 @@
                 <button class="real-robot-load" type="button" aria-label="Play the Distilled WAM 1V10A real robot rollout"><span class="sr-only">Play the Distilled WAM 1V10A rollout</span></button>
                 <div class="real-robot-view-labels" aria-hidden="true"><span>Front view</span><span>Side view</span></div>
               </div>
-              <div class="rollout-demo-caption"><h3>Distilled WAM <small>1V10A</small></h3></div>
+              <div class="rollout-demo-caption">
+                <h3>Distilled WAM <small>1V10A</small></h3>
+                <p class="rollout-demo-metrics"><span>Chunk Time <strong>402.7 ms</strong></span><span>Total Time <strong>60 s</strong></span></p>
+              </div>
               <noscript><a href="assets/real-robot/distilled-wam.mp4?v=vertical-20260827">Open the Distilled WAM rollout</a></noscript>
             </article>
 
@@ -186,7 +192,13 @@
                 <button class="real-robot-load" type="button" aria-label="Play the Stream-WAM real robot rollout"><span class="sr-only">Play the Stream-WAM rollout</span></button>
                 <div class="real-robot-view-labels" aria-hidden="true"><span>Front view</span><span>Side view</span></div>
               </div>
-              <div class="rollout-demo-caption"><h3>Stream-WAM <small>Ours</small></h3></div>
+              <div class="rollout-demo-caption">
+                <h3>Stream-WAM <small>Ours</small></h3>
+                <div class="rollout-demo-result">
+                  <p class="rollout-demo-metrics"><span>Chunk Time <strong>67.8 ms</strong></span><span>Total Time <strong>33 s</strong></span></p>
+                  <p class="rollout-demo-speedup" aria-label="9.8 times faster Chunk Time and 2.1 times faster Total Time than Joint WAM"><strong>9.8×</strong> Chunk <span>·</span> <strong>2.1×</strong> Total</p>
+                </div>
+              </div>
               <noscript><a href="assets/real-robot/stream-wam.mp4?v=vertical-20260827">Open the Stream-WAM rollout</a></noscript>
             </article>
           </div>
@@ -330,7 +342,7 @@
           <section class="benchmark breakout" id="benchmark-real-robot" aria-labelledby="real-robot-title">
             <div class="benchmark-intro">
               <h3 id="real-robot-title">Real robot evaluation</h3>
-              <p>We evaluate standard Joint WAM inference, its distilled 1V10A variant, and Stream-WAM on the same real robot manipulation task. Stream-WAM reduces Chunk Time to 67.8 ms and completes the rollout in 33 s.</p>
+              <p>We evaluate standard Joint WAM inference, its distilled 1V10A variant, and Stream-WAM on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. Stream-WAM reduces Chunk Time to 67.8 ms and completes the rollout in 33 s.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable real robot evaluation table">
               <table>

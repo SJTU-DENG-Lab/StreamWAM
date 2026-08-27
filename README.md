@@ -144,7 +144,7 @@ RoboCasa follows the standard 24-task protocol, with 50 trials per kitchen manip
 
 #### Real robot evaluation
 
-We compare standard Joint WAM inference, its distilled 1V10A variant, and Stream-WAM on the same real robot manipulation task. The project page provides each rollout from two synchronized camera views.
+We compare standard Joint WAM inference, its distilled 1V10A variant, and Stream-WAM on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. The project page provides each rollout from two synchronized camera views.
 
 | Method | Chunk Time | Episode Time |
 |---|---:|---:|
