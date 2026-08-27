@@ -158,7 +158,7 @@ button { font: inherit; }
 .headline-results small b { margin-right: 3px; padding: 2px 4px; border-radius: 4px; color: var(--violet); background: var(--violet-soft); font-weight: 840; }
 
 .longform { position: relative; border-top: 1px solid var(--line); background: var(--paper); }
-.article-toc { position: absolute; top: 72px; bottom: 100px; left: max(24px,calc(50% - 610px)); width: 160px; }
+.article-toc { position: absolute; top: 72px; bottom: 100px; left: max(8px,calc(50% - 650px)); width: 150px; }
 .article-toc nav { position: sticky; top: 108px; }
 .article-toc p { margin: 0 0 11px; color: var(--ink); font-size: .68rem; font-weight: 760; letter-spacing: .09em; text-transform: uppercase; }
 .article-toc ol { margin: 0; padding: 0 0 0 12px; border-left: 1px solid var(--line-strong); list-style: none; }
