@@ -85,3 +85,35 @@ if (citationCopyButton && citationBibtex) {
     }, 1800);
   });
 }
+
+const articleToc = document.querySelector(".article-toc");
+const articleTocNav = articleToc?.querySelector("nav");
+const tocOccluders = document.querySelectorAll("#streamwam-method-figure, .benchmark, .latency-figure");
+
+if (articleToc && articleTocNav && tocOccluders.length) {
+  let tocUpdatePending = false;
+
+  function updateTocVisibility() {
+    const tocRect = articleTocNav.getBoundingClientRect();
+    const isObscured = Array.from(tocOccluders).some((element) => {
+      const rect = element.getBoundingClientRect();
+      return rect.left < tocRect.right && rect.right > tocRect.left && rect.top < tocRect.bottom && rect.bottom > tocRect.top;
+    });
+
+    articleToc.classList.toggle("is-obscured", isObscured);
+    articleTocNav.toggleAttribute("inert", isObscured);
+    articleTocNav.setAttribute("aria-hidden", String(isObscured));
+    tocUpdatePending = false;
+  }
+
+  function scheduleTocVisibilityUpdate() {
+    if (tocUpdatePending) return;
+    tocUpdatePending = true;
+    requestAnimationFrame(updateTocVisibility);
+  }
+
+  window.addEventListener("scroll", scheduleTocVisibilityUpdate, { passive: true });
+  window.addEventListener("resize", scheduleTocVisibilityUpdate);
+  updateTocVisibility();
+  articleToc.classList.add("is-ready");
+}

@@ -14,8 +14,8 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <title>Stream-WAM — Streaming World-Action Models</title>
-    <link rel="stylesheet" href="styles.css?v=20260827-22">
-    <script src="script.js?v=20260826-16" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260827-25">
+    <script src="script.js?v=20260827-18" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#article">Skip to article</a>
@@ -150,7 +150,7 @@
 
       <article class="longform" id="article">
         <aside class="article-toc">
-          <nav aria-labelledby="article-toc-title">
+          <nav aria-labelledby="article-toc-title" aria-hidden="true" inert>
             <p id="article-toc-title">Contents</p>
             <ol>
               <li><a href="#abstract">Abstract</a></li>
@@ -188,7 +188,7 @@
 
         <section class="editorial-act" id="act-streamwam" aria-label="Action-conditioned streaming">
           <div class="reading-column">
-            <p class="act-opening">Stream-WAM lets a joint World Action Model predict while the robot acts.</p>
+            <p class="act-opening">Stream-WAM aligns world prediction with continuous robot execution.</p>
             <p>Stream-WAM is a streaming formulation for joint World Action Models. It overlaps model inference with robot execution and uses the actions scheduled during that overlap to condition the next prediction. Instead of pausing at every chunk boundary, the robot continues moving while the model prepares the next visual and action chunk. Because the model knows what motion will occur during inference, its world prediction remains aligned with ongoing execution rather than relying on the observation alone.</p>
             <p>At the beginning of an episode, the WAM predicts the first visual and action chunk from the current observation, and the robot starts executing it. Before that chunk is exhausted, a fresh observation starts the next Stream Update in the background. The robot keeps following the current commands while the next chunk is generated. The handoff can be summarized as <span class="method-equation" role="math" aria-label="A sub t shared equals A sub t plus one prefix">A<sub>t</sub><sup>shared</sup> = A<sub>t+1</sub><sup>prefix</sup></span>: actions executed during inference are reused as shared context at the beginning of the incoming chunk. With an eight-action overlap, for example, <span class="method-equation" role="math" aria-label="A sub zero indices eight through fifteen equals A sub one indices zero through seven">A<sub>0</sub>[8:16] = A<sub>1</sub>[0:8]</span>. When the new chunk is ready, the controller continues from the actions that follow this shared part rather than repeating them after the handoff. Each update follows the same loop, so ongoing execution provides both the time and the motion context needed for the next prediction.</p>
           </div>
