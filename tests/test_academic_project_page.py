@@ -275,7 +275,8 @@ def test_page_exposes_the_research_preview_and_available_artifacts() -> None:
     assert "Think ahead. Act now." not in visible_text
     assert "Streaming Your World-Action Model for Real-Time Robot Manipulation." in visible_text
     assert "shared actions" in visible_text
-    assert "committed action prefix" not in visible_text
+    assert "committed action prefix" not in visible_text.casefold()
+    assert "shared prefix" not in visible_text.casefold()
     assert "action-conditioned" in visible_text.lower()
     assert "Coming Soon" in visible_text
 
