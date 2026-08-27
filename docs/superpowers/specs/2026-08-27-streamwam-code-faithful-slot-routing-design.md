@@ -25,6 +25,8 @@ The A₁ `shared actions` block has two visible outgoing paths:
 
 Place `shared action slots` and `unknown action slots` next to each other on one line per label. Their combined condition path also enters `Stream Update`. O₁ remains a third direct input.
 
+The lower O₁ input box must share the same horizontal center as the O₁ observation boundary on the A₀ timeline. Its connector begins at the moved box's right edge and continues directly to `Stream Update`.
+
 Do not show count suffixes such as `· 8`, `· 16`, or `· 24`. Use `executed actions`, `remaining actions`, `predicted actions`, and `condition slots` without numeric suffixes.
 
 Remove `known action context`, `unknown future slots`, `shared prefix`, `look-ahead`, the false new-action-to-slot arrow, the decorative orange output arrows after the overview updates, and the attention legend phrase `to next visual future`.

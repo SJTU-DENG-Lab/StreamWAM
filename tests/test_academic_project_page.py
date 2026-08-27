@@ -486,7 +486,7 @@ def test_academic_spacetime_method_figure_replaces_the_illustrated_timeline() ->
     )
 
     assert len(figure_images) == 1
-    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260827-2"
+    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260827-3"
     assert figure_images[0]["width"] == "1600"
     assert figure_images[0]["height"] == "740"
     assert figure_images[0]["alt"] == ""
@@ -558,6 +558,7 @@ def test_streamwam_method_svg_encodes_academic_spacetime_semantics() -> None:
         "inset-a1-action-prefix",
         "inset-a1-continuation",
         "inset-observation",
+        "inset-observation-input-box",
         "inset-shared-action-slots",
         "inset-unknown-slots",
         "shared-to-action-prefix",
@@ -709,6 +710,17 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
     observation = by_id["inset-observation"]
     assert float(observation.attrib["x1"]) == a0_overlap[0]
     assert float(observation.attrib["x2"]) == a0_overlap[0]
+    observation_input_box = bounds("inset-observation-input-box")
+    observation_boundary_x = float(observation.attrib["x1"])
+    assert (observation_input_box[0] + observation_input_box[2]) / 2 == observation_boundary_x
+    observation_input = by_id["inset-observation-input"]
+    input_coordinates = [
+        float(value)
+        for value in re.findall(r"-?\d+(?:\.\d+)?", observation_input.attrib["d"])
+    ]
+    input_start_x, input_start_y = input_coordinates[:2]
+    assert input_start_x == observation_input_box[2]
+    assert input_start_y == (observation_input_box[1] + observation_input_box[3]) / 2
     overview_cycle = by_id["overview-cycle-1"]
     connector_paths = [
         element
