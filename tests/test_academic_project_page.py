@@ -1500,9 +1500,10 @@ def test_article_opens_with_a_compact_abstract_without_a_contents_menu() -> None
     css = (PAGE_ROOT / "styles.css").read_text(encoding="utf-8")
 
     assert "Abstract" in visible_text
-    assert "jointly generate visual futures and robot action chunks" in visible_text
-    assert "naive asynchronous switching can create disagreement between consecutive chunks" in visible_text
-    assert "action currently being executed conditions future-video generation" in visible_text
+    assert "World Action Models (WAMs) jointly generate future visual observations and robot actions" in visible_text
+    assert "synchronous execution leaves the robot idle during inference" in visible_text
+    assert "Actions already committed to execution condition future video generation" in visible_text
+    assert "guides a consistent action continuation" in visible_text
     assert "A streaming model should know what the robot is already doing." not in visible_text
     assert "In this article" not in visible_text
     assert "lower is better" not in visible_text.casefold()
