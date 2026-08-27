@@ -16,7 +16,7 @@
 - O₁ follows A₀[0:8]; A₀[8:16] aligns with A₁[0:8].
 - A₁ shared actions feed the shared-action slots and Stream Update through two separate visible paths.
 - The combined condition slots also feed Stream Update independently.
-- The lower O₁ input box center must equal the A₀ observation-boundary x-coordinate.
+- The lower O₁ input box left edge must equal the A₀ observation-boundary x-coordinate.
 - A₁[8:32] must not point to the unknown slots.
 - Keep both slot labels on one line.
 - Preserve the existing 1600×740 canvas and overall two-scale layout.
@@ -94,11 +94,11 @@ Run: `git add docs/assets/stream-wam-method.svg docs/index.html tests/test_acade
 
 **Interfaces:**
 - Consumes: `inset-observation` as the A₀ observation-boundary line.
-- Produces: `inset-observation-input-box` centered on that boundary and a connector beginning at its right edge.
+- Produces: `inset-observation-input-box` beginning at that boundary and a connector beginning at its right edge.
 
 - [ ] **Step 1: Write the failing alignment test**
 
-Add `inset-observation-input-box` to the required SVG IDs. Assert that the box center equals `inset-observation.x1` and that `inset-observation-input` begins at the box's right edge.
+Add `inset-observation-input-box` to the required SVG IDs. Assert that the box left edge equals `inset-observation.x1` and that `inset-observation-input` begins at the box's right edge.
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
@@ -108,7 +108,7 @@ Expected: FAIL because the lower O₁ box does not yet have the required ID or a
 
 - [ ] **Step 3: Move the box and reconnect its path**
 
-Set the 80-pixel-wide O₁ box to `x="288"`, keep the observation boundary at `x="328"`, center its label at `x="328"`, and start the horizontal connector at `x="368"`.
+Set the 80-pixel-wide O₁ box to `x="328"`, keep the observation boundary at `x="328"`, center its label at `x="368"`, and start the horizontal connector at `x="408"`.
 
 - [ ] **Step 4: Verify the full page**
 

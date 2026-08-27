@@ -486,7 +486,7 @@ def test_academic_spacetime_method_figure_replaces_the_illustrated_timeline() ->
     )
 
     assert len(figure_images) == 1
-    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260827-3"
+    assert figure_images[0]["src"] == "assets/stream-wam-method.svg?v=20260827-4"
     assert figure_images[0]["width"] == "1600"
     assert figure_images[0]["height"] == "740"
     assert figure_images[0]["alt"] == ""
@@ -712,7 +712,7 @@ def test_streamwam_method_svg_places_prediction_inside_execution_and_inset_in_wh
     assert float(observation.attrib["x2"]) == a0_overlap[0]
     observation_input_box = bounds("inset-observation-input-box")
     observation_boundary_x = float(observation.attrib["x1"])
-    assert (observation_input_box[0] + observation_input_box[2]) / 2 == observation_boundary_x
+    assert observation_input_box[0] == observation_boundary_x
     observation_input = by_id["inset-observation-input"]
     input_coordinates = [
         float(value)
