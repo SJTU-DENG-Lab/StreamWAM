@@ -168,13 +168,13 @@ button { font: inherit; }
 .rollout-demo-caption h3 small { margin-left: 4px; color: var(--teal-deep); font-family: inherit; font-size: .63em; font-weight: 760; letter-spacing: .04em; text-transform: uppercase; }
 .rollout-demo-card noscript a { display: block; padding: 0 16px 14px; color: var(--teal-deep); font-size: .72rem; }
 .real-robot-player { position: relative; overflow: hidden; background: #101412; }
-.real-robot-video { width: 100%; height: auto; aspect-ratio: 32/9; display: block; object-fit: cover; }
+.real-robot-video { width: 100%; height: auto; aspect-ratio: 8/9; display: block; object-fit: cover; }
 .real-robot-load { position: absolute; z-index: 2; inset: 0; width: 100%; border: 0; color: transparent; background: transparent; cursor: pointer; }
 .real-robot-load:focus-visible { outline: 2px solid white; outline-offset: -5px; }
 .real-robot-load[hidden] { display: none; }
-.real-robot-view-labels { position: absolute; z-index: 1; top: 7px; right: 7px; left: 7px; display: grid; grid-template-columns: repeat(2,1fr); pointer-events: none; }
-.real-robot-view-labels span { width: max-content; padding: 3px 6px; border-radius: 999px; color: white; background: rgba(17,24,22,.68); font-size: .48rem; font-weight: 720; letter-spacing: .035em; }
-.real-robot-view-labels span:last-child { justify-self: end; }
+.real-robot-view-labels { position: absolute; z-index: 1; inset: 7px; pointer-events: none; }
+.real-robot-view-labels span { position: absolute; top: 0; left: 0; width: max-content; padding: 3px 6px; border-radius: 999px; color: white; background: rgba(17,24,22,.68); font-size: .48rem; font-weight: 720; letter-spacing: .035em; }
+.real-robot-view-labels span:last-child { top: calc(50% + 2px); }
 
 .longform { position: relative; border-top: 1px solid var(--line); background: var(--paper); }
 .article-toc { position: absolute; top: 72px; bottom: 100px; left: max(2px,calc(50% - 700px)); width: 138px; visibility: hidden; }
