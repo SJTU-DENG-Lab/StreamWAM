@@ -188,7 +188,7 @@
           <div class="reading-column">
             <p>The loop repeats at every boundary. A prepared chunk becomes the current command, the robot begins executing it, and the shared actions become context for the following prediction. When inference remains within the available action window, the model thinks ahead without asking the robot to stop; when the scene changes unexpectedly, the method still depends on fresh observations and replanning rather than assuming that old action context is always sufficient.</p>
             <p>Stream-WAM is also the research framework used to separate these effects. It places synchronous WAM execution, pure asynchronous overlap, inference-time continuity methods, prefix-conditioned action generation, and action-conditioned world-action streaming behind a common evaluation interface. This makes it possible to compare task success, chunk latency, and end-to-end control time instead of treating any one of them as a complete measure of streaming quality.</p>
-            <p>The current study carries that comparison across LIBERO, RoboCasa, and RoboTwin, using FastWAM-Joint, X-WAM, and StarWAM model families as its respective foundations. The backbones and protocols differ, but the central test remains the same: can a WAM prepare its next decision while the robot acts, without losing the relationship between the action underway and the visual future it predicts?</p>
+            <p>The current study carries that comparison across LIBERO, RoboCasa, and RoboTwin, using FastWAM-Joint <a class="reference-cite" href="#ref-fast-wam" aria-label="Reference 1">[1]</a>, X-WAM <a class="reference-cite" href="#ref-x-wam" aria-label="Reference 6">[6]</a>, and StarWAM <a class="reference-cite" href="#ref-starwam" aria-label="Reference 7">[7]</a> as its respective foundations. The backbones and protocols differ, but the central test remains the same: can a WAM prepare its next decision while the robot acts, without losing the relationship between the action underway and the visual future it predicts?</p>
           </div>
         </section>
 
@@ -315,17 +315,66 @@
           <p>The first provisional conclusion is that action conditioning provides a direct link between the robot motion underway and the visual future used for its next decision. It gives asynchronous prediction a model-level account of what execution is doing during inference.</p>
           <p>The second is that streaming performance needs to be read jointly with control success. Chunk time, end-to-end time, and task outcomes describe different parts of the system; none alone establishes that a robot can act continuously and successfully.</p>
           <p>The third is about the scope of this preview. The technical report will carry the broader analysis, limitations, and failure cases. Until then, this page presents the method motivation, released artifacts, evaluation protocols, and current tables without filling those missing sections with speculative claims.</p>
-          <section class="reference-section" id="references" aria-labelledby="references-title">
+        </section>
+
+        <section class="reference-rail breakout" id="references" aria-labelledby="references-title">
+          <header class="reference-rail-header">
             <h2 id="references-title">References</h2>
-            <ol class="reference-list">
-              <li id="ref-fast-wam">T. Yuan, Z. Dong, Y. Liu, and H. Zhao, “Fast-WAM: Do World Action Models Need Test-Time Future Imagination?” <em>arXiv preprint arXiv:2603.16666</em>, 2026. <a href="https://arxiv.org/abs/2603.16666" target="_blank" rel="noopener noreferrer">arXiv ↗</a></li>
-              <li id="ref-wam-real-time">Motubrain Team, “World Action Models in Real Time: An Empirical Study of Smooth Execution via Asynchronous Deployment,” <em>arXiv preprint arXiv:2608.01880</em>, 2026. <a href="https://arxiv.org/abs/2608.01880" target="_blank" rel="noopener noreferrer">arXiv ↗</a></li>
-              <li id="ref-rtc">K. Black, M. Y. Galliker, and S. Levine, “Real-Time Execution of Action Chunking Flow Policies,” <em>arXiv preprint arXiv:2506.07339</em>, 2025. <a href="https://arxiv.org/abs/2506.07339" target="_blank" rel="noopener noreferrer">arXiv ↗</a></li>
-              <li id="ref-training-time-rtc">K. Black, A. Z. Ren, M. Equi, and S. Levine, “Training-Time Action Conditioning for Efficient Real-Time Chunking,” <em>arXiv preprint arXiv:2512.05964</em>, 2025. <a href="https://arxiv.org/abs/2512.05964" target="_blank" rel="noopener noreferrer">arXiv ↗</a></li>
-              <li id="ref-lingbot-va">Q. Zhang et al., “Native Video-Action Pretraining for Generalizable Robot Control,” <em>arXiv preprint arXiv:2607.08639</em>, 2026. <a href="https://arxiv.org/abs/2607.08639" target="_blank" rel="noopener noreferrer">arXiv ↗</a></li>
-            </ol>
-          </section>
-          <section class="project-endmatter" id="resources" aria-labelledby="citation-title">
+          </header>
+          <ol class="reference-grid">
+            <li id="ref-fast-wam">
+              <span class="reference-number" aria-hidden="true">[1]</span>
+              <div class="reference-entry">
+                <a class="reference-title" href="https://arxiv.org/abs/2603.16666" target="_blank" rel="noopener noreferrer">Fast-WAM: Do World Action Models Need Test-Time Future Imagination?</a>
+                <p class="reference-meta">T. Yuan, Z. Dong, Y. Liu, and H. Zhao · arXiv:2603.16666 · 2026</p>
+              </div>
+            </li>
+            <li id="ref-wam-real-time">
+              <span class="reference-number" aria-hidden="true">[2]</span>
+              <div class="reference-entry">
+                <a class="reference-title" href="https://arxiv.org/abs/2608.01880" target="_blank" rel="noopener noreferrer">World Action Models in Real Time: An Empirical Study of Smooth Execution via Asynchronous Deployment</a>
+                <p class="reference-meta">Motubrain Team · arXiv:2608.01880 · 2026</p>
+              </div>
+            </li>
+            <li id="ref-rtc">
+              <span class="reference-number" aria-hidden="true">[3]</span>
+              <div class="reference-entry">
+                <a class="reference-title" href="https://arxiv.org/abs/2506.07339" target="_blank" rel="noopener noreferrer">Real-Time Execution of Action Chunking Flow Policies</a>
+                <p class="reference-meta">K. Black, M. Y. Galliker, and S. Levine · arXiv:2506.07339 · 2025</p>
+              </div>
+            </li>
+            <li id="ref-training-time-rtc">
+              <span class="reference-number" aria-hidden="true">[4]</span>
+              <div class="reference-entry">
+                <a class="reference-title" href="https://arxiv.org/abs/2512.05964" target="_blank" rel="noopener noreferrer">Training-Time Action Conditioning for Efficient Real-Time Chunking</a>
+                <p class="reference-meta">K. Black, A. Z. Ren, M. Equi, and S. Levine · arXiv:2512.05964 · 2025</p>
+              </div>
+            </li>
+            <li id="ref-lingbot-va">
+              <span class="reference-number" aria-hidden="true">[5]</span>
+              <div class="reference-entry">
+                <a class="reference-title" href="https://arxiv.org/abs/2607.08639" target="_blank" rel="noopener noreferrer">Native Video-Action Pretraining for Generalizable Robot Control</a>
+                <p class="reference-meta">Q. Zhang et al. · arXiv:2607.08639 · 2026</p>
+              </div>
+            </li>
+            <li id="ref-x-wam">
+              <span class="reference-number" aria-hidden="true">[6]</span>
+              <div class="reference-entry">
+                <a class="reference-title" href="https://arxiv.org/abs/2604.26694" target="_blank" rel="noopener noreferrer">Unified 4D World Action Modeling from Video Priors with Asynchronous Denoising</a>
+                <p class="reference-meta">J. Guo, Q. Li, P. Li, et al. · X-WAM · arXiv:2604.26694 · 2026</p>
+              </div>
+            </li>
+            <li id="ref-starwam">
+              <span class="reference-number" aria-hidden="true">[7]</span>
+              <div class="reference-entry">
+                <a class="reference-title" href="https://github.com/shaohua-pan/StarWAM" target="_blank" rel="noopener noreferrer">StarWAM: A Generalizable Codebase for World-Action Models</a>
+                <p class="reference-meta">StarWAM Contributors · Software repository · 2026</p>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section class="project-endmatter reading-column" id="resources" aria-labelledby="citation-title">
             <h2 id="citation-title">Citation</h2>
             <div class="citation-card">
               <button class="citation-copy" type="button" aria-label="Copy BibTeX citation">Copy</button>
@@ -342,7 +391,6 @@
               <a class="button button-primary" href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Code ↗</a>
               <a class="button" href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Models ↗</a>
             </div>
-          </section>
         </section>
       </article>
     </main>
