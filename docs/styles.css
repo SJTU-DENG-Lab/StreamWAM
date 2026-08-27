@@ -184,6 +184,8 @@ button { font: inherit; }
 .editorial-act .act-opening { max-width: 720px; margin: 0 0 27px; color: var(--ink); font-family: inherit; font-size: 1.09rem; font-weight: 650; line-height: 1.9; letter-spacing: 0; }
 .editorial-act a { color: var(--teal-deep); text-decoration-color: #89bdb2; text-underline-offset: 4px; }
 .editorial-act em, .editorial-act cite { color: var(--ink); font-family: var(--serif); }
+.method-equation { color: var(--ink); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9em; font-weight: 620; letter-spacing: -.02em; }
+.method-equation sub, .method-equation sup { font-size: .72em; line-height: 0; }
 
 .method-figure { width: min(1420px,calc(100vw - 48px)); margin: 64px auto 0; }
 .method-figure-viewport { overflow-x: auto; border-block: 1px solid rgba(40,34,24,.18); border-inline: 0; border-radius: 0; outline: none; background: #fff; box-shadow: none; scrollbar-color: #a5cfc7 transparent; scrollbar-width: thin; }
