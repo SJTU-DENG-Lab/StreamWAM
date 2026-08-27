@@ -226,6 +226,7 @@ tbody tr:last-child > * { border-bottom: 0; }
 .reference-title { color: var(--ink); font-family: var(--serif); font-size: 1.02rem; font-weight: 600; line-height: 1.38; text-decoration-color: #89bdb2; text-decoration-thickness: 1px; text-underline-offset: 4px; }
 .reference-title:hover, .reference-title:focus-visible { color: var(--teal-deep); text-decoration-color: currentColor; }
 .reference-meta { margin: 9px 0 0; color: var(--dim); font-size: .68rem; line-height: 1.55; }
+.reference-meta a { color: var(--teal-deep); font-weight: 700; text-underline-offset: 3px; }
 .reference-cite, .reference-cite-group a { color: var(--teal); font-weight: 720; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .reference-cite-group { white-space: nowrap; }
 .project-endmatter { margin-top: clamp(52px,6vw,76px); margin-bottom: clamp(80px,9vw,120px); }
