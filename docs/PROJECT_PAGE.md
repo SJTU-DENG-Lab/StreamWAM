@@ -56,16 +56,18 @@ Put the optimized MP4 file under `assets/videos/` using a descriptive lowercase 
 </video>
 ```
 
-Remove the `Rollout film · Coming Soon` status only after the video or public film URL is available and the local reference test passes. Keep the masthead image for fast loading and social sharing.
+Remove the `Rollout film · Coming Soon` status only after the video or public film URL is available and the updated page has been reviewed locally. Keep the masthead image for fast loading and social sharing.
 
 ## Update results safely
 
 The summary metrics appear near the top of `index.html`; the detailed values live in the three visible benchmark sections (`benchmark-libero`, `benchmark-robotwin`, and `benchmark-robocasa`). Update both locations when a headline metric changes, then run:
 
 ```bash
-pytest -q tests/test_academic_project_page.py
 node --check docs/script.js
+python -m http.server 8000 --directory docs
 ```
+
+Open `http://localhost:8000`, verify the headline and detailed metrics agree, and check that the local images, navigation links, and external project links resolve correctly.
 
 ## Deploy
 
