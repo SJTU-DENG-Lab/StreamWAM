@@ -126,12 +126,12 @@ setting.
 |---|---:|---:|---:|
 | π₀ | 65.92 | 58.40 | 62.2 |
 | π₀.₅ | 82.74 | 76.76 | 79.8 |
-| Motus | <u>88.66</u> | 87.02 | <u>87.8</u> |
+| Motus | **88.66** | 87.02 | **87.8** |
 | Motus from WAN2.2 | 77.56 | 77.00 | 77.3 |
-| Fast-WAM | **91.88** | **91.78** | **91.8** |
+| FastWAM-Joint | <u>87.8</u> | <u>87.32</u> | 87.56 |
 | StarWAM-Joint | 84.8 | 86.0 | 85.4 |
 | StarWAM-CD | 79.0 | 79.2 | 79.1 |
-| Stream-WAM (Ours) | 87.2 | <u>88.8</u> | 87.6 |
+| Stream-WAM (Ours) | 87.2 | **88.8** | <u>87.6</u> |
 
 #### RoboCasa
 
@@ -170,10 +170,13 @@ replanning over a complete rollout.
 | RoboCasa | X-WAM-CD | 134.37 ms | 13.04 s |
 | RoboCasa | Stream-WAM | 115.98 ms | 9.49 s |
 
-Relative to the corresponding teacher, Stream-WAM reduces chunk latency by
-12.0× on LIBERO, 4.0× on RoboTwin 2.0, and 3.2× on RoboCasa. The corresponding
-end-to-end speedups are 3.0× and 2.6× for long and short LIBERO tasks, 1.4× on
-RoboTwin 2.0, and 1.8× on RoboCasa.
+Relative to FastWAM on LIBERO, Stream-WAM reduces chunk latency from 493.0 ms
+to 41.0 ms (12.0×); total time falls from 16.31 s to 5.36 s on Long tasks
+(3.0×) and from 8.25 s to 3.15 s on Short tasks (2.6×). Relative to
+StarWAM-Joint on RoboTwin 2.0, chunk latency decreases from 190.17 ms to
+47.09 ms (4.0×) and total time from 110.22 s to 77.48 s (1.4×). Relative to
+X-WAM on RoboCasa, chunk latency decreases from 374.07 ms to 115.98 ms (3.2×)
+and total time from 17.36 s to 9.49 s (1.8×).
 
 ## Runtime layout
 
