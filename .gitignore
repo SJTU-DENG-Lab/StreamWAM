@@ -36,6 +36,7 @@ checkpoints/
 # Local agent/tooling
 .claude/
 .comate/
+docs/superpowers/
 
 # Reference repos not part of release
 refs/
