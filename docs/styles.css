@@ -228,8 +228,8 @@ tbody tr:last-child > * { border-bottom: 0; }
 .reference-rail { display: block; width: var(--reading); padding-block: 48px; border-block: 1px solid var(--line-strong); }
 .reference-rail-header h2 { margin: 0; color: var(--ink); font-family: inherit; font-size: 1.12rem; font-weight: 680; line-height: 1.3; letter-spacing: -.015em; }
 .reference-grid { display: grid; grid-template-columns: 1fr; gap: 13px; margin: 20px 0 0; padding: 0; list-style: none; }
-.reference-grid li { min-width: 0; display: grid; grid-template-columns: 27px minmax(0,1fr); gap: 8px; align-items: start; }
-.reference-number { padding-top: 1px; color: var(--teal-deep); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .68rem; font-weight: 760; line-height: 1.5; }
+.reference-grid li { min-width: 0; display: grid; grid-template-columns: 27px minmax(0,1fr); gap: 8px; align-items: baseline; }
+.reference-number { padding-top: 0; color: var(--teal-deep); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .68rem; font-weight: 760; line-height: 1.5; }
 .reference-title { color: var(--ink); font-family: inherit; font-size: .84rem; font-weight: 620; line-height: 1.5; text-decoration-color: #89bdb2; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .reference-title:hover, .reference-title:focus-visible { color: var(--teal-deep); text-decoration-color: currentColor; }
 .reference-meta { margin: 1px 0 0; color: var(--dim); font-size: .66rem; line-height: 1.45; }
