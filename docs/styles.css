@@ -163,16 +163,16 @@ button { font: inherit; }
 .rollout-demo-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
 .rollout-demo-card { min-width: 0; overflow: hidden; border: 1px solid rgba(40,34,24,.13); border-radius: 16px; background: var(--paper); box-shadow: 0 12px 28px rgba(45,28,7,.06); }
 .rollout-demo-card-stream { border-color: rgba(8,125,112,.58); box-shadow: 0 14px 32px rgba(8,125,112,.15); }
-.rollout-demo-caption { min-height: 58px; display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 8px 12px 9px; border-top: 1px solid var(--line); }
+.rollout-demo-caption { min-height: 64px; display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 9px 12px 10px; border-top: 1px solid var(--line); }
 .rollout-demo-card-stream .rollout-demo-caption { background: linear-gradient(110deg,rgba(220,238,232,.72),var(--paper) 70%); }
-.rollout-demo-caption h3 { margin: 0; color: var(--ink); font-family: inherit; font-size: .72rem; font-weight: 680; line-height: 1.3; }
+.rollout-demo-caption h3 { margin: 0; color: var(--ink); font-family: inherit; font-size: .82rem; font-weight: 680; line-height: 1.3; }
 .rollout-demo-caption h3 small { margin-left: 4px; color: var(--teal-deep); font-family: inherit; font-size: .63em; font-weight: 760; letter-spacing: .04em; text-transform: uppercase; }
 .rollout-demo-card-stream .rollout-demo-caption h3 { color: var(--teal-deep); font-weight: 780; }
 .rollout-demo-result { min-width: 0; display: grid; justify-items: end; gap: 3px; }
-.rollout-demo-metrics { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 8px; margin: 0; color: var(--dim); font-size: .56rem; line-height: 1.35; white-space: nowrap; }
+.rollout-demo-metrics { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 8px; margin: 0; color: var(--dim); font-size: .64rem; line-height: 1.35; white-space: nowrap; }
 .rollout-demo-metrics strong { color: var(--ink); font-weight: 780; }
 .rollout-demo-card-stream .rollout-demo-metrics strong { color: var(--teal-deep); }
-.rollout-demo-speedup { width: max-content; margin: 0; padding: 3px 7px; border-radius: 999px; color: white; background: var(--teal-deep); font-size: .54rem; font-weight: 680; line-height: 1.2; letter-spacing: .015em; }
+.rollout-demo-speedup { width: max-content; margin: 0; padding: 4px 8px; border-radius: 999px; color: white; background: var(--teal-deep); font-size: .61rem; font-weight: 680; line-height: 1.2; letter-spacing: .015em; }
 .rollout-demo-speedup strong { color: inherit; font-size: 1.08em; font-weight: 840; }
 .rollout-demo-speedup span { opacity: .55; }
 .rollout-demo-card noscript a { display: block; padding: 0 16px 14px; color: var(--teal-deep); font-size: .72rem; }
