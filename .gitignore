@@ -37,6 +37,7 @@ checkpoints/
 .claude/
 .comate/
 docs/superpowers/
+docs/method-figure/
 
 # Reference repos not part of release
 refs/
