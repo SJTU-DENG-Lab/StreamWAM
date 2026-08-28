@@ -12,20 +12,20 @@ import torch.nn.functional as F
 import pytest
 import triton
 
-from streamwam.inference import ac_stream as ac_stream_inference
-from streamwam.backbone.base import BackboneInfo
-from streamwam.backbone.wan22 import Wan22Dit
-from streamwam.inference.ac_stream import ACStreamAccelerationRuntime
-from streamwam.modules.action_dit import ActionDiT
-from streamwam.modules.ac_stream import (
+from streamingwam.inference import ac_stream as ac_stream_inference
+from streamingwam.backbone.base import BackboneInfo
+from streamingwam.backbone.wan22 import Wan22Dit
+from streamingwam.inference.ac_stream import ACStreamAccelerationRuntime
+from streamingwam.modules.action_dit import ActionDiT
+from streamingwam.modules.ac_stream import (
     ACStreamMoT,
     build_ac_stream_condition_mask,
     build_ac_stream_policy_mask,
     build_starwam_rtc_condition_mask,
     build_starwam_rtc_policy_mask,
 )
-from streamwam.modules.wan_block import DiTBlock, precompute_freqs_cis_1d
-from streamwam.wam import ac_stream_wam
+from streamingwam.modules.wan_block import DiTBlock, precompute_freqs_cis_1d
+from streamingwam.wam import ac_stream_wam
 
 
 @pytest.mark.parametrize(
@@ -71,7 +71,7 @@ def test_ac_stream_launcher_requires_public_paths(
     environment["PYTHON_BIN"] = "/bin/false"
 
     result = subprocess.run(
-        ["bash", "examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh"],
+        ["bash", "examples/libero/scripts/launch_streamingwam_libero_ac_stream_4gpu.sh"],
         cwd=repo_root,
         env=environment,
         capture_output=True,
@@ -98,7 +98,7 @@ def test_ac_stream_launcher_accepts_libero_home_fallback() -> None:
     )
 
     result = subprocess.run(
-        ["bash", "examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh"],
+        ["bash", "examples/libero/scripts/launch_streamingwam_libero_ac_stream_4gpu.sh"],
         cwd=repo_root,
         env=environment,
         capture_output=True,

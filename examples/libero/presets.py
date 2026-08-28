@@ -1,4 +1,4 @@
-"""LIBERO preset validation for StreamWAM recipes."""
+"""LIBERO preset validation for Streaming-WAM recipes."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ SHARED_DIT_LIBERO_COSMOS_PREDICT2 = "shared_dit_libero_cosmos_predict2"
 
 
 class PresetValidationError(ValueError):
-    """Raised when a StreamWAM preset is configured inconsistently."""
+    """Raised when a Streaming-WAM preset is configured inconsistently."""
 
 
 def _taxonomy(config: Any) -> Any:
@@ -37,7 +37,7 @@ def _warn(condition: bool, message: str) -> None:
 
 
 def validate_preset(config: Any) -> None:
-    """Validate known StreamWAM presets.
+    """Validate known Streaming-WAM presets.
 
     Unknown/empty presets are allowed so experimental recipes can still build.
     The Fast-WAM-aligned LIBERO preset is strict for settings that are known to
@@ -56,7 +56,7 @@ def validate_preset(config: Any) -> None:
     if preset == SHARED_DIT_LIBERO_COSMOS_PREDICT2:
         validate_shared_dit_libero_cosmos_predict2(config)
         return
-    LOGGER.warning("No StreamWAM preset validator registered for %r", preset)
+    LOGGER.warning("No Streaming-WAM preset validator registered for %r", preset)
 
 
 def validate_shared_dit_libero_wan22_5b(config: Any) -> None:

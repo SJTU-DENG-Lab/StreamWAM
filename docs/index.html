@@ -4,16 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f7f5ef">
-    <meta name="description" content="Stream-WAM is a research framework for studying streaming world-action models for robotic manipulation.">
+    <meta name="description" content="Streaming-WAM is a research framework for studying streaming world-action models for robotic manipulation.">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Stream-WAM: Streaming World-Action Models for Robotic Manipulation">
+    <meta property="og:title" content="Streaming-WAM: Streaming World-Action Models for Robotic Manipulation">
     <meta property="og:description" content="Streaming World-Action Models for Robotic Manipulation">
-    <meta property="og:url" content="https://sjtu-deng-lab.github.io/StreamWAM/">
-    <meta property="og:image" content="https://sjtu-deng-lab.github.io/StreamWAM/assets/streamwam-social-preview.jpg">
+    <meta property="og:url" content="https://sjtu-deng-lab.github.io/Streaming-WAM/">
+    <meta property="og:image" content="https://sjtu-deng-lab.github.io/Streaming-WAM/assets/streaming-wam-social-preview.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
-    <title>Stream-WAM — Streaming World-Action Models</title>
+    <title>Streaming-WAM — Streaming World-Action Models</title>
     <link rel="stylesheet" href="styles.css?v=20260827-34">
     <script src="script.js?v=20260827-20" defer></script>
   </head>
@@ -22,14 +22,14 @@
 
     <header class="site-header">
       <nav class="site-nav shell" aria-label="Primary navigation">
-        <a class="wordmark" href="#overview" aria-label="Stream-WAM home"><span class="wordmark-mark" aria-hidden="true"></span>Stream-WAM</a>
+        <a class="wordmark" href="#overview" aria-label="Streaming-WAM home"><span class="wordmark-mark" aria-hidden="true"></span>Streaming-WAM</a>
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" hidden>
           <span class="sr-only">Open navigation</span><span aria-hidden="true"></span><span aria-hidden="true"></span>
         </button>
         <div class="nav-links" id="nav-links">
-          <a class="nav-models" href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Models ↗</a>
+          <a class="nav-models" href="https://huggingface.co/SJTU-DENG-Lab/Streaming-WAM" target="_blank" rel="noopener noreferrer">Models ↗</a>
           <span class="nav-pending">Paper · Coming Soon</span>
-          <a class="nav-code" href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Code ↗</a>
+          <a class="nav-code" href="https://github.com/SJTU-DENG-Lab/Streaming-WAM" target="_blank" rel="noopener noreferrer">Code ↗</a>
         </div>
       </nav>
     </header>
@@ -42,12 +42,12 @@
             <span>DENG Lab ↗</span>
           </a>
           <div class="hero-main">
-          <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Stream-WAM</p>
+          <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Streaming-WAM</p>
           <h1 id="hero-title"><span class="title-accent-streaming">Streaming</span> Your World-Action Model for <span class="title-accent-realtime">Real-Time</span> Robot Manipulation.</h1>
-          <p class="hero-lede"><strong>Stream-WAM</strong> introduces <strong>action-conditioned streaming</strong> for World Action Models. It overlaps inference with robot execution and conditions future video generation on the <strong>shared actions</strong> across adjacent chunks, aligning the predicted visual trajectory with the motion underway. The robot continues acting while the next prediction is prepared.</p>
+          <p class="hero-lede"><strong>Streaming-WAM</strong> introduces <strong>action-conditioned streaming</strong> for World Action Models. It overlaps inference with robot execution and conditions future video generation on the <strong>shared actions</strong> across adjacent chunks, aligning the predicted visual trajectory with the motion underway. The robot continues acting while the next prediction is prepared.</p>
           <div class="hero-actions" aria-label="Project resources">
-            <a class="button button-primary" href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">View code ↗</a>
-            <a class="button" href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Get models ↗</a>
+            <a class="button button-primary" href="https://github.com/SJTU-DENG-Lab/Streaming-WAM" target="_blank" rel="noopener noreferrer">View code ↗</a>
+            <a class="button" href="https://huggingface.co/SJTU-DENG-Lab/Streaming-WAM" target="_blank" rel="noopener noreferrer">Get models ↗</a>
             <span class="button button-pending" aria-disabled="true">Paper · Coming Soon</span>
           </div>
           <div class="headline-results" aria-label="Selected LIBERO results">
@@ -59,8 +59,8 @@
         </div>
         <figure class="hero-figure pipeline-figure" aria-labelledby="pipeline-caption">
           <div class="pipeline-visual" role="group" aria-labelledby="pipeline-graphic-title" aria-describedby="pipeline-description pipeline-caption">
-            <span class="sr-only" id="pipeline-graphic-title">Synchronous WAM and Stream-WAM runtime and attention comparison</span>
-            <p class="sr-only" id="pipeline-description">Both controllers first predict a model chunk. Synchronous WAM then alternates prediction and robot execution, interrupting motion at every new prediction. Stream-WAM keeps robot execution continuous while later predictions run concurrently. The paired ten-by-ten masks contain two five-token chunks. Standard Joint WAM has no cross-chunk attention. Stream-WAM adds only the aligned shared actions as keys from chunk k to the f1 future video queries in chunk k plus one. Filled cells indicate allowed attention, while dark outlined cells indicate masked connections.</p>
+            <span class="sr-only" id="pipeline-graphic-title">Synchronous WAM and Streaming-WAM runtime and attention comparison</span>
+            <p class="sr-only" id="pipeline-description">Both controllers first predict a model chunk. Synchronous WAM then alternates prediction and robot execution, interrupting motion at every new prediction. Streaming-WAM keeps robot execution continuous while later predictions run concurrently. The paired ten-by-ten masks contain two five-token chunks. Standard Joint WAM has no cross-chunk attention. Streaming-WAM adds only the aligned shared actions as keys from chunk k to the f1 future video queries in chunk k plus one. Filled cells indicate allowed attention, while dark outlined cells indicate masked connections.</p>
             <div class="pipeline-heading">
               <div><span>Streaming control loop</span></div>
               <div class="pipeline-legend" aria-label="Runtime legend"><span class="legend-generation">Model Prediction</span><span class="legend-execution">Robot Execution</span></div>
@@ -81,7 +81,7 @@
                   </div>
                 </div>
                 <div class="runtime-row runtime-stream">
-                  <div class="runtime-label"><strong>Stream-WAM</strong><span>Predict through the second half of each action chunk</span></div>
+                  <div class="runtime-label"><strong>Streaming-WAM</strong><span>Predict through the second half of each action chunk</span></div>
                   <div class="runtime-timeline" aria-hidden="true">
                     <span class="timeline-axis"></span>
                     <span class="generation-window generation-one"><i></i><i></i><i></i></span>
@@ -122,7 +122,7 @@
                     </div>
                   </div>
                   <div class="attention-panel attention-conditioned">
-                    <div class="attention-panel-heading"><strong>Stream-WAM</strong><span class="attention-path-badge">Action conditioned</span></div>
+                    <div class="attention-panel-heading"><strong>Streaming-WAM</strong><span class="attention-path-badge">Action conditioned</span></div>
                     <div class="mask-column-labels" aria-hidden="true"><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span></div>
                     <div class="mask-matrix-body">
                       <div class="mask-row-labels" aria-hidden="true"><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span></div>
@@ -144,7 +144,7 @@
               </section>
             </div>
           </div>
-          <figcaption id="pipeline-caption">Standard Joint WAM keeps its two chunks attention-isolated. Stream-WAM preserves the same within-chunk masks and adds only the aligned shared-action path from chunk k into the next chunk’s f1 future video tokens.</figcaption>
+          <figcaption id="pipeline-caption">Standard Joint WAM keeps its two chunks attention-isolated. Streaming-WAM preserves the same within-chunk masks and adds only the aligned shared-action path from chunk k into the next chunk’s f1 future video tokens.</figcaption>
         </figure>
       </section>
 
@@ -186,20 +186,20 @@
 
             <article class="rollout-demo-card rollout-demo-card-stream">
               <div class="real-robot-player">
-                <video class="real-robot-video" controls preload="none" playsinline poster="assets/real-robot/stream-wam.jpg?v=vertical-20260827" width="640" height="720" aria-label="Stream-WAM real robot rollout from two vertically stacked synchronized camera views">
-                  <source data-src="assets/real-robot/stream-wam.mp4?v=vertical-20260827" type="video/mp4">
+                <video class="real-robot-video" controls preload="none" playsinline poster="assets/real-robot/streaming-wam.jpg?v=vertical-20260827" width="640" height="720" aria-label="Streaming-WAM real robot rollout from two vertically stacked synchronized camera views">
+                  <source data-src="assets/real-robot/streaming-wam.mp4?v=vertical-20260827" type="video/mp4">
                 </video>
-                <button class="real-robot-load" type="button" aria-label="Play the Stream-WAM real robot rollout"><span class="sr-only">Play the Stream-WAM rollout</span></button>
+                <button class="real-robot-load" type="button" aria-label="Play the Streaming-WAM real robot rollout"><span class="sr-only">Play the Streaming-WAM rollout</span></button>
                 <div class="real-robot-view-labels" aria-hidden="true"><span>Front view</span><span>Side view</span></div>
               </div>
               <div class="rollout-demo-caption">
-                <h3>Stream-WAM <small>Ours</small></h3>
+                <h3>Streaming-WAM <small>Ours</small></h3>
                 <div class="rollout-demo-result">
                   <p class="rollout-demo-metrics"><span>Chunk Time <strong>67.8 ms</strong></span><span>Total Time <strong>33 s</strong></span></p>
                   <p class="rollout-demo-speedup" aria-label="9.8 times faster Chunk Time and 2.1 times faster Total Time than Joint WAM"><strong>9.8×</strong> Chunk <span>·</span> <strong>2.1×</strong> Total</p>
                 </div>
               </div>
-              <noscript><a href="assets/real-robot/stream-wam.mp4?v=vertical-20260827">Open the Stream-WAM rollout</a></noscript>
+              <noscript><a href="assets/real-robot/streaming-wam.mp4?v=vertical-20260827">Open the Streaming-WAM rollout</a></noscript>
             </article>
           </div>
         </div>
@@ -213,7 +213,7 @@
               <li><a href="#abstract">Abstract</a></li>
               <li><a href="#act-wam">Real-Time Gap</a></li>
               <li><a href="#act-async">Asynchronous Execution</a></li>
-              <li><a href="#act-streamwam">Stream-WAM</a></li>
+              <li><a href="#act-streamingwam">Streaming-WAM</a></li>
               <li><a href="#experiments">Results</a></li>
               <li><a href="#discussion">Discussion</a></li>
               <li><a href="#references">References</a></li>
@@ -225,7 +225,7 @@
         <div class="article-header reading-column" id="abstract">
           <h2>Abstract</h2>
           <p class="abstract-lead">World Action Models (WAMs) jointly generate future visual observations and robot actions, allowing policies to reason about how the scene may evolve under interaction. Their iterative generation, however, is often slower than the robot control cycle: synchronous execution leaves the robot idle during inference, while naive asynchronous switching can create inconsistency between successive predictions.</p>
-          <p>We introduce Stream-WAM, an action-conditioned streaming framework that overlaps WAM inference with robot execution. Shared actions across adjacent chunks condition future video generation, aligning the predicted visual trajectory with the motion underway; this action-conditioned future then guides a consistent action continuation. Stream-WAM therefore brings streaming into world prediction rather than treating continuity only as an action space constraint. We evaluate the method on LIBERO, RoboCasa, and RoboTwin 2.0. On LIBERO, Stream-WAM achieves 98.20% success with 41.0 ms chunk latency and 5.36/3.15 s total time on Long/Short tasks, yielding a 12.0× latency reduction and 3.0×/2.6× total-time speedups over FastWAM.</p>
+          <p>We introduce Streaming-WAM, an action-conditioned streaming framework that overlaps WAM inference with robot execution. Shared actions across adjacent chunks condition future video generation, aligning the predicted visual trajectory with the motion underway; this action-conditioned future then guides a consistent action continuation. Streaming-WAM therefore brings streaming into world prediction rather than treating continuity only as an action space constraint. We evaluate the method on LIBERO, RoboCasa, and RoboTwin 2.0. On LIBERO, Streaming-WAM achieves 98.20% success with 41.0 ms chunk latency and 5.36/3.15 s total time on Long/Short tasks, yielding a 12.0× latency reduction and 3.0×/2.6× total-time speedups over FastWAM.</p>
         </div>
 
         <section class="editorial-act reading-column" id="act-wam" aria-label="The deployment problem">
@@ -240,24 +240,24 @@
           <p>Asynchronous execution starts the next prediction before the current action chunk is exhausted. This creates a temporal overlap in which the same actions are shared across adjacent chunks, and the incoming prediction must remain consistent with the motion already underway. Accurate temporal alignment is therefore essential: even individually valid chunks can be joined at the wrong steps if the handoff time is misidentified <a class="reference-cite" href="#ref-wam-real-time" aria-label="Reference 2">[2]</a>.</p>
           <p>Real-time chunking (RTC) constrains the incoming chunk at inference time through inpainting-style guidance of the denoising trajectory <a class="reference-cite" href="#ref-rtc" aria-label="Reference 3">[3]</a>. Because this guidance is recomputed at every denoising step, it adds inference cost; as a soft constraint, it can also leave residual disagreement in the delay region <a class="reference-cite" href="#ref-wam-real-time" aria-label="Reference 2">[2]</a>. Prefix-conditioned methods move the constraint into learned generation: delay-region actions are provided as clean context, and Training-Time RTC learns to produce the remaining action continuation from that context <span class="reference-cite-group">[<a href="#ref-wam-real-time" aria-label="Reference 2">2</a>,<a href="#ref-training-time-rtc" aria-label="Reference 4">4</a>]</span>. When runtime latency falls outside the delay distribution represented during training, the clean context may no longer match the actual handoff <a class="reference-cite" href="#ref-training-time-rtc" aria-label="Reference 4">[4]</a>.</p>
           <p>Both approaches align action trajectories rather than predicted world evolution. RTC steers the overlap between adjacent chunks, while prefix conditioning fixes the known action segment, but neither explicitly tells the visual branch how the shared actions transform the scene. This distinction matters in a WAM because the next action is generated together with a predicted account of the world. LingBot-VA 2.0 addresses the visual state through FDM grounding. It refreshes the visual cache with the latest observation, appends the executing action, and predicts that action's visual outcome as context for decoding the next action <a class="reference-cite" href="#ref-lingbot-va" aria-label="Reference 5">[5]</a>. This extra grounding pass adds future-state prediction before each action update, a practical cost at high control rates.</p>
-          <p>Stream-WAM instead couples action continuity with world prediction inside a joint WAM. It reuses shared actions across adjacent chunks and routes them both directly into each Stream Update and into shared action slots. Together with the unknown action slots, the resulting condition slots guide future visual generation in the same joint update that produces the next visual-action chunk, while robot execution continues.</p>
+          <p>Streaming-WAM instead couples action continuity with world prediction inside a joint WAM. It reuses shared actions across adjacent chunks and routes them both directly into each Stream Update and into shared action slots. Together with the unknown action slots, the resulting condition slots guide future visual generation in the same joint update that produces the next visual-action chunk, while robot execution continues.</p>
         </section>
 
-        <section class="editorial-act" id="act-streamwam" aria-label="Action-conditioned streaming">
+        <section class="editorial-act" id="act-streamingwam" aria-label="Action-conditioned streaming">
           <div class="reading-column">
-            <p class="act-opening">Stream-WAM aligns world prediction with continuous robot execution.</p>
-            <p>Stream-WAM is a streaming formulation for joint World Action Models. It overlaps model inference with robot execution and uses the actions scheduled during that overlap to condition the next prediction. Instead of pausing at every chunk boundary, the robot continues moving while the model prepares the next visual and action chunk. Because the model knows what motion will occur during inference, its world prediction remains aligned with ongoing execution rather than relying on the observation alone.</p>
+            <p class="act-opening">Streaming-WAM aligns world prediction with continuous robot execution.</p>
+            <p>Streaming-WAM is a streaming formulation for joint World Action Models. It overlaps model inference with robot execution and uses the actions scheduled during that overlap to condition the next prediction. Instead of pausing at every chunk boundary, the robot continues moving while the model prepares the next visual and action chunk. Because the model knows what motion will occur during inference, its world prediction remains aligned with ongoing execution rather than relying on the observation alone.</p>
             <p>At the beginning of an episode, the WAM predicts the first visual and action chunk from the current observation, and the robot starts executing it. Before that chunk is exhausted, a fresh observation starts the next Stream Update in the background. The robot keeps following the current commands while the next chunk is generated. The handoff can be summarized as <span class="method-equation" role="math" aria-label="A sub t shared equals A sub t plus one prefix">A<sub>t</sub><sup>shared</sup> = A<sub>t+1</sub><sup>prefix</sup></span>: actions executed during inference are reused as shared context at the beginning of the incoming chunk. With an eight-action overlap, for example, <span class="method-equation" role="math" aria-label="A sub zero indices eight through fifteen equals A sub one indices zero through seven">A<sub>0</sub>[8:16] = A<sub>1</sub>[0:8]</span>. When the new chunk is ready, the controller continues from the actions that follow this shared part rather than repeating them after the handoff. Each update follows the same loop, so ongoing execution provides both the time and the motion context needed for the next prediction.</p>
           </div>
-          <figure class="method-figure breakout" id="streamwam-method-figure" aria-describedby="streamwam-method-description streamwam-method-caption">
-            <div class="method-figure-viewport" role="group" aria-label="Scrollable Stream-WAM method timeline" tabindex="0">
-              <img class="method-figure-artwork" src="assets/stream-wam-method.svg?v=20260827-4" alt="" width="1600" height="740">
+          <figure class="method-figure breakout" id="streamingwam-method-figure" aria-describedby="streamingwam-method-description streamingwam-method-caption">
+            <div class="method-figure-viewport" role="group" aria-label="Scrollable Streaming-WAM method timeline" tabindex="0">
+              <img class="method-figure-artwork" src="assets/streaming-wam-method.svg?v=20260827-4" alt="" width="1600" height="740">
             </div>
-            <p class="sr-only" id="streamwam-method-description">A method diagram showing model updates overlapped with continuous robot execution. Shared actions connect the current and incoming chunks, enter both the action and condition paths, and condition future visual prediction through directed attention.</p>
-            <figcaption id="streamwam-method-caption">Stream-WAM overlaps each new visual and action prediction with ongoing robot execution. Shared actions bridge adjacent chunks and condition the next joint prediction.</figcaption>
+            <p class="sr-only" id="streamingwam-method-description">A method diagram showing model updates overlapped with continuous robot execution. Shared actions connect the current and incoming chunks, enter both the action and condition paths, and condition future visual prediction through directed attention.</p>
+            <figcaption id="streamingwam-method-caption">Streaming-WAM overlaps each new visual and action prediction with ongoing robot execution. Shared actions bridge adjacent chunks and condition the next joint prediction.</figcaption>
           </figure>
           <div class="reading-column">
-            <p>Shared actions serve two complementary roles. In action generation, they anchor the beginning of the incoming chunk so that the predicted continuation joins the current motion smoothly. In world prediction, an added attention path makes the same action context available to future visual generation. At the model level, this joint prediction can be written as <span class="method-equation" role="math" aria-label="predicted V sub t plus one and A sub t plus one postfix equal F of O sub t and A sub t shared">(V&#770;<sub>t+1</sub>, A<sub>t+1</sub><sup>postfix</sup>) = F(O<sub>t</sub>, A<sub>t</sub><sup>shared</sup>)</span>: the visual future and action postfix are produced together from the current observation and the shared actions. If the shared actions close the gripper, for example, Stream-WAM jointly predicts the resulting scene transition and the actions that should follow it. The overlap is therefore aligned not only in the action sequence, but also in the predicted world state used for the next decision.</p>
+            <p>Shared actions serve two complementary roles. In action generation, they anchor the beginning of the incoming chunk so that the predicted continuation joins the current motion smoothly. In world prediction, an added attention path makes the same action context available to future visual generation. At the model level, this joint prediction can be written as <span class="method-equation" role="math" aria-label="predicted V sub t plus one and A sub t plus one postfix equal F of O sub t and A sub t shared">(V&#770;<sub>t+1</sub>, A<sub>t+1</sub><sup>postfix</sup>) = F(O<sub>t</sub>, A<sub>t</sub><sup>shared</sup>)</span>: the visual future and action postfix are produced together from the current observation and the shared actions. If the shared actions close the gripper, for example, Streaming-WAM jointly predicts the resulting scene transition and the actions that should follow it. The overlap is therefore aligned not only in the action sequence, but also in the predicted world state used for the next decision.</p>
             <p>To make this overlap effective, each Stream Update must complete before the controller reaches the handoff. We use one-step consistency distillation to compress iterative joint visual and action denoising into a single denoising step. This removes repeated denoising calls from the streaming loop and makes ongoing execution a practical inference window rather than only a temporal alignment mechanism.</p>
             <p>Condition slots give the action context a stable structure, summarized as <span class="method-equation" role="math" aria-label="C sub t plus one equals encoded A sub t plus one from zero to k followed by unknown slots from k to N">C<sub>t+1</sub> = [E(A<sub>t+1</sub>[0:k]), U<sub>t+1</sub>[k:N]]</span>, where <var>C</var> is the condition-slot sequence, <var>k</var> is the number of shared slots, <var>N</var> is the total number of condition slots, <var>E</var> encodes the shared action prefix, and <var>U</var> denotes the unknown slots. The slot encoder removes unavailable action content and adds a learned state embedding that distinguishes known slots from unknown ones. This prevents placeholders from being treated as commands and helps the visual branch use only valid action context. Together, the shared action prefix and the condition slots connect continuous execution to action conditioned world prediction inside the same joint update.</p>
           </div>
@@ -265,7 +265,7 @@
 
         <section class="article-section experiments" id="experiments" aria-label="Current results">
           <div class="reading-column">
-            <p class="lead"><strong>Task performance.</strong> To evaluate Stream-WAM across WAM families, we further train FastWAM-Joint with the streaming approach on LIBERO and apply the same design to StarWAM on RoboTwin 2.0 and X-WAM on RoboCasa. All evaluations use four NVIDIA H100 GPUs.</p>
+            <p class="lead"><strong>Task performance.</strong> To evaluate Streaming-WAM across WAM families, we further train FastWAM-Joint with the streaming approach on LIBERO and apply the same design to StarWAM on RoboTwin 2.0 and X-WAM on RoboCasa. All evaluations use four NVIDIA H100 GPUs.</p>
             <p>We compare against general purpose robot policies and WAM baselines on task performance, and against WAM baselines on inference efficiency. CD denotes one-step consistency distillation. On LIBERO, we also ablate action conditioning and the slot encoder to assess each component. Best and second best task results are shown in <strong>bold</strong> and <u>underlined</u>, respectively.</p>
           </div>
 
@@ -286,9 +286,9 @@
                   <tr><th scope="row">Fast-WAM</th><td>95.2</td><td>98.2</td><td>97.0</td><td><strong>100.0</strong></td><td>97.6</td></tr>
                   <tr><th scope="row">FastWAM-Joint-CD</th><td><u>97.20</u></td><td><strong>99.60</strong></td><td><strong>98.60</strong></td><td><strong>100.00</strong></td><td><strong>98.85</strong></td></tr>
                   <tr><th scope="row">FastWAM-RTC</th><td>58.40</td><td>76.20</td><td>77.00</td><td>83.40</td><td>73.75</td></tr>
-                  <tr><th scope="row">Stream-WAM (Ours)</th><td>96.60</td><td><u>98.80</u></td><td>97.40</td><td><strong>100.00</strong></td><td><u>98.20</u></td></tr>
-                  <tr><th scope="row">Stream-WAM w/o Action Conditioning</th><td>94.40</td><td>96.40</td><td>96.60</td><td>97.60</td><td>96.25</td></tr>
-                  <tr><th scope="row">Stream-WAM w/o Slot Encoder</th><td>95.60</td><td>98.40</td><td>96.80</td><td><u>99.80</u></td><td>97.65</td></tr>
+                  <tr><th scope="row">Streaming-WAM (Ours)</th><td>96.60</td><td><u>98.80</u></td><td>97.40</td><td><strong>100.00</strong></td><td><u>98.20</u></td></tr>
+                  <tr><th scope="row">Streaming-WAM w/o Action Conditioning</th><td>94.40</td><td>96.40</td><td>96.60</td><td>97.60</td><td>96.25</td></tr>
+                  <tr><th scope="row">Streaming-WAM w/o Slot Encoder</th><td>95.60</td><td>98.40</td><td>96.80</td><td><u>99.80</u></td><td>97.65</td></tr>
                 </tbody>
               </table>
             </div>
@@ -311,7 +311,7 @@
                   <tr><th scope="row">FastWAM-Joint</th><td><u>87.8</u></td><td><u>87.32</u></td><td>87.56</td></tr>
                   <tr><th scope="row">StarWAM-Joint</th><td>84.8</td><td>86.0</td><td>85.4</td></tr>
                   <tr><th scope="row">StarWAM-CD</th><td>79.0</td><td>79.2</td><td>79.1</td></tr>
-                  <tr><th scope="row">Stream-WAM (Ours)</th><td>87.2</td><td><strong>88.8</strong></td><td><u>87.6</u></td></tr>
+                  <tr><th scope="row">Streaming-WAM (Ours)</th><td>87.2</td><td><strong>88.8</strong></td><td><u>87.6</u></td></tr>
                 </tbody>
               </table>
             </div>
@@ -333,7 +333,7 @@
                   <tr><th scope="row">Cosmos Policy</th><td>67.1%</td></tr>
                   <tr><th scope="row">X-WAM</th><td><strong>75.42%</strong></td></tr>
                   <tr><th scope="row">X-WAM-CD</th><td>75.33%</td></tr>
-                  <tr><th scope="row">Stream-WAM (Ours)</th><td><u>75.35%</u></td></tr>
+                  <tr><th scope="row">Streaming-WAM (Ours)</th><td><u>75.35%</u></td></tr>
                 </tbody>
               </table>
             </div>
@@ -342,7 +342,7 @@
           <section class="benchmark breakout" id="benchmark-real-robot" aria-labelledby="real-robot-title">
             <div class="benchmark-intro">
               <h3 id="real-robot-title">Real robot evaluation</h3>
-              <p>We evaluate standard Joint WAM inference, its distilled 1V10A variant, and Stream-WAM on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. Stream-WAM reduces Chunk Time to 67.8 ms and completes the rollout in 33 s.</p>
+              <p>We evaluate standard Joint WAM inference, its distilled 1V10A variant, and Streaming-WAM on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. Streaming-WAM reduces Chunk Time to 67.8 ms and completes the rollout in 33 s.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable real robot evaluation table">
               <table>
@@ -351,7 +351,7 @@
                 <tbody>
                   <tr><th scope="row">Joint WAM</th><td>Synchronous</td><td>667.1 ms</td><td>68 s</td></tr>
                   <tr><th scope="row">Distilled WAM (1V10A)</th><td>One-step distilled</td><td>402.7 ms</td><td>60 s</td></tr>
-                  <tr><th scope="row">Stream-WAM (Ours)</th><td>Action-conditioned streaming</td><td><strong>67.8 ms</strong></td><td><strong>33 s</strong></td></tr>
+                  <tr><th scope="row">Streaming-WAM (Ours)</th><td>Action-conditioned streaming</td><td><strong>67.8 ms</strong></td><td><strong>33 s</strong></td></tr>
                 </tbody>
               </table>
             </div>
@@ -359,20 +359,20 @@
 
           <div class="efficiency-intro reading-column">
             <p><strong>Inference efficiency.</strong> Task success alone does not characterize runtime efficiency. We therefore report Chunk Time, the latency required to prepare the next action chunk, and Episode Time, the duration of a complete rollout, including inference, execution, and replanning.</p>
-            <p>Across all three benchmarks, Stream-WAM reduces both runtime measures while maintaining comparable task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to StarWAM-Joint, Chunk Time falls from 190.17 ms to 47.09 ms and Episode Time from 110.22 s to 77.48 s, while overall success increases from 85.4 to 87.6. On RoboCasa, relative to X-WAM, Stream-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).</p>
+            <p>Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining comparable task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to StarWAM-Joint, Chunk Time falls from 190.17 ms to 47.09 ms and Episode Time from 110.22 s to 77.48 s, while overall success increases from 85.4 to 87.6. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).</p>
           </div>
           <figure class="latency-figure breakout" aria-labelledby="chunk-time-caption">
             <div class="latency-viewport">
-              <a class="latency-image-link" href="assets/stream-wam-chunk-time.png?v=robocasa-latency-20260826" target="_blank" rel="noopener noreferrer" aria-label="Open the full-resolution Stream-WAM Chunk Time figure">
-                <img class="latency-plot" src="assets/stream-wam-chunk-time.png?v=robocasa-latency-20260826" alt="Chunk-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="chunk-time-caption latency-data-caption">
+              <a class="latency-image-link" href="assets/streaming-wam-chunk-time.png?v=robocasa-latency-20260826" target="_blank" rel="noopener noreferrer" aria-label="Open the full-resolution Streaming-WAM Chunk Time figure">
+                <img class="latency-plot" src="assets/streaming-wam-chunk-time.png?v=robocasa-latency-20260826" alt="Chunk-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="chunk-time-caption latency-data-caption">
               </a>
             </div>
             <figcaption id="chunk-time-caption">Chunk Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa. Each benchmark uses its own continuous scale.</figcaption>
           </figure>
           <figure class="latency-figure breakout" aria-labelledby="episode-time-caption">
             <div class="latency-viewport">
-              <a class="latency-image-link" href="assets/stream-wam-episode-time.png?v=robocasa-latency-20260826" target="_blank" rel="noopener noreferrer" aria-label="Open the full-resolution Stream-WAM Episode Time figure">
-                <img class="latency-plot" src="assets/stream-wam-episode-time.png?v=robocasa-latency-20260826" alt="Episode-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="episode-time-caption latency-data-caption">
+              <a class="latency-image-link" href="assets/streaming-wam-episode-time.png?v=robocasa-latency-20260826" target="_blank" rel="noopener noreferrer" aria-label="Open the full-resolution Streaming-WAM Episode Time figure">
+                <img class="latency-plot" src="assets/streaming-wam-episode-time.png?v=robocasa-latency-20260826" alt="Episode-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="episode-time-caption latency-data-caption">
               </a>
             </div>
             <figcaption id="episode-time-caption">Episode Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa. LIBERO reports Long and Short tasks separately.</figcaption>
@@ -384,15 +384,15 @@
                 <tr><th scope="row">LIBERO</th><td>FastWAM</td><td>493.0 ms</td><td>16.31 s Long / 8.25 s Short</td></tr>
                 <tr><th scope="row">LIBERO</th><td>FastWAM-Joint-CD</td><td>114.2 ms</td><td>6.89 s Long / 3.74 s Short</td></tr>
                 <tr><th scope="row">LIBERO</th><td>FastWAM-RTC</td><td>142.3 ms</td><td>6.23 s Long / 3.20 s Short</td></tr>
-                <tr><th scope="row">LIBERO</th><td>Stream-WAM</td><td>41.0 ms</td><td>5.36 s Long / 3.15 s Short</td></tr>
-                <tr><th scope="row">LIBERO</th><td>Stream-WAM w/o Action Conditioning</td><td>35.1 ms</td><td>5.20 s Long / 2.92 s Short</td></tr>
-                <tr><th scope="row">LIBERO</th><td>Stream-WAM w/o Slot Encoder</td><td>36.3 ms</td><td>5.31 s Long / 3.01 s Short</td></tr>
+                <tr><th scope="row">LIBERO</th><td>Streaming-WAM</td><td>41.0 ms</td><td>5.36 s Long / 3.15 s Short</td></tr>
+                <tr><th scope="row">LIBERO</th><td>Streaming-WAM w/o Action Conditioning</td><td>35.1 ms</td><td>5.20 s Long / 2.92 s Short</td></tr>
+                <tr><th scope="row">LIBERO</th><td>Streaming-WAM w/o Slot Encoder</td><td>36.3 ms</td><td>5.31 s Long / 3.01 s Short</td></tr>
                 <tr><th scope="row">RoboTwin 2.0</th><td>StarWAM-Joint</td><td>190.17 ms</td><td>110.22 s</td></tr>
                 <tr><th scope="row">RoboTwin 2.0</th><td>StarWAM-CD</td><td>81.21 ms</td><td>102.59 s</td></tr>
-                <tr><th scope="row">RoboTwin 2.0</th><td>Stream-WAM</td><td>47.09 ms</td><td>77.48 s</td></tr>
+                <tr><th scope="row">RoboTwin 2.0</th><td>Streaming-WAM</td><td>47.09 ms</td><td>77.48 s</td></tr>
                 <tr><th scope="row">RoboCasa</th><td>X-WAM</td><td>374.07 ms</td><td>17.36 s</td></tr>
                 <tr><th scope="row">RoboCasa</th><td>X-WAM-CD</td><td>134.37 ms</td><td>13.04 s</td></tr>
-                <tr><th scope="row">RoboCasa</th><td>Stream-WAM</td><td>115.98 ms</td><td>9.49 s</td></tr>
+                <tr><th scope="row">RoboCasa</th><td>Streaming-WAM</td><td>115.98 ms</td><td>9.49 s</td></tr>
               </tbody>
             </table>
             </div>
@@ -400,7 +400,7 @@
         </section>
 
         <section class="article-section reading-column" id="discussion" aria-label="Discussion">
-          <p class="lead">Stream-WAM enables a World Action Model to prepare its next prediction while the robot continues executing the current action chunk.</p>
+          <p class="lead">Streaming-WAM enables a World Action Model to prepare its next prediction while the robot continues executing the current action chunk.</p>
           <p>At its core, the shared actions between adjacent chunks are not treated only as an action continuity constraint. They condition future video generation, allowing the predicted visual trajectory to account for the motion already underway before guiding the next action continuation. One-step consistency distillation and the accelerated runtime further reduce generation latency so that prediction can remain within the available execution window.</p>
           <p>Results on LIBERO, RoboCasa, RoboTwin 2.0, and the real robot experiment show that this design reduces Chunk Time and Episode Time while preserving competitive task success. Taken together, the results support a simple conclusion: real-time WAM deployment requires both fast inference and alignment between ongoing execution and predicted world evolution; latency and task success should therefore be evaluated together.</p>
         </section>
@@ -466,23 +466,23 @@
             <h2 id="citation-title">Citation</h2>
             <div class="citation-card">
               <button class="citation-copy" type="button" aria-label="Copy BibTeX citation">Copy</button>
-              <pre><code id="citation-bibtex">@misc{denglab2026streamwam,
-  title        = {Stream-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation},
+              <pre><code id="citation-bibtex">@misc{denglab2026streamingwam,
+  title        = {Streaming-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation},
   author       = {{DENG Lab}},
   year         = {2026},
   howpublished = {Project page},
   organization = {Shanghai Jiao Tong University},
-  url          = {https://sjtu-deng-lab.github.io/StreamWAM/}
+  url          = {https://sjtu-deng-lab.github.io/Streaming-WAM/}
 }</code></pre>
             </div>
             <div class="resource-actions" aria-label="Open source artifacts">
-              <a class="button button-primary" href="https://github.com/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Code ↗</a>
-              <a class="button" href="https://huggingface.co/SJTU-DENG-Lab/StreamWAM" target="_blank" rel="noopener noreferrer">Models ↗</a>
+              <a class="button button-primary" href="https://github.com/SJTU-DENG-Lab/Streaming-WAM" target="_blank" rel="noopener noreferrer">Code ↗</a>
+              <a class="button" href="https://huggingface.co/SJTU-DENG-Lab/Streaming-WAM" target="_blank" rel="noopener noreferrer">Models ↗</a>
             </div>
         </section>
       </article>
     </main>
 
-    <footer class="site-footer"><div class="shell"><a class="wordmark" href="#overview"><span class="wordmark-mark" aria-hidden="true"></span>Stream-WAM</a><p>Streaming World-Action Models for Robotic Manipulation</p><p>Research preview · 2026</p></div></footer>
+    <footer class="site-footer"><div class="shell"><a class="wordmark" href="#overview"><span class="wordmark-mark" aria-hidden="true"></span>Streaming-WAM</a><p>Streaming World-Action Models for Robotic Manipulation</p><p>Research preview · 2026</p></div></footer>
   </body>
 </html>

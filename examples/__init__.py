@@ -1,1 +1,1 @@
-"""Example integrations for StreamWAM."""
+"""Example integrations for Streaming-WAM."""

@@ -7,8 +7,8 @@ import pytest
 import torch
 from torch import nn
 
-from streamwam.checkpointing import load_inference_checkpoint, load_inference_stats
-from streamwam.modules.ac_stream import ACStreamSlotEncoder
+from streamingwam.checkpointing import load_inference_checkpoint, load_inference_stats
+from streamingwam.modules.ac_stream import ACStreamSlotEncoder
 
 
 class TinyExpert(nn.Module):
@@ -37,7 +37,7 @@ class TinyWAM(nn.Module):
         self.proprio_encoder = nn.Linear(5, 2)
 
 
-class TinyACStreamWAM(TinyWAM):
+class TinyACStreamingWAM(TinyWAM):
     inference_variant = "ac-stream"
 
     def __init__(self) -> None:
@@ -79,7 +79,7 @@ def _fastwam_payload(model: TinyWAM) -> dict:
     }
 
 
-def _ac_stream_payload(model: TinyACStreamWAM) -> dict:
+def _ac_stream_payload(model: TinyACStreamingWAM) -> dict:
     payload = _fastwam_payload(model)
     payload.update(
         {
@@ -209,7 +209,7 @@ def test_fastwam_rejects_non_mot_model(tmp_path: Path) -> None:
 
 
 def test_ac_stream_checkpoint_rejects_standard_wam_before_mutation(tmp_path: Path) -> None:
-    source = TinyACStreamWAM()
+    source = TinyACStreamingWAM()
     model = TinyWAM()
     before = _snapshot_state(model)
     path = _save_payload(tmp_path, _ac_stream_payload(source))
@@ -233,7 +233,7 @@ def test_ac_stream_checkpoint_metadata_mismatch_fails_before_mutation(
     value: str,
     message: str,
 ) -> None:
-    model = TinyACStreamWAM()
+    model = TinyACStreamingWAM()
     before = _snapshot_state(model)
     payload = _ac_stream_payload(model)
     payload[field] = value
@@ -246,7 +246,7 @@ def test_ac_stream_checkpoint_metadata_mismatch_fails_before_mutation(
 
 
 def test_ac_stream_checkpoint_loads_slot_encoder_and_reports_metadata(tmp_path: Path) -> None:
-    model = TinyACStreamWAM()
+    model = TinyACStreamingWAM()
     payload = _ac_stream_payload(model)
     slot_key = (
         "mixtures.video.rtc_1step_selfatt_z1_slot_encoder.state_embedding.weight"
@@ -270,12 +270,12 @@ def test_standard_checkpoint_loading_remains_supported(tmp_path: Path) -> None:
     path = _save_payload(tmp_path, {"model_state_dict": expected, "step": 42})
     target = nn.Linear(2, 3)
 
-    report = load_inference_checkpoint(target, path, checkpoint_format="streamwam")
+    report = load_inference_checkpoint(target, path, checkpoint_format="streamingwam")
 
     for tensor in target.state_dict().values():
         torch.testing.assert_close(tensor, torch.full_like(tensor, 6.0))
     assert report["step"] == 42
-    assert report["checkpoint_format"] == "streamwam"
+    assert report["checkpoint_format"] == "streamingwam"
 
 
 def test_starwam_loads_original_top_level_state_dict_strictly(tmp_path: Path) -> None:

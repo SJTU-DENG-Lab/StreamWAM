@@ -1,12 +1,12 @@
-"""RoboTwin policy adapter for StreamWAM (remote / socket client).
+"""RoboTwin policy adapter for Streaming-WAM (remote / socket client).
 
 This is the SAPIEN-side counterpart to ``examples.robotwin.policy_server``. It
 runs inside the RoboTwin environment and needs only ``numpy`` plus the Python
-standard library. It forwards raw observations to the StreamWAM inference server
+standard library. It forwards raw observations to the Streaming-WAM inference server
 and executes the returned action chunk.
 
 Use this instead of ``examples/robotwin/local_policy.py`` when SAPIEN and the
-Torch/StreamWAM stack cannot share one environment.
+Torch/Streaming-WAM stack cannot share one environment.
 
 RoboTwin harness entry points: get_model / eval / reset_model.
 Camera order MUST match the recipe's ``data.video_keys`` = [head, left_wrist, right_wrist].
@@ -24,7 +24,7 @@ from typing import Any, Dict, Optional
 import numpy as np
 import torch
 
-from streamwam.inference.ac_stream import (
+from streamingwam.inference.ac_stream import (
     ACStreamController,
     ACStreamPrediction,
 )
@@ -65,8 +65,8 @@ def _is_none_like(value: Any) -> bool:
     return False
 
 
-class RemoteStreamWAMModel:
-    """Talks to the StreamWAM inference server; manages the replan queue locally."""
+class RemoteStreamingWAMModel:
+    """Talks to the Streaming-WAM inference server; manages the replan queue locally."""
 
     def __init__(
         self,
@@ -105,11 +105,11 @@ class RemoteStreamWAMModel:
                 conn = socket.create_connection((self.host, self.port), timeout=30.0)
                 conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
                 conn.settimeout(None)
-                print(f"[streamwam_client] connected to policy server {self.host}:{self.port}", flush=True)
+                print(f"[streamingwam_client] connected to policy server {self.host}:{self.port}", flush=True)
                 return conn
             except OSError as err:
                 last_err = err
-                print(f"[streamwam_client] waiting for policy server {self.host}:{self.port} ...", flush=True)
+                print(f"[streamingwam_client] waiting for policy server {self.host}:{self.port} ...", flush=True)
                 time.sleep(3.0)
         raise ConnectionError(f"could not reach policy server {self.host}:{self.port}: {last_err}")
 
@@ -349,13 +349,13 @@ def _get(usr_args: Dict[str, Any], key: str, default: Any = None) -> Any:
     return value
 
 
-def get_model(usr_args: Dict[str, Any]) -> RemoteStreamWAMModel:
+def get_model(usr_args: Dict[str, Any]) -> RemoteStreamingWAMModel:
     host = str(_get(usr_args, "server_host", "127.0.0.1"))
     port = int(_get(usr_args, "server_port", 8765))
     replan_steps = int(_get(usr_args, "replan_steps", 24))
     inference_mode = str(_get(usr_args, "inference_mode", "baseline"))
     prewarm = bool(_get(usr_args, "prewarm", True))
-    return RemoteStreamWAMModel(
+    return RemoteStreamingWAMModel(
         host=host,
         port=port,
         replan_steps=replan_steps,
@@ -364,13 +364,13 @@ def get_model(usr_args: Dict[str, Any]) -> RemoteStreamWAMModel:
     )
 
 
-def eval(TASK_ENV: Any, model: RemoteStreamWAMModel, observation: Optional[Dict[str, Any]]) -> None:
+def eval(TASK_ENV: Any, model: RemoteStreamingWAMModel, observation: Optional[Dict[str, Any]]) -> None:
     model.step(TASK_ENV, observation)
 
 
-def reset_model(model: RemoteStreamWAMModel) -> None:
+def reset_model(model: RemoteStreamingWAMModel) -> None:
     model.reset()
 
 
-def _finish_episode(model: RemoteStreamWAMModel) -> None:
+def _finish_episode(model: RemoteStreamingWAMModel) -> None:
     model.finish_episode(success=None)

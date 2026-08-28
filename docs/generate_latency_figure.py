@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the two static Stream-WAM latency figures used by the project page."""
+"""Generate the two static Streaming-WAM latency figures used by the project page."""
 
 from __future__ import annotations
 
@@ -32,18 +32,18 @@ LIBERO_METHODS = (
     "FastWAM",
     "Joint-CD",
     "RTC",
-    "Stream-WAM",
-    "Stream-WAM\nw/o Action\nConditioning",
-    "Stream-WAM\nw/o Slot\nEncoder",
+    "Streaming-\nWAM",
+    "Streaming-\nWAM\nw/o Action\nConditioning",
+    "Streaming-\nWAM\nw/o Slot\nEncoder",
 )
 LIBERO_CHUNK = (493.0, 114.2, 142.3, 41.0, 35.1, 36.3)
 LIBERO_LONG = (16.31, 6.89, 6.23, 5.36, 5.20, 5.31)
 LIBERO_SHORT = (8.25, 3.74, 3.20, 3.15, 2.92, 3.01)
 
-ROBOTWIN_METHODS = ("StarWAM\nJoint", "StarWAM\nCD", "Stream-WAM")
+ROBOTWIN_METHODS = ("StarWAM\nJoint", "StarWAM\nCD", "Streaming-\nWAM")
 ROBOTWIN_CHUNK = (190.17, 81.21, 47.09)
 ROBOTWIN_EPISODE = (110.22, 102.59, 77.48)
-ROBOCASA_METHODS = ("X-WAM", "X-WAM\nCD", "Stream-WAM")
+ROBOCASA_METHODS = ("X-WAM", "X-WAM\nCD", "Streaming-\nWAM")
 ROBOCASA_CHUNK = (374.07, 134.37, 115.98)
 ROBOCASA_EPISODE = (17.36, 13.04, 9.49)
 LIBERO_CHUNK_YMAX = 520
@@ -211,7 +211,7 @@ def _new_figure(metric: str) -> tuple[Figure, tuple[Axes, Axes, Axes]]:
     figure.text(
         0.98,
         0.055,
-        "Stream-WAM highlighted in teal  ·  hatched bars are Stream-WAM ablations",
+        "Streaming-WAM highlighted in teal  ·  hatched bars are Streaming-WAM ablations",
         ha="right",
         color=MUTED,
         fontsize=7,
@@ -252,8 +252,8 @@ def render_episode_time(output_path: Path) -> None:
 
 
 def render(output_dir: Path) -> None:
-    render_chunk_time(output_dir / "stream-wam-chunk-time.png")
-    render_episode_time(output_dir / "stream-wam-episode-time.png")
+    render_chunk_time(output_dir / "streaming-wam-chunk-time.png")
+    render_episode_time(output_dir / "streaming-wam-episode-time.png")
 
 
 def main() -> None:

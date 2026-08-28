@@ -8,8 +8,8 @@ from examples.libero.rollout import (
     _save_video,
 )
 from examples.libero.timing import GlobalTimingSummary
-from streamwam.inference.ac_stream import ACStreamOverlapRecord
-from streamwam.inference.ac_stream import ACStreamPrediction
+from streamingwam.inference.ac_stream import ACStreamOverlapRecord
+from streamingwam.inference.ac_stream import ACStreamPrediction
 
 
 def test_global_timing_averages_all_chunks() -> None:

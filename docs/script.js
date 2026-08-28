@@ -88,7 +88,7 @@ if (citationCopyButton && citationBibtex) {
 
 const articleToc = document.querySelector(".article-toc");
 const articleTocNav = articleToc?.querySelector("nav");
-const tocOccluders = document.querySelectorAll("#streamwam-method-figure, .benchmark, .latency-figure");
+const tocOccluders = document.querySelectorAll("#streamingwam-method-figure, .benchmark, .latency-figure");
 
 if (articleToc && articleTocNav && tocOccluders.length) {
   let tocUpdatePending = false;

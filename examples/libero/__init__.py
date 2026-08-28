@@ -1,1 +1,1 @@
-"""LIBERO example integration for StreamWAM."""
+"""LIBERO example integration for Streaming-WAM."""

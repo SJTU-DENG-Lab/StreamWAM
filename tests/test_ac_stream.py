@@ -7,8 +7,8 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from streamwam.inference import normalize_sampling_method
-from streamwam.inference.ac_stream import (
+from streamingwam.inference import normalize_sampling_method
+from streamingwam.inference.ac_stream import (
     ACStreamController,
     ACStreamOverlapRecord,
     ACStreamPrediction,
@@ -17,8 +17,8 @@ from streamwam.inference.ac_stream import (
     build_ac_stream_prev_action_target,
     validate_ac_stream_geometry,
 )
-from streamwam.modules.ac_stream import ACStreamSlotEncoder
-from streamwam.modules.ac_stream import (
+from streamingwam.modules.ac_stream import ACStreamSlotEncoder
+from streamingwam.modules.ac_stream import (
     ACStreamMoT,
     build_ac_stream_condition_mask,
     build_ac_stream_policy_mask,
@@ -236,14 +236,14 @@ def test_ac_stream_condition_mask_injects_slots_only_into_z1() -> None:
 
 
 def test_builder_selects_ac_stream_wam_variant(monkeypatch: pytest.MonkeyPatch) -> None:
-    import streamwam.backbone
-    import streamwam.wam
-    from streamwam.builder import build_framework
-    from streamwam.config import StreamWAMConfig
+    import streamingwam.backbone
+    import streamingwam.wam
+    from streamingwam.builder import build_framework
+    from streamingwam.config import StreamingWAMConfig
 
     marker = object()
 
-    class FakeACStreamWAM:
+    class FakeACStreamingWAM:
         def __new__(cls, *args, **kwargs):
             return marker
 
@@ -251,17 +251,17 @@ def test_builder_selects_ac_stream_wam_variant(monkeypatch: pytest.MonkeyPatch) 
         def __new__(cls, *args, **kwargs):
             return object()
 
-    monkeypatch.setattr(streamwam.backbone, "build_backbone", lambda *args, **kwargs: object())
-    monkeypatch.setattr(streamwam.wam, "ACStreamWAM", FakeACStreamWAM, raising=False)
-    monkeypatch.setattr(streamwam.wam, "MoTWAM", FakeStandardWAM)
-    config = StreamWAMConfig()
+    monkeypatch.setattr(streamingwam.backbone, "build_backbone", lambda *args, **kwargs: object())
+    monkeypatch.setattr(streamingwam.wam, "ACStreamingWAM", FakeACStreamingWAM, raising=False)
+    monkeypatch.setattr(streamingwam.wam, "MoTWAM", FakeStandardWAM)
+    config = StreamingWAMConfig()
     config.framework.variant = "ac-stream"
 
     assert build_framework(config) is marker
 
 
 def test_framework_config_exposes_starwam_rtc_architecture() -> None:
-    from streamwam.config import FrameworkConfig
+    from streamingwam.config import FrameworkConfig
 
     config = FrameworkConfig(
         variant="ac-stream",
@@ -272,9 +272,9 @@ def test_framework_config_exposes_starwam_rtc_architecture() -> None:
 
 
 def test_starwam_rtc_model_uses_original_top_level_slot_key(monkeypatch) -> None:
-    from streamwam.config import FrameworkConfig
-    from streamwam.wam.ac_stream_wam import ACStreamWAM, AC_STREAM_SLOT_ENCODER_NAME
-    from streamwam.wam.mot_wam import MoTWAM
+    from streamingwam.config import FrameworkConfig
+    from streamingwam.wam.ac_stream_wam import ACStreamingWAM, AC_STREAM_SLOT_ENCODER_NAME
+    from streamingwam.wam.mot_wam import MoTWAM
 
     class FakeExpert(torch.nn.Module):
         hidden_dim = 4
@@ -302,7 +302,7 @@ def test_starwam_rtc_model_uses_original_top_level_slot_key(monkeypatch) -> None
         variant="ac-stream",
         ac_stream_architecture="starwam_rtc_h32_s16_d8_z1_method3_v2",
     )
-    model = ACStreamWAM(FakeBackbone(), config, dtype=torch.float32)
+    model = ACStreamingWAM(FakeBackbone(), config, dtype=torch.float32)
 
     assert "rtc_slot_state_embedding.weight" in model.state_dict()
     assert not hasattr(model.backbone.get_dit(), AC_STREAM_SLOT_ENCODER_NAME)
@@ -451,8 +451,8 @@ def test_starwam_rtc_three_stream_residual_changes_only_z1_video_tokens() -> Non
 
 
 def test_ac_stream_wam_d8_returns_exact_clean_prefix() -> None:
-    from streamwam.config import SchedulerConfig
-    from streamwam.wam.ac_stream_wam import ACStreamWAM, AC_STREAM_SLOT_ENCODER_NAME
+    from streamingwam.config import SchedulerConfig
+    from streamingwam.wam.ac_stream_wam import ACStreamingWAM, AC_STREAM_SLOT_ENCODER_NAME
 
     class FakeVAE:
         temporal_compress = 4
@@ -516,7 +516,7 @@ def test_ac_stream_wam_d8_returns_exact_clean_prefix() -> None:
             assert torch.is_inference_mode_enabled()
             return {"video": states["video"]["tokens"], "action": states["action"]["tokens"]}
 
-    model = ACStreamWAM.__new__(ACStreamWAM)
+    model = ACStreamingWAM.__new__(ACStreamingWAM)
     torch.nn.Module.__init__(model)
     model.config = SimpleNamespace(
         chunk_size=32,
@@ -551,8 +551,8 @@ def test_ac_stream_wam_d8_returns_exact_clean_prefix() -> None:
 
 
 def test_starwam_rtc_wam_d8_returns_exact_14d_clean_prefix() -> None:
-    from streamwam.config import SchedulerConfig
-    from streamwam.wam.ac_stream_wam import ACStreamWAM, STARWAM_RTC_ARCHITECTURE
+    from streamingwam.config import SchedulerConfig
+    from streamingwam.wam.ac_stream_wam import ACStreamingWAM, STARWAM_RTC_ARCHITECTURE
 
     class FakeVAE:
         temporal_compress = 4
@@ -613,7 +613,7 @@ def test_starwam_rtc_wam_d8_returns_exact_14d_clean_prefix() -> None:
             assert kwargs["condition_attention_mask"].shape == (1, 1, 16, 17)
             return {"video": states["video"]["tokens"], "action": states["action"]["tokens"]}
 
-    model = ACStreamWAM.__new__(ACStreamWAM)
+    model = ACStreamingWAM.__new__(ACStreamingWAM)
     torch.nn.Module.__init__(model)
     model.config = SimpleNamespace(
         chunk_size=32,

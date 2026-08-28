@@ -1,0 +1,168 @@
+# ============================================================================
+# Streaming-WAM LIBERO Feature-Conditioned Action Model: Wan2.2-TI2V-5B
+# ============================================================================
+#
+# This recipe trains an action flow model from clean observation video-DiT
+# features. It follows the Streaming-WAM open-source abstraction: a single Wan DiT
+# forward extracts intermediate tokens, and the existing ActionDiT predicts
+# actions with flow matching.
+#
+# Training settings
+# -----------------
+# - Backbone: Wan2.2-TI2V-5B (video DiT co-trained through the action loss)
+# - Model family: Feature-conditioned action model with a randomly initialized ActionDiT expert
+# - Dataset: LIBERO spatial + object + goal + libero_10
+# - Dataset size: 273,465 train samples
+# - Text prompts: 40 unique LIBERO task instructions
+# - Normalization: min/max action stats + min/max state/proprio stats
+# - Feature extraction: clean observation single-frame Wan DiT forward
+#     framework.feature_condition_input: observation
+#     framework.feature_condition_noise: none
+#     framework.feature_condition_layer: -1
+#     framework.feature_condition_num_tokens: 32
+#     framework.feature_condition_include_timestep: false
+#     framework.feature_condition_train_backbone: true
+#
+# Training schedule
+# -----------------
+# - batch_size=8, grad_acc=2, world_size=8, effective_global_batch=128
+# - num_epochs=50, max_steps=null -> derived max_steps ~106,850
+# - warmup_steps=1,000
+# - Scheduler: cosine, lr=1e-4 -> eta_min=1e-6
+# - Evaluation used checkpoint-100000
+#
+# LIBERO rollout settings
+# -----------------------
+# - Evaluation checkpoint: checkpoint-100000
+# - Trials: 50 trials/task, 10 tasks/suite
+# - Action inference steps: 10 (`inference.num_inference_steps` /
+#     `inference.action_num_inference_steps`; training/rollout feature paths aligned)
+# - Video/action infer_shift: 5.0 / 5.0
+# - Runtime: num_steps_wait=30, replan_steps=10, seed=42, fixed_seed=false
+#
+# LIBERO rollout results @ checkpoint-100000, 50 trials/task
+# ---------------------------------------------------------
+# - libero_spatial: 454/500 = 90.8%
+# - libero_object:  479/500 = 95.8%
+# - libero_goal:    470/500 = 94.0%
+# - libero_10:      406/500 = 81.2%
+# - Overall micro average: 1809/2000 = 90.5%
+# - Overall macro average: 90.4%
+#
+# The defaults keep training and rollout feature extraction aligned:
+#   framework.feature_condition_input: observation
+#   framework.feature_condition_noise: none
+#   inference.num_inference_steps: 10
+#
+# To experiment with noised ground-truth or generated-video features, override
+# the feature_condition_* fields explicitly from the launch command.
+# ============================================================================
+
+taxonomy:
+  package: streamingwam
+  model_family: feature_conditioned_action_model
+  preset: feature_conditioned_libero_wan22
+  action_representation: action_head
+  conditioning: feature
+
+backbone:
+  type: wan22_5b
+  pretrained_model_id: /path/to/Wan2.2-TI2V-5B
+  load_text_encoder: false
+  tokenizer_max_len: 128
+
+framework:
+  type: feature_conditioned
+  action_dim: 7
+  action_gripper_dim: -1
+  chunk_size: 32
+  proprio_dim: 8
+  action_expert_hidden_dim: 1024
+  action_expert_init_from: null
+  action_expert_head_init: random
+  action_expert_use_gradient_checkpointing: false
+
+  feature_condition_input: observation
+  feature_condition_noise: none
+  feature_condition_layer: -1
+  feature_condition_num_tokens: 32
+  feature_condition_include_text: true
+  feature_condition_include_timestep: false
+  feature_condition_train_backbone: true
+  feature_condition_pin_first_latent_step: true
+  feature_condition_inference_video_steps: 8
+
+  video_scheduler:
+    num_train_timesteps: 1000
+    train_shift: 5.0
+    infer_shift: 5.0
+  action_scheduler:
+    num_train_timesteps: 1000
+    train_shift: 5.0
+    infer_shift: 5.0
+
+  loss_lambda_video: 0.0
+  loss_lambda_action: 1.0
+
+training:
+  output_dir: /path/to/output/streamingwam_libero_feature_conditioned_wan22_5b
+  learning_rate: 1.0e-4
+  weight_decay: 1.0e-2
+  batch_size: 8
+  gradient_accumulation_steps: 2
+  num_epochs: 50
+  max_steps: null
+  mixed_precision: bf16
+  max_grad_norm: 1.0
+  log_every: 10
+  save_every: 2000
+  eval_every: 200
+  eval_num_inference_steps: 10
+  eval_max_samples: 4
+  eval_compute_video_psnr: false
+  seed: 42
+  lr_scheduler_type: cosine
+  warmup_steps: 1000
+  min_lr: 0.0
+  num_workers: 8
+  strategy: full
+  save_total_limit: 3
+  wandb_enabled: true
+  wandb_project: Streaming-WAM
+  wandb_run_name: streamingwam_libero_feature_conditioned_wan22_5b
+
+data:
+  dataset_type: lerobot
+  dataset_dirs:
+    - /path/to/libero_spatial_lerobot
+    - /path/to/libero_object_lerobot
+    - /path/to/libero_goal_lerobot
+    - /path/to/libero_10_lerobot
+  video_key: observation.images.image
+  video_keys:
+    - observation.images.image
+    - observation.images.wrist_image
+  concat_multi_camera: horizontal
+  action_key: action
+  state_key: observation.state
+  num_frames: 33
+  video_size: [224, 224]
+  text_len: 128
+  text_embedding_cache_dir: /path/to/output/streamingwam_libero_feature_conditioned_wan22_5b/text_embedding_cache
+  text_prompt_template: "A video recorded from a robot's point of view executing the following instruction: {task}"
+  text_cache_encoder_id: wan22ti2v5b
+  action_freq_ratio: 4
+  normalize_actions: true
+  action_norm_mode: minmax
+  action_stats_path: /path/to/output/streamingwam_libero_feature_conditioned_wan22_5b/action_stats.json
+  normalize_states: true
+  state_norm_mode: minmax
+  state_stats_path: /path/to/output/streamingwam_libero_feature_conditioned_wan22_5b/action_stats.json
+  delta_action_dim_mask: [true, true, true, true, true, true, false]
+  val_split: 0.0
+  val_split_seed: 42
+
+inference:
+  num_inference_steps: 10
+  action_num_inference_steps: 10
+  seed: 42

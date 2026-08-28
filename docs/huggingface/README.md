@@ -11,25 +11,25 @@ tags:
 ---
 
 <div align="center">
-  <h1>StreamWAM</h1>
+  <h1>Streaming-WAM</h1>
   <h3>Streaming World-Action Models for Robotic Manipulation</h3>
 
-  <a href="https://github.com/SJTU-DENG-Lab/StreamWAM"><img src="https://img.shields.io/badge/GitHub-Code-111827?logo=github" alt="GitHub Code"></a>
-  <a href="https://github.com/SJTU-DENG-Lab/StreamWAM/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-6B5BFF" alt="Apache 2.0 License"></a>
+  <a href="https://github.com/SJTU-DENG-Lab/Streaming-WAM"><img src="https://img.shields.io/badge/GitHub-Code-111827?logo=github" alt="GitHub Code"></a>
+  <a href="https://github.com/SJTU-DENG-Lab/Streaming-WAM/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-6B5BFF" alt="Apache 2.0 License"></a>
 </div>
 
-StreamWAM is a research framework for streaming World-Action Models. It provides a unified testbed for studying and comparing efficient robot-control strategies.
+Streaming-WAM is a research framework for streaming World-Action Models. It provides a unified testbed for studying and comparing efficient robot-control strategies.
 
-StreamWAM uses the actions currently being executed by the robot to guide its next prediction. This allows action execution and model inference to proceed together, reducing the time required to complete a robot task while maintaining strong control performance.
+Streaming-WAM uses the actions currently being executed by the robot to guide its next prediction. This allows action execution and model inference to proceed together, reducing the time required to complete a robot task while maintaining strong control performance.
 
-This repository provides the released LIBERO checkpoints. The corresponding inference and evaluation code is available in the [StreamWAM GitHub repository](https://github.com/SJTU-DENG-Lab/StreamWAM).
+This repository provides the released LIBERO checkpoints. The corresponding inference and evaluation code is available in the [Streaming-WAM GitHub repository](https://github.com/SJTU-DENG-Lab/Streaming-WAM).
 
 ## Released checkpoints
 
 | Directory | Model | Description |
 | --- | --- | --- |
 | `joint-cd/` | FastWAM-Joint-CD | Fast one-step joint world-and-action prediction for LIBERO. |
-| `ac-stream/` | StreamWAM | Recommended StreamWAM checkpoint for efficient LIBERO evaluation. |
+| `ac-stream/` | Streaming-WAM | Recommended Streaming-WAM checkpoint for efficient LIBERO evaluation. |
 
 Each directory contains:
 
@@ -48,15 +48,15 @@ We evaluate all methods on LIBERO-10, LIBERO-Spatial, LIBERO-Goal, and LIBERO-Ob
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | FastWAM | 96.20 | 96.20 | 94.20 | 96.20 | 95.70 | 493.0 | 16.31 / 8.25 |
 | FastWAM-Joint-CD | 97.20 | 99.60 | 98.60 | 100.00 | 98.85 | 114.2 | 6.89 / 3.74 |
-| **StreamWAM** | **96.60** | **98.80** | **97.40** | **100.00** | **98.20** | **41.0** | **5.36 / 3.15** |
+| **Streaming-WAM** | **96.60** | **98.80** | **97.40** | **100.00** | **98.20** | **41.0** | **5.36 / 3.15** |
 
 ## Installation
 
 Clone the code repository and install the environment:
 
 ```bash
-git clone https://github.com/SJTU-DENG-Lab/StreamWAM.git
-cd StreamWAM
+git clone https://github.com/SJTU-DENG-Lab/Streaming-WAM.git
+cd Streaming-WAM
 
 python -m pip install -U uv
 uv sync
@@ -79,14 +79,14 @@ uv run huggingface-cli download Wan-AI/Wan2.2-TI2V-5B \
 Download both released checkpoints:
 
 ```bash
-hf download SJTU-DENG-Lab/StreamWAM \
-  --local-dir checkpoints/streamwam
+hf download SJTU-DENG-Lab/Streaming-WAM \
+  --local-dir checkpoints/streamingwam
 ```
 
 The resulting layout is:
 
 ```text
-checkpoints/streamwam/
+checkpoints/streamingwam/
 ├── joint-cd/
 │   ├── model.pt
 │   └── dataset_stats.json
@@ -95,7 +95,7 @@ checkpoints/streamwam/
     └── dataset_stats.json
 ```
 
-## Run StreamWAM
+## Run Streaming-WAM
 
 Evaluate all 40 LIBERO tasks once on four GPUs:
 
@@ -104,9 +104,9 @@ PYTHON_BIN=.venv/bin/python \
 GPU_IDS=0,1,2,3 \
 BACKBONE_PATH="$PWD/checkpoints/Wan2.2-TI2V-5B" \
 LIBERO_HOME_PATH="$PWD/third_party/LIBERO" \
-CHECKPOINT_PATH="$PWD/checkpoints/streamwam/ac-stream/model.pt" \
-STATS_PATH="$PWD/checkpoints/streamwam/ac-stream/dataset_stats.json" \
-  bash examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh \
+CHECKPOINT_PATH="$PWD/checkpoints/streamingwam/ac-stream/model.pt" \
+STATS_PATH="$PWD/checkpoints/streamingwam/ac-stream/dataset_stats.json" \
+  bash examples/libero/scripts/launch_streamingwam_libero_ac_stream_4gpu.sh \
   --ac-stream-accelerated
 ```
 
@@ -119,11 +119,11 @@ python examples/libero/multigpu_rollout.py \
   --gpus 0,1,2,3 \
   --suites libero_spatial,libero_object,libero_goal,libero_10 \
   --num-trials 1 \
-  --config examples/libero/configs/recipes/streamwam_libero_joint_cd_wan22_5b.yaml \
+  --config examples/libero/configs/recipes/streamingwam_libero_joint_cd_wan22_5b.yaml \
   --checkpoint-format fastwam \
-  --checkpoint checkpoints/streamwam/joint-cd/model.pt \
+  --checkpoint checkpoints/streamingwam/joint-cd/model.pt \
   --backbone-path checkpoints/Wan2.2-TI2V-5B \
-  --stats-path checkpoints/streamwam/joint-cd/dataset_stats.json \
+  --stats-path checkpoints/streamingwam/joint-cd/dataset_stats.json \
   --libero-home third_party/LIBERO \
   --num-steps-wait 30 \
   --replan-steps 16 \
@@ -134,12 +134,12 @@ python examples/libero/multigpu_rollout.py \
   --save-video
 ```
 
-For more evaluation options, see the [LIBERO guide](https://github.com/SJTU-DENG-Lab/StreamWAM/blob/main/examples/libero/LIBERO.md).
+For more evaluation options, see the [LIBERO guide](https://github.com/SJTU-DENG-Lab/Streaming-WAM/blob/main/examples/libero/LIBERO.md).
 
 ## License
 
-Released under the [Apache License 2.0](https://github.com/SJTU-DENG-Lab/StreamWAM/blob/main/LICENSE).
+Released under the [Apache License 2.0](https://github.com/SJTU-DENG-Lab/Streaming-WAM/blob/main/LICENSE).
 
 ## Acknowledgements
 
-StreamWAM builds on ideas and open-source work from [FastWAM](https://github.com/yuantianyuan01/FastWAM), [StarWAM](https://github.com/shaohua-pan/StarWAM), [LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO), and [Wan2.2](https://github.com/Wan-Video/Wan2.2).
+Streaming-WAM builds on ideas and open-source work from [FastWAM](https://github.com/yuantianyuan01/FastWAM), [StarWAM](https://github.com/shaohua-pan/StarWAM), [LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO), and [Wan2.2](https://github.com/Wan-Video/Wan2.2).

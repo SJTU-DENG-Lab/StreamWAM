@@ -4,13 +4,13 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from streamwam.inference.consistency import (
+from streamingwam.inference.consistency import (
     sample_joint_consistency_noise,
     action_consistency_boundary,
     normalize_sampling_method,
     video_consistency_boundary,
 )
-from streamwam.wam.mot_wam import (
+from streamingwam.wam.mot_wam import (
     MoTWAM,
     _sample_euler_noise,
     _validate_consistency_inference,

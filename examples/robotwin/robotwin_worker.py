@@ -27,7 +27,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", required=True)
     parser.add_argument("--status-output", required=True)
     parser.add_argument("--prewarm", action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument("--checkpoint-tag", default="streamwam")
+    parser.add_argument("--checkpoint-tag", default="streamingwam")
     parser.add_argument("--seed", type=int, default=42)
     return parser
 

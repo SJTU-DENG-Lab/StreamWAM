@@ -1,8 +1,8 @@
 # LIBERO Examples
 
-This document describes the LIBERO workflow for StreamWAM: environment setup, recipe placeholders, preprocessing, training, and rollout/evaluation.
+This document describes the LIBERO workflow for Streaming-WAM: environment setup, recipe placeholders, preprocessing, training, and rollout/evaluation.
 
-The generic StreamWAM package documentation is in the repository root [README.md](../../README.md).
+The generic Streaming-WAM package documentation is in the repository root [README.md](../../README.md).
 
 ## 1. Environment
 
@@ -61,10 +61,10 @@ examples/libero/configs/recipes/
 
 | Recipe | Model family | Backbone | Notes |
 | --- | --- | --- | --- |
-| `streamwam_libero_mot_wan22_5b.yaml` | `mot_wam` | Wan2.2-TI2V-5B | Fast-WAM-aligned MoT recipe. Requires a preprocessed ActionDiT init payload. |
-| `streamwam_libero_mot_cosmos_predict2.yaml` | `mot_wam` | Cosmos-Predict2-2B-Video2World | MoT recipe with Cosmos-Predict2 backbone. Requires a preprocessed Cosmos ActionDiT init payload. |
-| `streamwam_libero_shared_dit_wan22_5b.yaml` | `shared_dit_wam` | Wan2.2-TI2V-5B | Shared-DiT/register-token recipe with decoupled video/action inference steps. |
-| `streamwam_libero_feature_conditioned_wan22_5b.yaml` | `feature_conditioned_action_model` | Wan2.2-TI2V-5B | Feature-conditioned action model: a single Wan DiT forward extracts observation tokens and a randomly initialized ActionDiT predicts actions. No preprocessed ActionDiT init required. |
+| `streamingwam_libero_mot_wan22_5b.yaml` | `mot_wam` | Wan2.2-TI2V-5B | Fast-WAM-aligned MoT recipe. Requires a preprocessed ActionDiT init payload. |
+| `streamingwam_libero_mot_cosmos_predict2.yaml` | `mot_wam` | Cosmos-Predict2-2B-Video2World | MoT recipe with Cosmos-Predict2 backbone. Requires a preprocessed Cosmos ActionDiT init payload. |
+| `streamingwam_libero_shared_dit_wan22_5b.yaml` | `shared_dit_wam` | Wan2.2-TI2V-5B | Shared-DiT/register-token recipe with decoupled video/action inference steps. |
+| `streamingwam_libero_feature_conditioned_wan22_5b.yaml` | `feature_conditioned_action_model` | Wan2.2-TI2V-5B | Feature-conditioned action model: a single Wan DiT forward extracts observation tokens and a randomly initialized ActionDiT predicts actions. No preprocessed ActionDiT init required. |
 
 ### Wan2.2-TI2V-5B LIBERO results
 
@@ -118,17 +118,17 @@ Example overrides:
 --override \
   'data.dataset_dirs=["/path/to/libero_spatial_lerobot","/path/to/libero_object_lerobot","/path/to/libero_goal_lerobot","/path/to/libero_10_lerobot"]' \
   backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B \
-  framework.action_expert_init_from=/path/to/preprocessed/streamwam_action_dit_init_wan22.pt \
-  training.output_dir=/path/to/output/streamwam_libero_mot_wan22_5b \
-  data.text_embedding_cache_dir=/path/to/output/streamwam_libero_mot_wan22_5b/text_embedding_cache \
-  data.action_stats_path=/path/to/output/streamwam_libero_mot_wan22_5b/action_stats.json \
-  data.state_stats_path=/path/to/output/streamwam_libero_mot_wan22_5b/action_stats.json \
+  framework.action_expert_init_from=/path/to/preprocessed/streamingwam_action_dit_init_wan22.pt \
+  training.output_dir=/path/to/output/streamingwam_libero_mot_wan22_5b \
+  data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_mot_wan22_5b/text_embedding_cache \
+  data.action_stats_path=/path/to/output/streamingwam_libero_mot_wan22_5b/action_stats.json \
+  data.state_stats_path=/path/to/output/streamingwam_libero_mot_wan22_5b/action_stats.json \
   training.wandb_enabled=false
 ```
 
 ## 4. Data format
 
-StreamWAM expects LIBERO training data in LeRobot-style episode format. Recipes use fields such as:
+Streaming-WAM expects LIBERO training data in LeRobot-style episode format. Recipes use fields such as:
 
 - RGB video observations, optionally from multiple cameras;
 - low-dimensional actions;
@@ -171,11 +171,11 @@ For Wan2.2 and Cosmos-Predict2 MoT, `framework.action_expert_init_from` is not a
 Wan2.2:
 
 ```bash
-python -m streamwam.tools.preprocess_action_dit_init \
-  --config examples/libero/configs/recipes/streamwam_libero_mot_wan22_5b.yaml \
+python -m streamingwam.tools.preprocess_action_dit_init \
+  --config examples/libero/configs/recipes/streamingwam_libero_mot_wan22_5b.yaml \
   --source-backbone wan22 \
   --pretrained-model-id /path/to/Wan2.2-TI2V-5B \
-  --output /path/to/preprocessed/streamwam_action_dit_init_wan22.pt \
+  --output /path/to/preprocessed/streamingwam_action_dit_init_wan22.pt \
   --device cuda:0 \
   --dtype bfloat16
 ```
@@ -183,11 +183,11 @@ python -m streamwam.tools.preprocess_action_dit_init \
 Cosmos-Predict2:
 
 ```bash
-python -m streamwam.tools.preprocess_action_dit_init \
-  --config examples/libero/configs/recipes/streamwam_libero_mot_cosmos_predict2.yaml \
+python -m streamingwam.tools.preprocess_action_dit_init \
+  --config examples/libero/configs/recipes/streamingwam_libero_mot_cosmos_predict2.yaml \
   --source-backbone cosmos_predict2 \
   --pretrained-model-id /path/to/Cosmos-Predict2-2B-Video2World \
-  --output /path/to/preprocessed/streamwam_action_dit_init_cosmos_predict2_notimeproj.pt \
+  --output /path/to/preprocessed/streamingwam_action_dit_init_cosmos_predict2_notimeproj.pt \
   --device cpu \
   --dtype bfloat16
 ```
@@ -199,10 +199,10 @@ Set the generated path in YAML or pass `--override framework.action_expert_init_
 Text embeddings are cache files generated from LIBERO task language. Training creates missing caches automatically. For Wan2.2 recipes, you can also precompute them explicitly:
 
 ```bash
-python -m streamwam.tools.precompute_text_cache \
-  --config examples/libero/configs/recipes/streamwam_libero_mot_wan22_5b.yaml \
+python -m streamingwam.tools.precompute_text_cache \
+  --config examples/libero/configs/recipes/streamingwam_libero_mot_wan22_5b.yaml \
   --pretrained-model-id /path/to/Wan2.2-TI2V-5B \
-  --output-dir /path/to/output/streamwam_libero_mot_wan22_5b/text_embedding_cache \
+  --output-dir /path/to/output/streamingwam_libero_mot_wan22_5b/text_embedding_cache \
   --device cuda:0 \
   --dtype bf16 \
   --override 'data.dataset_dirs=["/path/to/libero_spatial_lerobot","/path/to/libero_object_lerobot","/path/to/libero_goal_lerobot","/path/to/libero_10_lerobot"]'
@@ -233,16 +233,16 @@ Run the ActionDiT preprocessing in Section 5.1, then launch training:
 ```bash
 accelerate launch \
   --config_file configs/accelerate/deepspeed_zero2.yaml \
-  -m streamwam.training.train \
-  --config examples/libero/configs/recipes/streamwam_libero_mot_wan22_5b.yaml \
+  -m streamingwam.training.train \
+  --config examples/libero/configs/recipes/streamingwam_libero_mot_wan22_5b.yaml \
   --override \
     'data.dataset_dirs=["/path/to/libero_spatial_lerobot","/path/to/libero_object_lerobot","/path/to/libero_goal_lerobot","/path/to/libero_10_lerobot"]' \
     backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B \
-    framework.action_expert_init_from=/path/to/preprocessed/streamwam_action_dit_init_wan22.pt \
-    training.output_dir=/path/to/output/streamwam_libero_mot_wan22_5b \
-    data.text_embedding_cache_dir=/path/to/output/streamwam_libero_mot_wan22_5b/text_embedding_cache \
-    data.action_stats_path=/path/to/output/streamwam_libero_mot_wan22_5b/action_stats.json \
-    data.state_stats_path=/path/to/output/streamwam_libero_mot_wan22_5b/action_stats.json \
+    framework.action_expert_init_from=/path/to/preprocessed/streamingwam_action_dit_init_wan22.pt \
+    training.output_dir=/path/to/output/streamingwam_libero_mot_wan22_5b \
+    data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_mot_wan22_5b/text_embedding_cache \
+    data.action_stats_path=/path/to/output/streamingwam_libero_mot_wan22_5b/action_stats.json \
+    data.state_stats_path=/path/to/output/streamingwam_libero_mot_wan22_5b/action_stats.json \
     training.wandb_enabled=false
 ```
 
@@ -253,16 +253,16 @@ Launch training:
 ```bash
 accelerate launch \
   --config_file configs/accelerate/deepspeed_zero2.yaml \
-  -m streamwam.training.train \
-  --config examples/libero/configs/recipes/streamwam_libero_mot_cosmos_predict2.yaml \
+  -m streamingwam.training.train \
+  --config examples/libero/configs/recipes/streamingwam_libero_mot_cosmos_predict2.yaml \
   --override \
     'data.dataset_dirs=["/path/to/libero_spatial_lerobot","/path/to/libero_object_lerobot","/path/to/libero_goal_lerobot","/path/to/libero_10_lerobot"]' \
     backbone.pretrained_model_id=/path/to/Cosmos-Predict2-2B-Video2World \
-    framework.action_expert_init_from=/path/to/preprocessed/streamwam_action_dit_init_cosmos_predict2_notimeproj.pt \
-    training.output_dir=/path/to/output/streamwam_libero_mot_cosmos_predict2 \
-    data.text_embedding_cache_dir=/path/to/output/streamwam_libero_mot_cosmos_predict2/text_embedding_cache \
-    data.action_stats_path=/path/to/output/streamwam_libero_mot_cosmos_predict2/action_stats.json \
-    data.state_stats_path=/path/to/output/streamwam_libero_mot_cosmos_predict2/action_stats.json \
+    framework.action_expert_init_from=/path/to/preprocessed/streamingwam_action_dit_init_cosmos_predict2_notimeproj.pt \
+    training.output_dir=/path/to/output/streamingwam_libero_mot_cosmos_predict2 \
+    data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_mot_cosmos_predict2/text_embedding_cache \
+    data.action_stats_path=/path/to/output/streamingwam_libero_mot_cosmos_predict2/action_stats.json \
+    data.state_stats_path=/path/to/output/streamingwam_libero_mot_cosmos_predict2/action_stats.json \
     training.wandb_enabled=false
 ```
 
@@ -273,15 +273,15 @@ Launch training:
 ```bash
 accelerate launch \
   --config_file configs/accelerate/deepspeed_zero2.yaml \
-  -m streamwam.training.train \
-  --config examples/libero/configs/recipes/streamwam_libero_shared_dit_wan22_5b.yaml \
+  -m streamingwam.training.train \
+  --config examples/libero/configs/recipes/streamingwam_libero_shared_dit_wan22_5b.yaml \
   --override \
     'data.dataset_dirs=["/path/to/libero_spatial_lerobot","/path/to/libero_object_lerobot","/path/to/libero_goal_lerobot","/path/to/libero_10_lerobot"]' \
     backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B \
-    training.output_dir=/path/to/output/streamwam_libero_shared_dit_wan22_5b \
-    data.text_embedding_cache_dir=/path/to/output/streamwam_libero_shared_dit_wan22_5b/text_embedding_cache \
-    data.action_stats_path=/path/to/output/streamwam_libero_shared_dit_wan22_5b/action_stats.json \
-    data.state_stats_path=/path/to/output/streamwam_libero_shared_dit_wan22_5b/action_stats.json \
+    training.output_dir=/path/to/output/streamingwam_libero_shared_dit_wan22_5b \
+    data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_shared_dit_wan22_5b/text_embedding_cache \
+    data.action_stats_path=/path/to/output/streamingwam_libero_shared_dit_wan22_5b/action_stats.json \
+    data.state_stats_path=/path/to/output/streamingwam_libero_shared_dit_wan22_5b/action_stats.json \
     training.wandb_enabled=false
 ```
 
@@ -294,15 +294,15 @@ Launch training:
 ```bash
 accelerate launch \
   --config_file configs/accelerate/deepspeed_zero2.yaml \
-  -m streamwam.training.train \
-  --config examples/libero/configs/recipes/streamwam_libero_feature_conditioned_wan22_5b.yaml \
+  -m streamingwam.training.train \
+  --config examples/libero/configs/recipes/streamingwam_libero_feature_conditioned_wan22_5b.yaml \
   --override \
     'data.dataset_dirs=["/path/to/libero_spatial_lerobot","/path/to/libero_object_lerobot","/path/to/libero_goal_lerobot","/path/to/libero_10_lerobot"]' \
     backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B \
-    training.output_dir=/path/to/output/streamwam_libero_feature_conditioned_wan22_5b \
-    data.text_embedding_cache_dir=/path/to/output/streamwam_libero_feature_conditioned_wan22_5b/text_embedding_cache \
-    data.action_stats_path=/path/to/output/streamwam_libero_feature_conditioned_wan22_5b/action_stats.json \
-    data.state_stats_path=/path/to/output/streamwam_libero_feature_conditioned_wan22_5b/action_stats.json \
+    training.output_dir=/path/to/output/streamingwam_libero_feature_conditioned_wan22_5b \
+    data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_feature_conditioned_wan22_5b/text_embedding_cache \
+    data.action_stats_path=/path/to/output/streamingwam_libero_feature_conditioned_wan22_5b/action_stats.json \
+    data.state_stats_path=/path/to/output/streamingwam_libero_feature_conditioned_wan22_5b/action_stats.json \
     training.wandb_enabled=false
 ```
 
@@ -317,21 +317,21 @@ examples/libero/scripts/
 Current scripts:
 
 ```text
-launch_streamwam_libero_mot_wan22_5b_8gpu.sh
-launch_streamwam_libero_shared_dit_wan22_5b_8gpu.sh
-launch_streamwam_libero_feature_conditioned_wan22_5b_8gpu.sh
-launch_streamwam_libero_mot_rollout.sh
+launch_streamingwam_libero_mot_wan22_5b_8gpu.sh
+launch_streamingwam_libero_shared_dit_wan22_5b_8gpu.sh
+launch_streamingwam_libero_feature_conditioned_wan22_5b_8gpu.sh
+launch_streamingwam_libero_mot_rollout.sh
 ```
 
 Before running them, edit recipe paths or pass overrides through environment variables:
 
 ```bash
-cd /path/to/StreamWAM
+cd /path/to/Streaming-WAM
 
-export REPO_DIR=/path/to/StreamWAM
-export TRAIN_OVERRIDES='data.dataset_dirs=["/path/to/libero_spatial_lerobot","/path/to/libero_object_lerobot","/path/to/libero_goal_lerobot","/path/to/libero_10_lerobot"] backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B framework.action_expert_init_from=/path/to/preprocessed/streamwam_action_dit_init_wan22.pt training.output_dir=/path/to/output/streamwam_libero_mot_wan22_5b data.text_embedding_cache_dir=/path/to/output/streamwam_libero_mot_wan22_5b/text_embedding_cache data.action_stats_path=/path/to/output/streamwam_libero_mot_wan22_5b/action_stats.json data.state_stats_path=/path/to/output/streamwam_libero_mot_wan22_5b/action_stats.json training.wandb_enabled=false'
+export REPO_DIR=/path/to/Streaming-WAM
+export TRAIN_OVERRIDES='data.dataset_dirs=["/path/to/libero_spatial_lerobot","/path/to/libero_object_lerobot","/path/to/libero_goal_lerobot","/path/to/libero_10_lerobot"] backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B framework.action_expert_init_from=/path/to/preprocessed/streamingwam_action_dit_init_wan22.pt training.output_dir=/path/to/output/streamingwam_libero_mot_wan22_5b data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_mot_wan22_5b/text_embedding_cache data.action_stats_path=/path/to/output/streamingwam_libero_mot_wan22_5b/action_stats.json data.state_stats_path=/path/to/output/streamingwam_libero_mot_wan22_5b/action_stats.json training.wandb_enabled=false'
 
-bash examples/libero/scripts/launch_streamwam_libero_mot_wan22_5b_8gpu.sh
+bash examples/libero/scripts/launch_streamingwam_libero_mot_wan22_5b_8gpu.sh
 ```
 
 ## 7. Checkpoints
@@ -356,8 +356,8 @@ If `--checkpoint` is omitted, rollout searches for the latest `checkpoint-*` und
 
 ```bash
 python examples/libero/rollout.py \
-  --config examples/libero/configs/recipes/streamwam_libero_mot_wan22_5b.yaml \
-  --checkpoint /path/to/output/streamwam_libero_mot_wan22_5b/checkpoint-20000 \
+  --config examples/libero/configs/recipes/streamingwam_libero_mot_wan22_5b.yaml \
+  --checkpoint /path/to/output/streamingwam_libero_mot_wan22_5b/checkpoint-20000 \
   --task-suite-name libero_spatial \
   --num-trials 50 \
   --num-inference-steps 8 \
@@ -366,19 +366,19 @@ python examples/libero/rollout.py \
   --libero-home /path/to/LIBERO \
   --override \
     backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B \
-    framework.action_expert_init_from=/path/to/preprocessed/streamwam_action_dit_init_wan22.pt \
-    training.output_dir=/path/to/output/streamwam_libero_mot_wan22_5b \
-    data.text_embedding_cache_dir=/path/to/output/streamwam_libero_mot_wan22_5b/text_embedding_cache \
-    data.action_stats_path=/path/to/output/streamwam_libero_mot_wan22_5b/action_stats.json \
-    data.state_stats_path=/path/to/output/streamwam_libero_mot_wan22_5b/action_stats.json
+    framework.action_expert_init_from=/path/to/preprocessed/streamingwam_action_dit_init_wan22.pt \
+    training.output_dir=/path/to/output/streamingwam_libero_mot_wan22_5b \
+    data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_mot_wan22_5b/text_embedding_cache \
+    data.action_stats_path=/path/to/output/streamingwam_libero_mot_wan22_5b/action_stats.json \
+    data.state_stats_path=/path/to/output/streamingwam_libero_mot_wan22_5b/action_stats.json
 ```
 
 ### 8.2 Cosmos-Predict2 MoT rollout
 
 ```bash
 python examples/libero/rollout.py \
-  --config examples/libero/configs/recipes/streamwam_libero_mot_cosmos_predict2.yaml \
-  --checkpoint /path/to/output/streamwam_libero_mot_cosmos_predict2/checkpoint-20000 \
+  --config examples/libero/configs/recipes/streamingwam_libero_mot_cosmos_predict2.yaml \
+  --checkpoint /path/to/output/streamingwam_libero_mot_cosmos_predict2/checkpoint-20000 \
   --task-suite-name libero_spatial \
   --num-trials 50 \
   --num-inference-steps 8 \
@@ -387,11 +387,11 @@ python examples/libero/rollout.py \
   --libero-home /path/to/LIBERO \
   --override \
     backbone.pretrained_model_id=/path/to/Cosmos-Predict2-2B-Video2World \
-    framework.action_expert_init_from=/path/to/preprocessed/streamwam_action_dit_init_cosmos_predict2_notimeproj.pt \
-    training.output_dir=/path/to/output/streamwam_libero_mot_cosmos_predict2 \
-    data.text_embedding_cache_dir=/path/to/output/streamwam_libero_mot_cosmos_predict2/text_embedding_cache \
-    data.action_stats_path=/path/to/output/streamwam_libero_mot_cosmos_predict2/action_stats.json \
-    data.state_stats_path=/path/to/output/streamwam_libero_mot_cosmos_predict2/action_stats.json
+    framework.action_expert_init_from=/path/to/preprocessed/streamingwam_action_dit_init_cosmos_predict2_notimeproj.pt \
+    training.output_dir=/path/to/output/streamingwam_libero_mot_cosmos_predict2 \
+    data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_mot_cosmos_predict2/text_embedding_cache \
+    data.action_stats_path=/path/to/output/streamingwam_libero_mot_cosmos_predict2/action_stats.json \
+    data.state_stats_path=/path/to/output/streamingwam_libero_mot_cosmos_predict2/action_stats.json
 ```
 
 ### 8.3 Wan2.2 Shared-DiT rollout
@@ -400,8 +400,8 @@ Shared-DiT supports decoupled video/action denoising step counts. Pass both valu
 
 ```bash
 python examples/libero/rollout.py \
-  --config examples/libero/configs/recipes/streamwam_libero_shared_dit_wan22_5b.yaml \
-  --checkpoint /path/to/output/streamwam_libero_shared_dit_wan22_5b/checkpoint-50000 \
+  --config examples/libero/configs/recipes/streamingwam_libero_shared_dit_wan22_5b.yaml \
+  --checkpoint /path/to/output/streamingwam_libero_shared_dit_wan22_5b/checkpoint-50000 \
   --task-suite-name libero_spatial \
   --num-trials 50 \
   --num-inference-steps 16 \
@@ -411,10 +411,10 @@ python examples/libero/rollout.py \
   --libero-home /path/to/LIBERO \
   --override \
     backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B \
-    training.output_dir=/path/to/output/streamwam_libero_shared_dit_wan22_5b \
-    data.text_embedding_cache_dir=/path/to/output/streamwam_libero_shared_dit_wan22_5b/text_embedding_cache \
-    data.action_stats_path=/path/to/output/streamwam_libero_shared_dit_wan22_5b/action_stats.json \
-    data.state_stats_path=/path/to/output/streamwam_libero_shared_dit_wan22_5b/action_stats.json
+    training.output_dir=/path/to/output/streamingwam_libero_shared_dit_wan22_5b \
+    data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_shared_dit_wan22_5b/text_embedding_cache \
+    data.action_stats_path=/path/to/output/streamingwam_libero_shared_dit_wan22_5b/action_stats.json \
+    data.state_stats_path=/path/to/output/streamingwam_libero_shared_dit_wan22_5b/action_stats.json
 ```
 
 ### 8.4 Wan2.2 Feature-Conditioned rollout
@@ -424,8 +424,8 @@ so pass only `--num-inference-steps`.
 
 ```bash
 python examples/libero/rollout.py \
-  --config examples/libero/configs/recipes/streamwam_libero_feature_conditioned_wan22_5b.yaml \
-  --checkpoint /path/to/output/streamwam_libero_feature_conditioned_wan22_5b/checkpoint-100000 \
+  --config examples/libero/configs/recipes/streamingwam_libero_feature_conditioned_wan22_5b.yaml \
+  --checkpoint /path/to/output/streamingwam_libero_feature_conditioned_wan22_5b/checkpoint-100000 \
   --task-suite-name libero_spatial \
   --num-trials 50 \
   --num-steps-wait 30 \
@@ -435,21 +435,21 @@ python examples/libero/rollout.py \
   --libero-home /path/to/LIBERO \
   --override \
     backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B \
-    training.output_dir=/path/to/output/streamwam_libero_feature_conditioned_wan22_5b \
-    data.text_embedding_cache_dir=/path/to/output/streamwam_libero_feature_conditioned_wan22_5b/text_embedding_cache \
-    data.action_stats_path=/path/to/output/streamwam_libero_feature_conditioned_wan22_5b/action_stats.json \
-    data.state_stats_path=/path/to/output/streamwam_libero_feature_conditioned_wan22_5b/action_stats.json
+    training.output_dir=/path/to/output/streamingwam_libero_feature_conditioned_wan22_5b \
+    data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_feature_conditioned_wan22_5b/text_embedding_cache \
+    data.action_stats_path=/path/to/output/streamingwam_libero_feature_conditioned_wan22_5b/action_stats.json \
+    data.state_stats_path=/path/to/output/streamingwam_libero_feature_conditioned_wan22_5b/action_stats.json
 ```
 
 ### 8.5 Rollout launcher and outputs
 
-`examples/libero/scripts/launch_streamwam_libero_mot_rollout.sh` is a readable
+`examples/libero/scripts/launch_streamingwam_libero_mot_rollout.sh` is a readable
 single-task FastWAM smoke-test command. After placing the release checkpoint
 and stats under `checkpoints/fastwam_release/`, edit its explicit
 `--backbone-path` and `--libero-home` arguments, then run:
 
 ```bash
-bash examples/libero/scripts/launch_streamwam_libero_mot_rollout.sh
+bash examples/libero/scripts/launch_streamingwam_libero_mot_rollout.sh
 ```
 
 For larger evaluations, invoke `examples/libero/rollout.py` separately with
@@ -526,13 +526,13 @@ Download them first:
 ```bash
 uv tool run --from modelscope modelscope download \
   --model panshaohua/starwam \
-  --local_dir /path/to/streamwam_ckpts
+  --local_dir /path/to/streamingwam_ckpts
 ```
 
 After download, the LIBERO checkpoints are laid out as:
 
 ```text
-/path/to/streamwam_ckpts/starwam-libero/
+/path/to/streamingwam_ckpts/starwam-libero/
   action_stats.json                          # shared action stats (both models)
   mot/starwam_wan225b_mot.pt                  # MoT WAM
   sharedit/starwam_wan225b_shareddit.pt       # Shared-DiT WAM
@@ -545,10 +545,10 @@ locally for `backbone.pretrained_model_id`.
 Shared-DiT:
 
 ```bash
-CKPT_ROOT=/path/to/streamwam_ckpts/starwam-libero
+CKPT_ROOT=/path/to/streamingwam_ckpts/starwam-libero
 
 python examples/libero/rollout.py \
-  --config examples/libero/configs/recipes/streamwam_libero_shared_dit_wan22_5b.yaml \
+  --config examples/libero/configs/recipes/streamingwam_libero_shared_dit_wan22_5b.yaml \
   --checkpoint "$CKPT_ROOT/sharedit/starwam_wan225b_shareddit.pt" \
   --task-suite-name libero_spatial \
   --num-trials 50 \
@@ -559,8 +559,8 @@ python examples/libero/rollout.py \
   --libero-home /path/to/LIBERO \
   --override \
     backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B \
-    training.output_dir=/path/to/output/streamwam_libero_shared_dit_wan22_5b \
-    data.text_embedding_cache_dir=/path/to/output/streamwam_libero_shared_dit_wan22_5b/text_embedding_cache \
+    training.output_dir=/path/to/output/streamingwam_libero_shared_dit_wan22_5b \
+    data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_shared_dit_wan22_5b/text_embedding_cache \
     data.action_stats_path="$CKPT_ROOT/action_stats.json" \
     data.state_stats_path="$CKPT_ROOT/action_stats.json"
 ```
@@ -569,10 +569,10 @@ MoT uses a single denoising schedule — pass only
 `--num-inference-steps`:
 
 ```bash
-CKPT_ROOT=/path/to/streamwam_ckpts/starwam-libero
+CKPT_ROOT=/path/to/streamingwam_ckpts/starwam-libero
 
 python examples/libero/rollout.py \
-  --config examples/libero/configs/recipes/streamwam_libero_mot_wan22_5b.yaml \
+  --config examples/libero/configs/recipes/streamingwam_libero_mot_wan22_5b.yaml \
   --checkpoint "$CKPT_ROOT/mot/starwam_wan225b_mot.pt" \
   --task-suite-name libero_spatial \
   --num-trials 50 \
@@ -582,8 +582,8 @@ python examples/libero/rollout.py \
   --libero-home /path/to/LIBERO \
   --override \
     backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B \
-    training.output_dir=/path/to/output/streamwam_libero_mot_wan22_5b \
-    data.text_embedding_cache_dir=/path/to/output/streamwam_libero_mot_wan22_5b/text_embedding_cache \
+    training.output_dir=/path/to/output/streamingwam_libero_mot_wan22_5b \
+    data.text_embedding_cache_dir=/path/to/output/streamingwam_libero_mot_wan22_5b/text_embedding_cache \
     data.action_stats_path="$CKPT_ROOT/action_stats.json" \
     data.state_stats_path="$CKPT_ROOT/action_stats.json"
 ```
@@ -596,7 +596,7 @@ Shared-DiT uses decoupled step counts, so rollout passes `--action-num-inference
 
 ## 10. Direct FastWAM release checkpoint inference
 
-StreamWAM can load the original FastWAM release checkpoint and statistics at
+Streaming-WAM can load the original FastWAM release checkpoint and statistics at
 runtime without writing a converted checkpoint. Select the source format
 explicitly with `--checkpoint-format fastwam`:
 
@@ -614,7 +614,7 @@ the launcher are machine-specific.
 
 ```bash
 python examples/libero/rollout.py \
-  --config examples/libero/configs/recipes/streamwam_libero_mot_wan22_5b.yaml \
+  --config examples/libero/configs/recipes/streamingwam_libero_mot_wan22_5b.yaml \
   --checkpoint-format fastwam \
   --checkpoint checkpoints/fastwam_release/libero_uncond_2cam224.pt \
   --backbone-path /path/to/wan22_5b \
@@ -641,7 +641,7 @@ The LIBERO launcher contains the same arguments directly. Edit its two
 machine-specific paths and run:
 
 ```bash
-bash examples/libero/scripts/launch_streamwam_libero_mot_rollout.sh
+bash examples/libero/scripts/launch_streamingwam_libero_mot_rollout.sh
 ```
 
 ## 11. Balanced multi-GPU evaluation
@@ -656,13 +656,13 @@ The ready-to-run Joint CD launcher evaluates all 40 tasks once on GPUs
 `0,1,2,3`:
 
 ```bash
-bash examples/libero/scripts/launch_streamwam_libero_joint_cd_4gpu.sh
+bash examples/libero/scripts/launch_streamingwam_libero_joint_cd_4gpu.sh
 ```
 
 Select different GPUs without editing Python:
 
 ```bash
-GPU_IDS=2,3,6,7 bash examples/libero/scripts/launch_streamwam_libero_joint_cd_4gpu.sh
+GPU_IDS=2,3,6,7 bash examples/libero/scripts/launch_streamingwam_libero_joint_cd_4gpu.sh
 ```
 
 AC-Stream has one launcher and one implementation. Set the four public asset
@@ -676,10 +676,10 @@ export CHECKPOINT_PATH=/path/to/ac_stream_checkpoint.pt
 export STATS_PATH=/path/to/dataset_stats.json
 
 GPU_IDS=0,1,2,3 \
-  bash examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh
+  bash examples/libero/scripts/launch_streamingwam_libero_ac_stream_4gpu.sh
 
 GPU_IDS=0,1,2,3 \
-  bash examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh \
+  bash examples/libero/scripts/launch_streamingwam_libero_ac_stream_4gpu.sh \
   --ac-stream-accelerated
 ```
 
@@ -702,7 +702,7 @@ BACKBONE_PATH=/path/to/Wan2.2-TI2V-5B \
 LIBERO_HOME_PATH=/path/to/LIBERO \
 CHECKPOINT_PATH=/path/to/ac_stream_checkpoint.pt \
 STATS_PATH=/path/to/dataset_stats.json \
-  bash examples/libero/scripts/launch_streamwam_libero_ac_stream_4gpu.sh \
+  bash examples/libero/scripts/launch_streamingwam_libero_ac_stream_4gpu.sh \
   --ac-stream-accelerated
 ```
 
@@ -721,7 +721,7 @@ saved as `assignments.json`, per-worker diagnostics are in
 ## 12. Troubleshooting
 
 - Placeholder paths: replace all `/path/to/...` values before running.
-- Missing ActionDiT init for StreamWAM MoT checkpoints: run Section 5.1 and set
+- Missing ActionDiT init for Streaming-WAM MoT checkpoints: run Section 5.1 and set
   `framework.action_expert_init_from`. Original FastWAM checkpoints selected
   with `--checkpoint-format fastwam` do not need this payload.
 - LIBERO import error: install LIBERO or pass `--libero-home /path/to/LIBERO`.

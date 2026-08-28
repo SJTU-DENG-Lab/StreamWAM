@@ -1,4 +1,4 @@
-name: Deploy StreamWAM project page
+name: Deploy Streaming-WAM project page
 
 on:
   push:

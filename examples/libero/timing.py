@@ -20,7 +20,7 @@ from typing import Any
 
 import numpy as np
 
-from streamwam.inference.ac_stream import ACStreamOverlapRecord
+from streamingwam.inference.ac_stream import ACStreamOverlapRecord
 
 
 @dataclass

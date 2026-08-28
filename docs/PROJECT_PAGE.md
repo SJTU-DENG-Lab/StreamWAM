@@ -1,4 +1,4 @@
-# Stream-WAM academic project page
+# Streaming-WAM academic project page
 
 This directory contains the dependency-free, long-form research preview published with GitHub Pages.
 The page is organized as an editable research story rather than a fixed paper template.
@@ -6,7 +6,7 @@ The page is organized as an editable research story rather than a fixed paper te
 ## Editing the story
 
 The public article opens with three continuous editorial acts: `act-wam`, `act-async`, and
-`act-streamwam`, followed by `experiments`, `discussion`, and `resources`. Keep these IDs stable
+`act-streamingwam`, followed by `experiments`, `discussion`, and `resources`. Keep these IDs stable
 because the table of contents and external links use them. These sections intentionally have no
 visible numbered labels or display-sized headings; their accessible names live on the section
 elements. Only the compact `LIBERO`, `RoboTwin 2.0`, and `RoboCasa` headings identify the result
@@ -15,7 +15,7 @@ benchmark tables that need more width.
 
 The asynchronous-strategy discussion links to the relevant primary source and distinguishes action
 prefix conditioning from action-conditioned future-video generation. Preserve that distinction when
-editing the method narrative or the `Stream-WAM w/o Action Conditioning` ablation description.
+editing the method narrative or the `Streaming-WAM w/o Action Conditioning` ablation description.
 
 All three benchmark tables are intentionally visible in source order. Do not hide scientific content
 behind tabs or require JavaScript to read the article. JavaScript is limited to the mobile header menu.
@@ -23,7 +23,7 @@ behind tabs or require JavaScript to read the article. JavaScript is limited to 
 The page intentionally uses only local HTML, CSS, JavaScript, and media. Paper and rollout-video
 entries should remain non-interactive `Coming Soon` notices until real public URLs are available.
 
-This directory is a dependency-free preview site for Stream-WAM. GitHub Pages publishes this directory as-is.
+This directory is a dependency-free preview site for Streaming-WAM. GitHub Pages publishes this directory as-is.
 
 ## Preview locally
 
@@ -47,7 +47,7 @@ The deployed page intentionally uses only local assets and system fonts. Regener
 
 ## Add the rollout film later
 
-Put the optimized MP4 file under `assets/videos/` using a descriptive lowercase name, for example `assets/videos/streamwam-rollouts.mp4`. Add it only in an approved linear media position near the article conclusion, or update the masthead rollout status to link to the public film. A local video element should use an existing rollout image as its poster:
+Put the optimized MP4 file under `assets/videos/` using a descriptive lowercase name, for example `assets/videos/streamingwam-rollouts.mp4`. Add it only in an approved linear media position near the article conclusion, or update the masthead rollout status to link to the public film. A local video element should use an existing rollout image as its poster:
 
 ```html
 <video controls preload="metadata" poster="assets/libero-drawer.webp">
@@ -73,6 +73,6 @@ Open `http://localhost:8000`, verify the headline and detailed metrics agree, an
 
 The workflow at `.github/workflows/pages.yml` publishes only this directory after changes reach `main`. For the first deployment, a repository administrator may need to open **Settings → Pages** and set **Source** to **GitHub Actions**. The expected project URL is:
 
-`https://sjtu-deng-lab.github.io/StreamWAM/`
+`https://sjtu-deng-lab.github.io/Streaming-WAM/`
 
 No repository outputs, checkpoints, or datasets are included in the Pages artifact.

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from streamwam.eval.policy import StreamWAMPolicy
+from streamingwam.eval.policy import StreamingWAMPolicy
 from examples.robotwin.runtime import resolve_inference_runtime
 
 
@@ -17,8 +17,8 @@ class _RecordingModel:
         return torch.zeros((1, kwargs["action_horizon"], 14), dtype=torch.float32)
 
 
-def _tiny_policy(inference_mode: str) -> StreamWAMPolicy:
-    policy = object.__new__(StreamWAMPolicy)
+def _tiny_policy(inference_mode: str) -> StreamingWAMPolicy:
+    policy = object.__new__(StreamingWAMPolicy)
     policy.device = torch.device("cpu")
     policy.dtype = torch.float32
     policy.model = _RecordingModel()

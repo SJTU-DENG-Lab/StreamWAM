@@ -1,0 +1,141 @@
+# ============================================================================
+# Streaming-WAM LIBERO MoT: Cosmos-Predict2-2B Video2World experiment
+# ============================================================================
+#
+# Training settings
+# -----------------
+# - Backbone: Cosmos-Predict2-2B-Video2World
+# - Model family: MoT WAM with generic token-action ActionDiT expert
+# - Dataset: LIBERO spatial + object + goal + libero_10
+# - Video geometry: two 320x320 LIBERO cameras concatenated horizontally -> 320x640
+# - Normalization: min/max action stats + min/max state/proprio stats
+#
+# LIBERO rollout settings
+# -----------------------
+# - Evaluation checkpoint: checkpoint-20000
+# - Trials: 50 trials/task, 10 tasks/suite
+# - Action inference steps: 8 (`inference.num_inference_steps`; MoT does not use decoupled action steps)
+# - Video/action infer_shift: 5.0 / 5.0
+# - Runtime: num_steps_wait=30, replan_steps=10, seed=42, fixed_seed=false
+#
+# LIBERO rollout results w/o action_expert_init @ checkpoint-20000, 50 trials/task
+# --------------------------------------------------------------------------------
+# - libero_spatial: 435/500 = 87.0%
+# - libero_object:  472/500 = 94.4%
+# - libero_goal:    477/500 = 95.4%
+# - libero_10:      393/500 = 78.6%
+# - Overall micro average: 1777/2000 = 88.85%
+# - Overall macro average: 88.85%
+#
+# Notes
+# -----
+# - `action_expert_type: action_dit` intentionally uses the generic token-action
+#   expert; the init payload is generated from Cosmos-Predict2 video weights.
+# - Text caches use a Cosmos-specific encoder id and are not shared with Wan
+#   UMT5 caches.
+# ============================================================================
+
+taxonomy:
+  package: streamingwam
+  model_family: mot_wam
+  preset: mot_libero_cosmos_predict2
+  action_representation: token_action
+  conditioning: first_frame
+
+backbone:
+  type: cosmos_predict2
+  pretrained_model_id: /path/to/Cosmos-Predict2-2B-Video2World
+  load_text_encoder: false
+  tokenizer_max_len: 512
+
+framework:
+  type: mot
+  action_dim: 7
+  action_gripper_dim: -1
+  chunk_size: 32
+  proprio_dim: 8
+  action_video_conditioning: first_frame
+  mot_checkpoint_mixed_attn: false
+  action_expert_type: action_dit
+  action_expert_hidden_dim: 2048
+  action_expert_init_from: /path/to/preprocessed/streamingwam_action_dit_init_cosmos_predict2_notimeproj.pt
+  action_expert_head_init: random
+  action_expert_use_gradient_checkpointing: false
+
+  video_scheduler:
+    num_train_timesteps: 1000
+    train_shift: 5.0
+    infer_shift: 5.0
+  action_scheduler:
+    num_train_timesteps: 1000
+    train_shift: 5.0
+    infer_shift: 5.0
+
+  loss_lambda_video: 1.0
+  loss_lambda_action: 1.0
+
+training:
+  output_dir: /path/to/output/streamingwam_libero_mot_cosmos_predict2
+  learning_rate: 1.0e-4
+  weight_decay: 1.0e-2
+  batch_size: 4
+  gradient_accumulation_steps: 4
+  num_epochs: 10
+  max_steps: null
+  mixed_precision: bf16
+  max_grad_norm: 1.0
+  log_every: 10
+  save_every: 2000
+  eval_every: 200
+  eval_num_inference_steps: 4
+  eval_max_samples: 4
+  eval_compute_video_psnr: false
+  seed: 42
+  lr_scheduler_type: cosine
+  warmup_steps: null
+  min_lr: 0.0
+  num_workers: 8
+  strategy: full
+  save_total_limit: 3
+  wandb_enabled: true
+  wandb_project: Streaming-WAM
+  wandb_run_name: streamingwam_libero_mot_cosmos_predict2
+
+data:
+  dataset_type: lerobot
+  dataset_dirs:
+    - /path/to/libero_spatial_lerobot
+    - /path/to/libero_object_lerobot
+    - /path/to/libero_goal_lerobot
+    - /path/to/libero_10_lerobot
+  video_key: observation.images.image
+  video_keys:
+    - observation.images.image
+    - observation.images.wrist_image
+  concat_multi_camera: horizontal
+  action_key: action
+  state_key: observation.state
+  num_frames: 33
+  video_size: [320, 320]
+  text_len: 512
+  text_embedding_cache_dir: /path/to/output/streamingwam_libero_mot_cosmos_predict2/text_embedding_cache
+  text_prompt_template: "A video recorded from a robot's point of view executing the following instruction: {task}"
+  text_cache_encoder_id: cosmos_predict2_t5
+  action_freq_ratio: 4
+  normalize_actions: true
+  action_norm_mode: minmax
+  action_stats_path: /path/to/output/streamingwam_libero_mot_cosmos_predict2/action_stats.json
+  normalize_states: true
+  state_norm_mode: minmax
+  state_stats_path: /path/to/output/streamingwam_libero_mot_cosmos_predict2/action_stats.json
+  delta_action_dim_mask: [true, true, true, true, true, true, false]
+  val_split: 0.0
+  val_split_seed: 42
+
+inference:
+  num_inference_steps: 8
+  # MoT uses a single denoising schedule, so rollout overrides this to
+  # num_inference_steps. This field is kept for schema consistency with
+  # Shared-DiT recipes that support decoupled action steps.
+  action_num_inference_steps: 20
+  seed: 42

@@ -1565,7 +1565,7 @@ wheels = [
 ]
 
 [[package]]
-name = "streamwam"
+name = "streamingwam"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

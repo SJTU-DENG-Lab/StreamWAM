@@ -40,7 +40,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--num-trials", type=int, default=1, help="Trials per task")
     parser.add_argument("--config", required=True)
     parser.add_argument("--checkpoint", required=True)
-    parser.add_argument("--checkpoint-format", choices=("streamwam", "fastwam"), default="streamwam")
+    parser.add_argument("--checkpoint-format", choices=("streamingwam", "fastwam"), default="streamingwam")
     parser.add_argument("--backbone-path", default=None)
     parser.add_argument("--stats-path", default=None)
     parser.add_argument("--libero-home", default=os.environ.get("LIBERO_HOME"))

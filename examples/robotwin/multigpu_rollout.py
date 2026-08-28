@@ -28,10 +28,10 @@ def _csv(value: str) -> list[str]:
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="StreamWAM RoboTwin multi-GPU evaluation")
+    parser = argparse.ArgumentParser(description="Streaming-WAM RoboTwin multi-GPU evaluation")
     parser.add_argument("--config", required=True)
     parser.add_argument("--checkpoint", required=True)
-    parser.add_argument("--checkpoint-format", default="starwam", choices=("streamwam", "fastwam", "starwam"))
+    parser.add_argument("--checkpoint-format", default="starwam", choices=("streamingwam", "fastwam", "starwam"))
     parser.add_argument("--stats-path", required=True)
     parser.add_argument("--backbone-path", required=True)
     parser.add_argument("--text-cache-path", default="/inspire/qb-ilm/project/qproject-fundationmodel/yangyi-253108120173/yzy/starwam/cache/text_embeds_cache")
