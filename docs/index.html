@@ -14,7 +14,7 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <title>Streaming-WAM — Streaming World-Action Models</title>
-    <link rel="stylesheet" href="styles.css?v=20260827-34">
+    <link rel="stylesheet" href="styles.css?v=20260827-41">
     <script src="script.js?v=20260827-20" defer></script>
   </head>
   <body>
@@ -73,24 +73,22 @@
                   <div class="runtime-label"><strong>Synchronous WAM</strong><span>Predict, act, then wait again</span></div>
                   <div class="runtime-timeline" aria-hidden="true">
                     <span class="timeline-axis"></span>
-                    <span class="generation-window generation-one"><i></i><i></i><i></i></span>
-                    <span class="generation-window generation-two"><i></i><i></i><i></i></span>
-                    <span class="execution-rail execution-one"><i></i><i></i><i></i></span>
-                    <span class="execution-rail execution-two"><i></i><i></i><i></i></span>
+                    <span class="generation-window generation-one"><i></i><i></i><i></i><i></i><i></i></span>
+                    <span class="generation-window generation-two"><i></i><i></i><i></i><i></i><i></i></span>
+                    <span class="execution-rail execution-one"><i></i><i></i><i></i><i></i></span>
+                    <span class="execution-rail execution-two"><i></i><i></i><i></i><i></i></span>
                     <span class="timeline-curtain"></span><span class="timeline-cursor"></span>
                   </div>
                 </div>
                 <div class="runtime-row runtime-stream">
-                  <div class="runtime-label"><strong>Streaming-WAM</strong><span>Predict through the second half of each action chunk</span></div>
+                  <div class="runtime-label"><strong>Streaming-WAM</strong><span>Predict the next chunk while execution continues</span></div>
                   <div class="runtime-timeline" aria-hidden="true">
                     <span class="timeline-axis"></span>
-                    <span class="generation-window generation-one"><i></i><i></i><i></i></span>
+                    <span class="generation-window generation-one"><i></i><i></i><i></i><i></i></span>
                     <span class="generation-window generation-two"><i></i><i></i><i></i></span>
                     <span class="generation-window generation-three"><i></i><i></i><i></i></span>
                     <span class="generation-window generation-four"><i></i><i></i><i></i></span>
-                    <span class="execution-rail execution-stream-one"><i></i><i></i><i></i></span>
-                    <span class="execution-rail execution-stream-two"><i></i><i></i><i></i></span>
-                    <span class="execution-rail execution-stream-three"><i></i><i></i><i></i></span>
+                    <span class="execution-rail execution-stream-continuous"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
                     <span class="timeline-curtain"></span><span class="timeline-cursor"></span>
                   </div>
                 </div>
@@ -251,10 +249,10 @@
           </div>
           <figure class="method-figure breakout" id="streamingwam-method-figure" aria-describedby="streamingwam-method-description streamingwam-method-caption">
             <div class="method-figure-viewport" role="group" aria-label="Scrollable Streaming-WAM method timeline" tabindex="0">
-              <img class="method-figure-artwork" src="assets/streaming-wam-method.svg?v=20260827-4" alt="" width="1600" height="740">
+              <img class="method-figure-artwork" src="assets/streaming-wam-method-revised.svg?v=20260829-2" alt="" width="1600" height="740">
             </div>
             <p class="sr-only" id="streamingwam-method-description">A method diagram showing model updates overlapped with continuous robot execution. Shared actions connect the current and incoming chunks, enter both the action and condition paths, and condition future visual prediction through directed attention.</p>
-            <figcaption id="streamingwam-method-caption">Streaming-WAM overlaps each new visual and action prediction with ongoing robot execution. Shared actions bridge adjacent chunks and condition the next joint prediction.</figcaption>
+            <figcaption id="streamingwam-method-caption">Streaming-WAM overlaps each new visual and action prediction with ongoing robot execution. Shared actions bridge adjacent chunks and condition the next joint prediction. Text and proprioceptive cross-attention are omitted for clarity.</figcaption>
           </figure>
           <div class="reading-column">
             <p>Shared actions serve two complementary roles. In action generation, they anchor the beginning of the incoming chunk so that the predicted continuation joins the current motion smoothly. In world prediction, an added attention path makes the same action context available to future visual generation. At the model level, this joint prediction can be written as <span class="method-equation" role="math" aria-label="predicted V sub t plus one and A sub t plus one postfix equal F of O sub t and A sub t shared">(V&#770;<sub>t+1</sub>, A<sub>t+1</sub><sup>postfix</sup>) = F(O<sub>t</sub>, A<sub>t</sub><sup>shared</sup>)</span>: the visual future and action postfix are produced together from the current observation and the shared actions. If the shared actions close the gripper, for example, Streaming-WAM jointly predicts the resulting scene transition and the actions that should follow it. The overlap is therefore aligned not only in the action sequence, but also in the predicted world state used for the next decision.</p>
