@@ -125,10 +125,7 @@ setting.
 | Motus from WAN2.2 | 77.56 | 77.00 | 77.30 |
 | FastWAM-Joint | 86.40 | <u>87.60</u> | 87.00 |
 | FastWAM-CD | 86.20 | 85.80 | 86.00 |
-| StreamingWAM | **90.40** | **90.80** | **90.60** |
-| StarWAM-Joint | 87.80 | 84.60 | 86.20 |
-| StarWAM-CD | 85.40 | 86.20 | 85.80 |
-| Streaming-WAM (StarWAM) | 86.60 | 85.80 | 86.20 |
+| StreamingWAM (Ours) | **90.40** | **90.80** | **90.60** |
 
 #### RoboCasa
 
