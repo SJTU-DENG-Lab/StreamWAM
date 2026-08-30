@@ -128,6 +128,9 @@ def handle_request(policy: StreamingWAMPolicy, req: dict) -> dict:
     if cmd == "reset":
         policy.reset()
         return {"ok": True, "request_id": request_id}
+    if cmd == "prepare_instruction":
+        policy._encode_context(str(req["instruction"]))
+        return {"ok": True, "request_id": request_id}
     if cmd != "infer":
         raise ValueError(f"unsupported policy command {cmd!r}")
     server_started_ns = time.perf_counter_ns()
