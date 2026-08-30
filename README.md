@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Streaming-WAM</h1>
-  <h3>Streaming World-Action Models for Robotic Manipulation</h3>
+  <h3>Streaming Your World-Action Model for Real-Time Robot Manipulation.</h3>
 
   <a href="https://sjtu-deng-lab.github.io/Streaming-WAM/"><img src="https://img.shields.io/badge/Project-Page-087D70?logo=githubpages&logoColor=white" alt="Project Page"></a>
   <a href="https://github.com/SJTU-DENG-Lab/Streaming-WAM"><img src="https://img.shields.io/badge/GitHub-Code-111827?logo=github" alt="GitHub Code"></a>
@@ -8,18 +8,23 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-6B5BFF" alt="Apache 2.0 License"></a>
 </div>
 
-Streaming-WAM is a research framework for **streaming World-Action Models (WAMs)**.
-It provides a unified testbed for systematically studying and comparing
-different streaming strategies for WAM-based robot control.
+World Action Models (WAMs) jointly generate future visual observations and robot
+actions, allowing policies to reason about how the scene may evolve under
+interaction. Their iterative generation, however, is often slower than the robot
+control cycle: synchronous execution leaves the robot idle during inference,
+while naive asynchronous switching can create inconsistency between successive
+predictions.
 
-Building on this framework, we introduce **Streaming-WAM**, an
-**action-conditioned streaming formulation** that feeds the prefix of actions
-currently being executed by the robot back into the world model. This
-explicitly conditions future video generation on ongoing robot actions.
-Rather than treating inference–execution overlap merely as a systems
-optimization, Streaming-WAM couples the two processes: the executed action prefix
-shapes the predicted visual future, while the model asynchronously infers the
-next world-action chunk as the robot continues executing the current chunk.
+We introduce **Streaming-WAM**, an **action-conditioned streaming framework**
+that overlaps WAM inference with robot execution. Shared actions across adjacent
+chunks condition future video generation, aligning the predicted visual
+trajectory with the motion underway; this action-conditioned future then guides
+a consistent action continuation. Streaming-WAM therefore brings streaming into
+world prediction rather than treating continuity only as an action space
+constraint. We evaluate the method on LIBERO, RoboCasa, and RoboTwin 2.0. On
+LIBERO, Streaming-WAM achieves 98.20% success with 41.0 ms chunk latency and
+5.36/3.15 s total time on Long/Short tasks, yielding a 12.0× latency reduction
+and 3.0×/2.6× total-time speedups over FastWAM.
 
 ## Release status
 
@@ -90,7 +95,7 @@ single-task rollout, and evaluation controls.
 
 ### Task performance
 
-To evaluate Streaming-WAM across WAM families, we further train FastWAM-Joint with the streaming approach on LIBERO and apply the same design to StarWAM on RoboTwin 2.0 and X-WAM on RoboCasa. All evaluations use four NVIDIA H100 GPUs.
+We evaluate FastWAM-Joint and its streaming variant on LIBERO and RoboTwin 2.0, and apply the same streaming design to X-WAM on RoboCasa. All evaluations use four NVIDIA H100 GPUs.
 
 We compare against general purpose robot policies and WAM baselines on task performance, and against WAM baselines on inference efficiency. CD denotes one-step consistency distillation. On LIBERO, we also ablate action conditioning and the slot encoder to assess each component. Best and second best task results are shown in **bold** and <u>underlined</u>, respectively.
 
@@ -143,7 +148,7 @@ RoboCasa follows the standard 24-task protocol, with 50 trials per kitchen manip
 
 #### Real robot evaluation
 
-We compare standard Joint WAM inference, its distilled 1V10A and 1V2A variants, and Streaming-WAM on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. The project page provides each rollout from two synchronized camera views.
+We evaluate standard Joint WAM inference, its distilled 1V10A and 1V2A variants, and Streaming-WAM on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. Streaming-WAM reduces Chunk Time to 122.62 ms and completes the rollout in 38 s.
 
 | Method | Chunk Time | Total Time |
 |---|---:|---:|
@@ -164,14 +169,14 @@ Task success alone does not characterize runtime efficiency. We therefore report
 | LIBERO | Streaming-WAM | 41.0 ms | 5.36 s Long / 3.15 s Short |
 | LIBERO | Streaming-WAM w/o Action Conditioning | 35.1 ms | 5.20 s Long / 2.92 s Short |
 | LIBERO | Streaming-WAM w/o Slot Encoder | 36.3 ms | 5.31 s Long / 3.01 s Short |
-| RoboTwin 2.0 | StarWAM-Joint | 190.17 ms | 110.22 s |
-| RoboTwin 2.0 | StarWAM-CD | 81.21 ms | 102.59 s |
-| RoboTwin 2.0 | Streaming-WAM | 47.09 ms | 77.48 s |
+| RoboTwin 2.0 | FastWAM-Joint | 652.1 ms | 32.97 s |
+| RoboTwin 2.0 | FastWAM-CD | 165.2 ms | 25.21 s |
+| RoboTwin 2.0 | StreamingWAM | 54.4 ms | 23.89 s |
 | RoboCasa | X-WAM | 374.07 ms | 17.36 s |
 | RoboCasa | X-WAM-CD | 134.37 ms | 13.04 s |
 | RoboCasa | Streaming-WAM | 115.98 ms | 9.49 s |
 
-Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining comparable task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to StarWAM-Joint, Chunk Time falls from 190.17 ms to 47.09 ms and Episode Time from 110.22 s to 77.48 s, while overall success increases from 85.4 to 87.6. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).
+Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining comparable task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to FastWAM-Joint, StreamingWAM reduces Chunk Time from 652.1 ms to 54.4 ms and Episode Time from 32.97 s to 23.89 s, while increasing overall success from 87.0 to 90.6. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).
 
 ## Runtime layout
 

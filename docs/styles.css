@@ -303,7 +303,9 @@ tbody tr:last-child > * { border-bottom: 0; }
   .hero-figure { width: 100%; max-width: 850px; display: block; align-self: auto; }
   .pipeline-visual { position: relative; inset: auto; }
   .method-figure { width: min(100% - 32px,1420px); }
-  .rollout-demo-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .rollout-demo-caption { min-height: 88px; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 5px; }
+  .rollout-demo-result { justify-items: start; }
+  .rollout-demo-metrics { justify-content: flex-start; white-space: normal; }
 }
 
 @media (max-width: 760px) {
