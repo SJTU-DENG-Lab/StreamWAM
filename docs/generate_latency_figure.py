@@ -42,7 +42,7 @@ LIBERO_SHORT = (8.25, 3.74, 3.20, 3.15, 2.92, 3.01)
 
 ROBOTWIN_METHODS = ("FastWAM-Joint", "FastWAM-CD", "StreamingWAM")
 ROBOTWIN_CHUNK = (652.1, 165.2, 54.4)
-ROBOTWIN_EPISODE = (24.26, 20.63, 20.14)
+ROBOTWIN_EPISODE = (32.97, 25.21, 23.89)
 ROBOCASA_METHODS = ("X-WAM", "X-WAM\nCD", "Streaming-\nWAM")
 ROBOCASA_CHUNK = (374.07, 134.37, 115.98)
 ROBOCASA_EPISODE = (17.36, 13.04, 9.49)
@@ -241,7 +241,7 @@ def render_episode_time(output_path: Path) -> None:
     _draw_libero_episode(axes[0])
     _draw_three_method_panel(
         axes[1], title="RoboTwin 2.0", ylabel="Seconds", methods=ROBOTWIN_METHODS,
-        values=ROBOTWIN_EPISODE, ceiling=28,
+        values=ROBOTWIN_EPISODE, ceiling=36,
     )
     _draw_three_method_panel(
         axes[2], title="RoboCasa", ylabel="Seconds", methods=ROBOCASA_METHODS,
