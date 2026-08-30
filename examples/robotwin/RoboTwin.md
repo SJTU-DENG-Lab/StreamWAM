@@ -261,7 +261,42 @@ python script/eval_policy.py \
 For Shared-DiT, also override `config_path` to the Shared-DiT recipe, use
 checkpoint-45000, and set both inference-step values to 16.
 
-### 8.3 Results
+### 8.3 Canonical cross-family benchmark
+
+Use the same public harness for StarWAM, FastWAM, and Streaming-WAM checkpoints.
+The wrapper defaults to 100 trials per task-setting and `replan_steps=16`; every
+path and runtime remains overridable through environment variables.
+
+```bash
+MODE=baseline \
+CHECKPOINT_FORMAT=fastwam \
+CKPT=/path/to/fastwam_joint.pt \
+CONFIG=examples/robotwin/configs/recipes/streamingwam_robotwin_mot_wan22_5b.yaml \
+STATS_PATH=/path/to/action_stats.json \
+BACKBONE_PATH=/path/to/Wan2.2-TI2V-5B \
+ROBOTWIN_HOME=/path/to/RoboTwin \
+INFERENCE_PYTHON=/path/to/streamingwam-env/bin/python \
+SIMULATOR_PYTHON=/path/to/robotwin-env/bin/python \
+bash examples/robotwin/scripts/run_streamingwam_robotwin_benchmark.sh
+```
+
+The released defaults are selected from `CHECKPOINT_FORMAT` and `MODE`:
+
+| Checkpoint family | Mode | Video steps | Action steps |
+|---|---|---:|---:|
+| StarWAM | baseline | 4 | 4 |
+| StarWAM | cd | 1 | 1 |
+| StarWAM | ac-stream | 1 | 1 |
+| FastWAM | baseline | 10 | 10 |
+| FastWAM | cd | 1 | 2 |
+| Streaming-WAM/FastWAM Stage2 | ac-stream | 1 | 2 |
+
+Set `NUM_INFERENCE_STEPS` and `ACTION_NUM_INFERENCE_STEPS` to override these
+defaults for another checkpoint. Use `AC_STREAM_BACKEND=eager` for the eager
+ablation; accelerated AC-Stream is the default. `MODEL_SEED` controls model
+noise and `EPISODE_SEED` independently controls the RoboTwin scene chain.
+
+### 8.4 Results
 
 RoboTwin writes one result per (task, config) under
 `RoboTwin/eval_result/<task>/<policy>/<config>/<ckpt_setting>/<time>/_result.txt`,

@@ -23,6 +23,7 @@ wandb/
 runs/
 outputs/
 checkpoints/
+/packages/
 *.ckpt
 *.pt
 *.pth
