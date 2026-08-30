@@ -2,17 +2,18 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make LIBERO use RoboTwin's Chunk Time selection and episode timer boundary while preserving the intentionally different Total Time aggregation.
+**Goal:** Make LIBERO and RoboTwin use the same Chunk Time selection, episode timer boundary, and all-completed-episode Total Time aggregation.
 
-**Architecture:** Keep raw LIBERO timing diagnostics intact and add a canonical `chunk_time_ms` field that selects all non-warmup D8 calls for AC Streaming and synchronized inference calls otherwise. Move LIBERO stabilization into a shared pre-timing phase used by synchronous and AC Streaming rollouts.
+**Architecture:** Keep raw timing diagnostics intact and expose canonical public fields. `chunk_time_ms` selects all non-warmup D8 calls for AC Streaming and synchronized inference calls otherwise; Total Time directly averages every completed episode in both evaluators. LIBERO stabilization moves into a shared pre-timing phase used by synchronous and AC Streaming rollouts.
 
 **Tech Stack:** Python 3, PyTorch, NumPy, pytest
 
 ## Global Constraints
 
-- RoboTwin aggregation remains unchanged except that a zero-D8 AC run reports
-  no Chunk Time instead of falling back to D0.
-- LIBERO Total Time aggregation remains unchanged.
+- A zero-D8 AC run reports no Chunk Time instead of falling back to D0.
+- Public Total Time includes successful and failed completed episodes.
+- Global Total Time is a direct episode average, matching LIBERO's workload sum
+  divided by completed trial count.
 - Compilation, prewarming, reset, dummy stabilization, video encoding, and post-terminal asynchronous cleanup remain outside Total Time.
 - Initial D0 is excluded from AC Streaming Chunk Time; every recorded non-warmup D8 remains included.
 - Existing detailed timing and overlap fields remain available.
@@ -116,10 +117,48 @@ Run: `pytest -q tests/test_libero_timing.py tests/test_robotwin_inference_modes.
 
 Expected: PASS with RoboTwin behavior unchanged.
 
-### Task 3: Documentation and Full Verification
+### Task 3: All-Episode Total Time
+
+**Files:**
+- Modify: `examples/libero/multigpu_rollout.py`
+- Modify: `examples/robotwin/timing.py`
+- Test: `tests/test_libero_timing.py`
+- Test: `tests/test_robotwin_inference_modes.py`
+
+**Interfaces:**
+- Consumes: completed LIBERO episode records and RoboTwin `record_type=episode` records
+- Produces: direct all-episode Total Time globally and in public breakdowns
+
+- [ ] **Step 1: Write failing aggregation tests**
+
+Use successful and failed episodes with intentionally different durations.
+Assert that both evaluators include every duration and that RoboTwin global,
+setting, task, and config summaries agree on the all-episode input set.
+
+- [ ] **Step 2: Run tests and verify RED**
+
+Run: `pytest -q tests/test_libero_timing.py tests/test_robotwin_inference_modes.py -k 'all_completed'`
+
+Expected: FAIL because LIBERO's public Long/Short fields and RoboTwin's expanded
+aggregator filter failed episodes.
+
+- [ ] **Step 3: Implement the minimal aggregation change**
+
+Replace successful-only timing collections with all completed episode timing
+collections. Emit `total_time_s` and `timed_episodes` in breakdowns and retain a
+separate `successful_episode_time_s` diagnostic only at the global level.
+
+- [ ] **Step 4: Run tests and verify GREEN**
+
+Run: `pytest -q tests/test_libero_timing.py tests/test_robotwin_inference_modes.py -k 'all_completed'`
+
+Expected: PASS.
+
+### Task 4: Documentation and Full Verification
 
 **Files:**
 - Modify: `examples/libero/LIBERO.md:686-705`
+- Modify: `examples/robotwin/RoboTwin.md`
 
 **Interfaces:**
 - Consumes: canonical behavior implemented by Tasks 1 and 2
@@ -127,7 +166,7 @@ Expected: PASS with RoboTwin behavior unchanged.
 
 - [ ] **Step 1: Update the protocol description**
 
-Document that public AC Streaming Chunk Time is the mean of all non-warmup D8 calls, while first-background and steady-state values are diagnostics. State that reset and dummy stabilization are outside episode Total Time.
+Document that public AC Streaming Chunk Time is the mean of all non-warmup D8 calls, while first-background and steady-state values are diagnostics. State that reset and dummy stabilization are outside episode Total Time and every completed episode contributes regardless of success.
 
 - [ ] **Step 2: Run format and targeted checks**
 
@@ -139,7 +178,7 @@ Expected: all tests pass and `git diff --check` is clean.
 
 - [ ] **Step 3: Review the final diff**
 
-Confirm the diff changes no RoboTwin production file, preserves LIBERO Total Time aggregation, and does not alter rollout actions or success evaluation.
+Confirm both evaluators use all completed episodes for Total Time and that the diff does not alter rollout actions or success evaluation.
 
 - [ ] **Step 4: Commit**
 

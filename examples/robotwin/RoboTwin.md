@@ -269,6 +269,12 @@ and the worker logs (`rollout_logs/<ckpt_tag>/worker_*.log`) print each `Success
 There is no built-in cross-task aggregation; sum successes across the 100
 task-settings for the overall micro-average.
 
+The benchmark wrapper reports Total Time as the direct mean over every
+completed episode, including failed episodes. Episode timing starts after
+environment setup and model reset, immediately before the first observation,
+and ends when the terminal action or step limit returns. Chunk Time uses all
+non-warmup D8 calls for AC-Stream and synchronized inference calls otherwise.
+
 ### 8.4 Released ModelScope checkpoint
 
 The trained MoT and Shared-DiT checkpoints remain in the pre-rename external

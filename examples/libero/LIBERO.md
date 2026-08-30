@@ -696,6 +696,7 @@ D8 latency, and steady-state D8 mean/p50/p90 after separating the first runtime
 D8 sample from each worker. For both synchronous and AC-Stream rollouts, Total
 Time begins after reset and dummy stabilization, immediately before the first
 policy observation, and ends when the terminal environment action returns.
+The reported mean includes every completed episode, whether successful or not.
 
 For latency validation, use the locked environment from Section 1:
 

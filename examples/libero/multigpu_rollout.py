@@ -403,32 +403,32 @@ def merge_worker_results(
     )
     timing_summary["evaluation_workload_wall_ms"] = evaluation_workload_wall_ms
     timing_summary["command_wall_ms"] = float(command_wall_ms)
-    successful_episode_ms: dict[str, list[float]] = {
+    episode_ms: dict[str, list[float]] = {
         "libero_10": [],
         "libero_goal": [],
     }
     for task in merged_tasks.values():
         suite_name = str(task["task_suite_name"])
-        if suite_name not in successful_episode_ms:
+        if suite_name not in episode_ms:
             continue
-        successful_episode_ms[suite_name].extend(
+        episode_ms[suite_name].extend(
             float(episode["episode_wall_ms"])
             for episode in task["episodes"]
-            if bool(episode["success"]) and "episode_wall_ms" in episode
+            if "episode_wall_ms" in episode
         )
-    if any(successful_episode_ms.values()):
-        long_values = successful_episode_ms["libero_10"]
-        short_values = successful_episode_ms["libero_goal"]
+    if any(episode_ms.values()):
+        long_values = episode_ms["libero_10"]
+        short_values = episode_ms["libero_goal"]
         timing_summary["readme_aligned"] = {
             "chunk_time_ms_mean": timing_summary["chunk_time_ms"],
-            "long_successful_episode_s_mean": (
+            "long_episode_s_mean": (
                 sum(long_values) / len(long_values) / 1000.0 if long_values else 0.0
             ),
-            "long_successful_episode_count": len(long_values),
-            "short_successful_episode_s_mean": (
+            "long_episode_count": len(long_values),
+            "short_episode_s_mean": (
                 sum(short_values) / len(short_values) / 1000.0 if short_values else 0.0
             ),
-            "short_successful_episode_count": len(short_values),
+            "short_episode_count": len(short_values),
         }
     if ac_stream_presence and all(ac_stream_presence):
         arithmetic_total_ms = weighted_timing["average_total_ms_per_chunk"]

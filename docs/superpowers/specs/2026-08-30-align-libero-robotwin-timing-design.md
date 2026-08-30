@@ -2,17 +2,17 @@
 
 ## Goal
 
-Align the LIBERO and RoboTwin timing protocols except for the intentionally
-different Total Time aggregation rule. RoboTwin's normal aggregation remains
-unchanged; its zero-D8 AC edge case is corrected to avoid reporting D0 as
+Align the LIBERO and RoboTwin timing protocols, including a common Total Time
+rule that directly averages every completed episode regardless of success.
+RoboTwin's zero-D8 AC edge case is also corrected to avoid reporting D0 as
 Chunk Time.
 
 ## Considered approaches
 
-1. **Align LIBERO to RoboTwin at reporting and timer boundaries (selected).**
+1. **Use one public timing contract in both evaluators (selected).**
    Start LIBERO episode timing after its dummy stabilization steps and report
-   AC Streaming Chunk Time from non-warmup D8 inference. This is the smallest
-   change and preserves the existing rollout behavior and raw diagnostics.
+   AC Streaming Chunk Time from non-warmup D8 inference. Directly average the
+   recorded wall time of every completed episode in both benchmarks.
 2. Align RoboTwin to LIBERO. This would count initialization-like simulator
    work in RoboTwin and mix D0 with D8, weakening the benchmark definition.
 3. Add a second compatibility report while leaving existing summaries intact.
@@ -35,19 +35,20 @@ Streaming Chunk Time. The first-background and steady-state D8 breakdowns
 remain available as additional diagnostics; the first runtime D8 remains part
 of the primary mean because model prewarming is already outside timing.
 
-The LIBERO Total Time aggregation is deliberately unchanged. RoboTwin may
-continue to use successful-episode task/config macro averaging while LIBERO
-continues to expose its existing aggregate and Long/Short successful-episode
-fields.
+Total Time directly averages every completed episode, including both success
+and failure. Per-setting, per-task, and per-config summaries use the same
+all-episode inputs. The public LIBERO Long and Short summaries likewise include
+all completed episodes. Successful-only means remain optional diagnostics and
+must not feed the public Total Time field.
 
 ## Compatibility
 
-Existing detailed timing fields remain available. The semantic change is
-limited to the LIBERO AC Streaming primary Chunk Time value and the LIBERO
-episode timer boundary, plus a nullable Chunk Time for zero-D8 AC episodes in
-both benchmarks. Results generated before and after this change should record
-the source commit because the Total Time values are not directly
-interchangeable.
+Existing detailed timing fields remain available. The semantic changes are
+the LIBERO AC Streaming primary Chunk Time value, the LIBERO episode timer
+boundary, a nullable Chunk Time for zero-D8 AC episodes, and the removal of
+success filtering from public Total Time aggregation. Results generated before
+and after this change should record the source commit because their Total Time
+values are not directly interchangeable.
 
 ## Testing
 
@@ -57,5 +58,7 @@ Regression tests will verify that:
 - AC Streaming primary Chunk Time selects all non-warmup D8 samples rather
   than mixing D0 and D8.
 - Synchronous Chunk Time remains unchanged.
-- Detailed D0/D8 diagnostics and the intentionally different Total Time
-  aggregation remain intact.
+- Failed and successful episodes both contribute to public Total Time in
+  LIBERO and RoboTwin.
+- Per-setting, per-task, and per-config RoboTwin timing uses the same inputs as
+  the global Total Time.

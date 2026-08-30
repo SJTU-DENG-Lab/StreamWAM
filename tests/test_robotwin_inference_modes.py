@@ -164,7 +164,7 @@ def test_ac_stream_requests_observation_only_at_d0_and_d8_launch() -> None:
     assert [call[2] for call in calls] == [0, 8]
 
 
-def test_robotwin_summary_uses_success_only_macro_total_and_d8_chunk() -> None:
+def test_robotwin_summary_uses_all_completed_episode_times_and_d8_chunk() -> None:
     records = [
         {"record_type": "inference", "regime": "d0", "model_inference_ms": 100.0},
         {"record_type": "inference", "regime": "d8", "model_inference_ms": 40.0},
@@ -178,10 +178,18 @@ def test_robotwin_summary_uses_success_only_macro_total_and_d8_chunk() -> None:
     summary = aggregate_evaluation(records)
 
     assert summary["chunk_time_ms"] == pytest.approx(45.0)
-    assert summary["total_time_per_episode_s"] == pytest.approx(60.0)
+    assert summary["total_time_per_episode_s"] == pytest.approx(284.75)
+    assert summary["successful_episode_time_s"] == pytest.approx(140.0 / 3.0)
     assert summary["successes"] == 3
     assert summary["episodes"] == 4
-    assert summary["by_setting"]["clean/task"]["total_time_success_s"] == pytest.approx(20.0)
+    assert summary["by_setting"]["clean/task"]["total_time_s"] == pytest.approx(
+        1039.0 / 3.0
+    )
+    assert summary["by_setting"]["clean/task"]["timed_episodes"] == 3
+    assert summary["by_task"]["task"]["total_time_s"] == pytest.approx(284.75)
+    assert summary["by_config"]["clean"]["total_time_s"] == pytest.approx(
+        1039.0 / 3.0
+    )
 
 
 def test_robotwin_ac_stream_without_d8_has_no_chunk_time() -> None:

@@ -161,6 +161,31 @@ def test_multigpu_ac_stream_without_d8_has_no_chunk_time(tmp_path) -> None:
     assert summary["readme_aligned"]["chunk_time_ms_mean"] is None
 
 
+def test_libero_readme_total_time_uses_all_completed_episodes(tmp_path) -> None:
+    worker = _worker_result(task_id=0, d8_values=[40.0])
+    episodes = [
+        {"trial": 0, "success": True, "episode_wall_ms": 1000.0},
+        {"trial": 1, "success": False, "episode_wall_ms": 9000.0},
+    ]
+    task = worker["task_results"]["libero_goal/0"]
+    task.update(successes=1, trials=2, success_rate=0.5, episodes=episodes)
+    worker.update(total_successes=1, total_trials=2)
+    worker["timing_summary"]["evaluation_workload_wall_ms"] = 10000.0
+    path = tmp_path / "worker.json"
+    path.write_text(json.dumps(worker), encoding="utf-8")
+
+    merged = merge_worker_results(
+        [path],
+        command_wall_ms=10000.0,
+        expected_trials=[("libero_goal", 0, 0), ("libero_goal", 0, 1)],
+    )
+
+    timing = merged["timing_summary"]
+    assert timing["average_episode_wall_ms"] == 5000.0
+    assert timing["readme_aligned"]["short_episode_s_mean"] == 5.0
+    assert timing["readme_aligned"]["short_episode_count"] == 2
+
+
 class _FakeClock:
     def __init__(self) -> None:
         self.nanoseconds = 0

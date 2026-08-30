@@ -29,9 +29,8 @@ def aggregate_evaluation(records: Iterable[dict]) -> dict:
     """Aggregate fixed-episode results without hiding task-level variation.
 
     Chunk Time is the CUDA-synchronized model call (D8 for AC-Stream, sync for
-    baseline/CD). Total Time uses successful trajectories only, averages each
-    task/config setting first, and then weights every covered setting equally.
-    Failed trajectories remain in the success-rate denominator.
+    baseline/CD). Total Time directly averages all completed episodes,
+    including failures. Successful-only timing remains a diagnostic.
     """
 
     records = list(records)
@@ -44,14 +43,12 @@ def aggregate_evaluation(records: Iterable[dict]) -> dict:
     successful = [record for record in episodes if record.get("success") is True]
 
     setting_episodes: dict[tuple[str, str], list[dict]] = defaultdict(list)
-    successful_times: dict[tuple[str, str], list[float]] = defaultdict(list)
+    episode_times: dict[tuple[str, str], list[float]] = defaultdict(list)
     setting_chunks: dict[tuple[str, str], list[float]] = defaultdict(list)
     for record in episodes:
         key = (str(record.get("config")), str(record.get("task")))
         setting_episodes[key].append(record)
-    for record in successful:
-        key = (str(record.get("config")), str(record.get("task")))
-        successful_times[key].append(float(record["total_time_s"]))
+        episode_times[key].append(float(record["total_time_s"]))
     for record in selected_chunks:
         key = (str(record.get("config")), str(record.get("task")))
         setting_chunks[key].append(float(record["model_inference_ms"]))
@@ -61,15 +58,15 @@ def aggregate_evaluation(records: Iterable[dict]) -> dict:
         config, task = key
         successes = sum(record.get("success") is True for record in selected)
         attempts = len(selected)
-        times = successful_times.get(key, [])
+        times = episode_times.get(key, [])
         by_setting[f"{config}/{task}"] = {
             "task": task,
             "config": config,
             "successes": successes,
             "episodes": attempts,
             "success_rate": successes / attempts if attempts else None,
-            "total_time_success_s": _mean(times),
-            "successful_timed_episodes": len(times),
+            "total_time_s": _mean(times),
+            "timed_episodes": len(times),
             "chunk_time_ms": _mean(setting_chunks.get(key, [])),
         }
 
@@ -81,17 +78,13 @@ def aggregate_evaluation(records: Iterable[dict]) -> dict:
         selected = [record for key in keys for record in setting_episodes[key]]
         successes = sum(record.get("success") is True for record in selected)
         attempts = len(selected)
-        setting_means = [
-            mean
-            for key in keys
-            if (mean := _mean(successful_times.get(key, []))) is not None
-        ]
+        times = [float(record["total_time_s"]) for record in selected]
         by_task[task] = {
             "successes": successes,
             "episodes": attempts,
             "success_rate": successes / attempts if attempts else None,
-            "total_time_success_s": _mean(setting_means),
-            "covered_configs": len(setting_means),
+            "total_time_s": _mean(times),
+            "covered_configs": len(keys),
         }
 
     config_settings: dict[str, list[tuple[str, str]]] = defaultdict(list)
@@ -102,11 +95,7 @@ def aggregate_evaluation(records: Iterable[dict]) -> dict:
         selected = [record for key in keys for record in setting_episodes[key]]
         successes = sum(record.get("success") is True for record in selected)
         attempts = len(selected)
-        setting_time_means = [
-            mean
-            for key in keys
-            if (mean := _mean(successful_times.get(key, []))) is not None
-        ]
+        times = [float(record["total_time_s"]) for record in selected]
         config_chunk_values = [
             value for key in keys for value in setting_chunks.get(key, [])
         ]
@@ -114,16 +103,12 @@ def aggregate_evaluation(records: Iterable[dict]) -> dict:
             "successes": successes,
             "episodes": attempts,
             "success_rate": successes / attempts if attempts else None,
-            "total_time_success_s": _mean(setting_time_means),
-            "covered_settings": len(setting_time_means),
+            "total_time_s": _mean(times),
+            "covered_settings": len(keys),
             "chunk_time_ms": _mean(config_chunk_values),
         }
 
-    setting_means = [
-        mean
-        for values in successful_times.values()
-        if (mean := _mean(values)) is not None
-    ]
+    all_episode_times = [float(record["total_time_s"]) for record in episodes]
     chunks = [float(record["model_inference_ms"]) for record in selected_chunks]
     all_inference = [
         record
@@ -147,7 +132,7 @@ def aggregate_evaluation(records: Iterable[dict]) -> dict:
     return {
         "chunk_time_ms": _mean(chunks),
         "chunk_time_by_regime_ms": by_regime,
-        "total_time_per_episode_s": _mean(setting_means),
+        "total_time_per_episode_s": _mean(all_episode_times),
         "successful_episode_time_s": _mean(
             [float(record["total_time_s"]) for record in successful]
         ),
@@ -155,7 +140,7 @@ def aggregate_evaluation(records: Iterable[dict]) -> dict:
         "successes": len(successful),
         "episodes": len(episodes),
         "success_rate": len(successful) / len(episodes) if episodes else None,
-        "timed_settings": len(setting_means),
+        "timed_settings": len(episode_times),
         "by_config": by_config,
         "by_task": by_task,
         "by_setting": by_setting,
