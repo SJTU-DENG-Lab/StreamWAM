@@ -60,7 +60,7 @@
         <figure class="hero-figure pipeline-figure" aria-labelledby="pipeline-caption">
           <div class="pipeline-visual" role="group" aria-labelledby="pipeline-graphic-title" aria-describedby="pipeline-description pipeline-caption">
             <span class="sr-only" id="pipeline-graphic-title">Synchronous WAM and Streaming-WAM runtime and attention comparison</span>
-            <p class="sr-only" id="pipeline-description">Both controllers first predict a model chunk. Synchronous WAM then alternates prediction and robot execution, interrupting motion at every new prediction. Streaming-WAM keeps robot execution continuous while later predictions run concurrently. The paired ten-by-ten masks contain two five-token chunks. Standard Joint WAM has no cross-chunk attention. Streaming-WAM adds only the aligned shared actions as keys from chunk k to the f1 future video queries in chunk k plus one. Filled cells indicate allowed attention, while dark outlined cells indicate masked connections.</p>
+            <p class="sr-only" id="pipeline-description">Both controllers first predict a model chunk. Synchronous WAM then alternates prediction and robot execution, interrupting motion at every new prediction. Streaming-WAM keeps robot execution continuous while later predictions run concurrently. The paired ten-by-ten masks contain two chunks labeled Z0, Z1, Z2, As, and Ap. Standard Joint WAM has no cross-chunk attention. Streaming-WAM adds the aligned condition path from As and Ap in the first chunk to the Z1 visual-token queries in the next chunk. Filled cells indicate allowed attention, while dark outlined cells indicate masked connections.</p>
             <div class="pipeline-heading">
               <div><span>Streaming control loop</span></div>
               <div class="pipeline-legend" aria-label="Runtime legend"><span class="legend-generation">Model Prediction</span><span class="legend-execution">Robot Execution</span></div>
@@ -102,9 +102,9 @@
                 <div class="attention-comparison">
                   <div class="attention-panel attention-standard">
                     <div class="attention-panel-heading"><strong>Standard Joint WAM</strong></div>
-                    <div class="mask-column-labels" aria-hidden="true"><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span></div>
+                    <div class="mask-column-labels" aria-hidden="true"><span>Z₀</span><span>Z₁</span><span>Z₂</span><span>Aₛ</span><span>Aₚ</span><span>Z₀</span><span>Z₁</span><span>Z₂</span><span>Aₛ</span><span>Aₚ</span></div>
                     <div class="mask-matrix-body">
-                      <div class="mask-row-labels" aria-hidden="true"><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span></div>
+                      <div class="mask-row-labels" aria-hidden="true"><span>Z₀</span><span>Z₁</span><span>Z₂</span><span>Aₛ</span><span>Aₚ</span><span>Z₀</span><span>Z₁</span><span>Z₂</span><span>Aₛ</span><span>Aₚ</span></div>
                       <div class="attention-matrix mask-grid-10 standard-attention-matrix" aria-hidden="true">
                         <i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
                         <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
@@ -121,9 +121,9 @@
                   </div>
                   <div class="attention-panel attention-conditioned">
                     <div class="attention-panel-heading"><strong>Streaming-WAM</strong><span class="attention-path-badge">Action conditioned</span></div>
-                    <div class="mask-column-labels" aria-hidden="true"><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span></div>
+                    <div class="mask-column-labels" aria-hidden="true"><span>Z₀</span><span>Z₁</span><span>Z₂</span><span>Aₛ</span><span>Aₚ</span><span>Z₀</span><span>Z₁</span><span>Z₂</span><span>Aₛ</span><span>Aₚ</span></div>
                     <div class="mask-matrix-body">
-                      <div class="mask-row-labels" aria-hidden="true"><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span><span>f₀</span><span>f₁</span><span>fₕ</span><span>a₁</span><span>aₕ</span></div>
+                      <div class="mask-row-labels" aria-hidden="true"><span>Z₀</span><span>Z₁</span><span>Z₂</span><span>Aₛ</span><span>Aₚ</span><span>Z₀</span><span>Z₁</span><span>Z₂</span><span>Aₛ</span><span>Aₚ</span></div>
                       <div class="attention-matrix mask-grid-10 conditioned-attention-matrix" aria-hidden="true">
                         <i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
                         <i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell visual-token"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i><i class="matrix-cell masked-cell"></i>
@@ -142,7 +142,7 @@
               </section>
             </div>
           </div>
-          <figcaption id="pipeline-caption">Standard Joint WAM keeps its two chunks attention-isolated. Streaming-WAM preserves the same within-chunk masks and adds only the aligned shared-action path from chunk k into the next chunk’s f1 future video tokens.</figcaption>
+          <figcaption id="pipeline-caption">Standard Joint WAM keeps its two chunks attention-isolated. Streaming-WAM preserves the same within-chunk masks and adds the aligned condition path from A<sub>s</sub>, A<sub>p</sub> into the next chunk’s Z<sub>1</sub> visual-token group.</figcaption>
         </figure>
       </section>
 
