@@ -119,14 +119,16 @@ setting.
 
 | Method | Clean ↑ | Random ↑ | Total ↑ |
 |---|---:|---:|---:|
-| π₀ | 65.92 | 58.40 | 62.2 |
-| π₀.₅ | 82.74 | 76.76 | 79.8 |
-| Motus | **88.66** | 87.02 | **87.8** |
-| Motus from WAN2.2 | 77.56 | 77.00 | 77.3 |
-| FastWAM-Joint | <u>87.8</u> | <u>87.32</u> | 87.56 |
-| StarWAM-Joint | 84.8 | 86.0 | 85.4 |
-| StarWAM-CD | 79.0 | 79.2 | 79.1 |
-| Streaming-WAM (Ours) | 87.2 | **88.8** | <u>87.6</u> |
+| π₀ | 65.92 | 58.40 | 62.20 |
+| π₀.₅ | 82.74 | 76.76 | 79.80 |
+| Motus | <u>88.66</u> | 87.02 | <u>87.80</u> |
+| Motus from WAN2.2 | 77.56 | 77.00 | 77.30 |
+| FastWAM-Joint | 86.40 | <u>87.60</u> | 87.00 |
+| FastWAM-Joint-CD | 86.20 | 85.80 | 86.00 |
+| Streaming-WAM (FastWAM, Ours) | **90.40** | **90.80** | **90.60** |
+| StarWAM-Joint | 87.80 | 84.60 | 86.20 |
+| StarWAM-CD | 85.40 | 86.20 | 85.80 |
+| Streaming-WAM (StarWAM, Ours) | 86.60 | 85.80 | 86.20 |
 
 #### RoboCasa
 
@@ -164,14 +166,17 @@ Task success alone does not characterize runtime efficiency. We therefore report
 | LIBERO | Streaming-WAM | 41.0 ms | 5.36 s Long / 3.15 s Short |
 | LIBERO | Streaming-WAM w/o Action Conditioning | 35.1 ms | 5.20 s Long / 2.92 s Short |
 | LIBERO | Streaming-WAM w/o Slot Encoder | 36.3 ms | 5.31 s Long / 3.01 s Short |
-| RoboTwin 2.0 | StarWAM-Joint | 190.17 ms | 110.22 s |
-| RoboTwin 2.0 | StarWAM-CD | 81.21 ms | 102.59 s |
-| RoboTwin 2.0 | Streaming-WAM | 47.09 ms | 77.48 s |
+| RoboTwin 2.0 | FastWAM-Joint | 652.1 ms | 24.26 s |
+| RoboTwin 2.0 | FastWAM-Joint-CD | 165.2 ms | 18.63 s |
+| RoboTwin 2.0 | Streaming-WAM (FastWAM) | 54.4 ms | 20.14 s |
+| RoboTwin 2.0 | StarWAM-Joint | 196.5 ms | 25.76 s |
+| RoboTwin 2.0 | StarWAM-CD | 83.1 ms | 26.23 s |
+| RoboTwin 2.0 | Streaming-WAM (StarWAM) | 36.6 ms | 24.44 s |
 | RoboCasa | X-WAM | 374.07 ms | 17.36 s |
 | RoboCasa | X-WAM-CD | 134.37 ms | 13.04 s |
 | RoboCasa | Streaming-WAM | 115.98 ms | 9.49 s |
 
-Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining comparable task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to StarWAM-Joint, Chunk Time falls from 190.17 ms to 47.09 ms and Episode Time from 110.22 s to 77.48 s, while overall success increases from 85.4 to 87.6. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).
+Across all three benchmarks, Streaming-WAM reduces Chunk Time while maintaining competitive task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, the FastWAM version reduces Chunk Time from 652.1 ms to 54.4 ms and Episode Time from 24.26 s to 20.14 s, while success rises from 87.00 to 90.60. The StarWAM version reduces Chunk Time from 196.5 ms to 36.6 ms and Episode Time from 25.76 s to 24.44 s, with the same 86.20 overall success. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).
 
 ## Runtime layout
 
