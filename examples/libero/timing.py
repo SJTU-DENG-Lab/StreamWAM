@@ -134,13 +134,15 @@ class GlobalTimingSummary:
         def average(values: list[float]) -> float:
             return sum(values) / count if count else 0.0
 
+        average_inference_ms = average(
+            [chunk.inference_ms for chunk in self.chunks]
+        )
         summary: dict[str, Any] = {
             "tasks_executed": int(self.task_count),
             "trials_executed": int(self.trial_count),
             "chunks_executed": count,
-            "average_inference_ms_per_chunk": average(
-                [chunk.inference_ms for chunk in self.chunks]
-            ),
+            "chunk_time_ms": average_inference_ms,
+            "average_inference_ms_per_chunk": average_inference_ms,
             "average_communication_ms_per_chunk": average(
                 [chunk.communication_ms for chunk in self.chunks]
             ),
@@ -159,16 +161,25 @@ class GlobalTimingSummary:
             "command_wall_ms": float(command_wall_ms),
         }
         if self.ac_stream_enabled:
-            summary["ac_stream_overlap"] = self._ac_stream_overlap_dict()
+            overlap = self._ac_stream_overlap_dict()
+            summary["ac_stream_overlap"] = overlap
+            summary["chunk_time_ms"] = (
+                overlap["average_inference_wall_ms"]
+                if overlap["async_d8_inferences"]
+                else None
+            )
         return summary
 
     def format_summary(self, *, command_wall_ms: float) -> str:
         summary = self.as_dict(command_wall_ms=command_wall_ms)
+        chunk_time_ms = summary["chunk_time_ms"]
+        chunk_time = "N/A" if chunk_time_ms is None else f"{chunk_time_ms:.2f} ms"
         lines = [
             "========== LIBERO Timing Summary ==========",
             f"tasks executed                 : {summary['tasks_executed']}",
             f"trials executed                : {summary['trials_executed']}",
             f"chunks executed                : {summary['chunks_executed']}",
+            f"Chunk Time                      : {chunk_time}",
             "average inference/chunk        : "
             f"{summary['average_inference_ms_per_chunk']:.2f} ms",
             "average communication/chunk    : "

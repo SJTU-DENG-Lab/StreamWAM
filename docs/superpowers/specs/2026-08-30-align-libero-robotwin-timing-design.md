@@ -3,7 +3,9 @@
 ## Goal
 
 Align the LIBERO and RoboTwin timing protocols except for the intentionally
-different Total Time aggregation rule. RoboTwin remains unchanged.
+different Total Time aggregation rule. RoboTwin's normal aggregation remains
+unchanged; its zero-D8 AC edge case is corrected to avoid reporting D0 as
+Chunk Time.
 
 ## Considered approaches
 
@@ -42,8 +44,9 @@ fields.
 
 Existing detailed timing fields remain available. The semantic change is
 limited to the LIBERO AC Streaming primary Chunk Time value and the LIBERO
-episode timer boundary. Results generated before and after this change should
-record the source commit because the Total Time values are not directly
+episode timer boundary, plus a nullable Chunk Time for zero-D8 AC episodes in
+both benchmarks. Results generated before and after this change should record
+the source commit because the Total Time values are not directly
 interchangeable.
 
 ## Testing

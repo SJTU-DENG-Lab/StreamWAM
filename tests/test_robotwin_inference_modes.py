@@ -182,3 +182,19 @@ def test_robotwin_summary_uses_success_only_macro_total_and_d8_chunk() -> None:
     assert summary["successes"] == 3
     assert summary["episodes"] == 4
     assert summary["by_setting"]["clean/task"]["total_time_success_s"] == pytest.approx(20.0)
+
+
+def test_robotwin_ac_stream_without_d8_has_no_chunk_time() -> None:
+    summary = aggregate_evaluation(
+        [
+            {
+                "record_type": "inference",
+                "regime": "d0",
+                "model_inference_ms": 123.0,
+                "warmup": False,
+            }
+        ]
+    )
+
+    assert summary["chunk_time_ms"] is None
+    assert summary["chunks"] == 0

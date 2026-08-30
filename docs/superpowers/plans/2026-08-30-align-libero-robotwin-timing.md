@@ -10,7 +10,8 @@
 
 ## Global Constraints
 
-- RoboTwin timing and aggregation remain unchanged.
+- RoboTwin aggregation remains unchanged except that a zero-D8 AC run reports
+  no Chunk Time instead of falling back to D0.
 - LIBERO Total Time aggregation remains unchanged.
 - Compilation, prewarming, reset, dummy stabilization, video encoding, and post-terminal asynchronous cleanup remain outside Total Time.
 - Initial D0 is excluded from AC Streaming Chunk Time; every recorded non-warmup D8 remains included.
@@ -27,7 +28,7 @@
 
 **Interfaces:**
 - Consumes: `GlobalTimingSummary.chunks` and `GlobalTimingSummary.ac_stream_overlap_records`
-- Produces: `timing_summary["chunk_time_ms"]: float`
+- Produces: `timing_summary["chunk_time_ms"]: float | None`
 
 - [ ] **Step 1: Write failing single-worker tests**
 

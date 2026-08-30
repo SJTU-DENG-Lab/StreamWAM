@@ -677,20 +677,20 @@ def _rollout_episode(
             num_steps_wait=args.num_steps_wait,
             predict=predict,
         )
-    env.reset()
-    obs = env.set_init_state(initial_state)
+    obs = _reset_and_stabilize(
+        env,
+        initial_state,
+        num_steps_wait=args.num_steps_wait,
+    )
     episode_start_ns = time.perf_counter_ns()
     pending_actions: list[list[float]] = []
     frames: list[np.ndarray] = []
     done = False
     active_chunk = None
     max_steps = int(args.max_steps or _max_steps(task_suite_name))
+    episode_completed_ns = episode_start_ns
 
-    for t in range(max_steps + args.num_steps_wait):
-        if t < args.num_steps_wait:
-            obs, _, done, _ = env.step(LIBERO_DUMMY_ACTION)
-            continue
-
+    for _ in range(max_steps):
         frames.append(_obs_to_images(obs, config)["concat"])
 
         if not pending_actions:
@@ -711,15 +711,32 @@ def _rollout_episode(
 
         action_execution_start = time.perf_counter_ns()
         obs, _, done, _ = env.step(pending_actions.pop(0))
+        action_execution_completed = time.perf_counter_ns()
+        episode_completed_ns = action_execution_completed
         if active_chunk is None:
             raise RuntimeError("Action execution has no active generated chunk")
         active_chunk.add_action_execution(
-            (time.perf_counter_ns() - action_execution_start) / 1e6
+            (action_execution_completed - action_execution_start) / 1e6
         )
         if done:
             break
-    timing.add_episode_wall((time.perf_counter_ns() - episode_start_ns) / 1e6)
+    timing.add_episode_wall((episode_completed_ns - episode_start_ns) / 1e6)
     return bool(done), frames
+
+
+def _reset_and_stabilize(
+    env: Any,
+    initial_state: Any,
+    *,
+    num_steps_wait: int,
+) -> Any:
+    """Restore an episode and complete simulator stabilization before timing."""
+
+    env.reset()
+    observation = env.set_init_state(initial_state)
+    for _ in range(int(num_steps_wait)):
+        observation, _, _, _ = env.step(LIBERO_DUMMY_ACTION)
+    return observation
 
 
 def _prewarm_sync_if_needed(
@@ -861,16 +878,16 @@ def _rollout_ac_stream_episode(
             predict=predict,
             accelerated=args.ac_stream_accelerated,
         )
-    env.reset()
-    obs = env.set_init_state(initial_state)
+    obs = _reset_and_stabilize(
+        env,
+        initial_state,
+        num_steps_wait=args.num_steps_wait,
+    )
     episode_start_ns = time.perf_counter_ns()
+    episode_completed_ns = episode_start_ns
 
     try:
-        for t in range(max_steps + args.num_steps_wait):
-            if t < args.num_steps_wait:
-                obs, _, done, _ = env.step(LIBERO_DUMMY_ACTION)
-                continue
-
+        for _ in range(max_steps):
             frames.append(_obs_to_images(obs, config)["concat"])
             if controller is None:
                 controller = ACStreamController(
@@ -894,6 +911,7 @@ def _rollout_ac_stream_episode(
             action_execution_start = time.perf_counter_ns()
             obs, _, done, _ = env.step(action.tolist())
             action_execution_completed = time.perf_counter_ns()
+            episode_completed_ns = action_execution_completed
             active_chunk.add_action_execution(
                 (action_execution_completed - action_execution_start) / 1e6
             )
@@ -903,7 +921,6 @@ def _rollout_ac_stream_episode(
             )
             if done:
                 break
-        episode_completed_ns = time.perf_counter_ns()
     finally:
         if controller is not None:
             pending_prediction = controller.close()

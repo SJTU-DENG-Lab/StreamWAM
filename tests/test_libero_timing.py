@@ -1,10 +1,16 @@
+import json
+from types import SimpleNamespace
+
 import numpy as np
 import pytest
 import torch
 
+from examples.libero.multigpu_rollout import merge_worker_results
 from examples.libero.rollout import (
     _prewarm_ac_stream_if_needed,
     _prewarm_sync_if_needed,
+    _rollout_ac_stream_episode,
+    _rollout_episode,
     _save_video,
 )
 from examples.libero.timing import GlobalTimingSummary
@@ -29,6 +35,7 @@ def test_global_timing_averages_all_chunks() -> None:
         "tasks_executed": 2,
         "trials_executed": 3,
         "chunks_executed": 2,
+        "chunk_time_ms": 15.0,
         "average_inference_ms_per_chunk": 15.0,
         "average_communication_ms_per_chunk": 3.0,
         "average_action_execution_ms_per_chunk": 40.0,
@@ -37,6 +44,307 @@ def test_global_timing_averages_all_chunks() -> None:
         "evaluation_workload_wall_ms": 400.0,
         "command_wall_ms": 200.0,
     }
+
+
+def test_sync_canonical_chunk_time_uses_synchronized_inference_mean() -> None:
+    timing = GlobalTimingSummary()
+    timing.add_chunk(communication_ms=0.0, inference_ms=10.0)
+    timing.add_chunk(communication_ms=0.0, inference_ms=20.0)
+
+    summary = timing.as_dict(command_wall_ms=0.0)
+
+    assert summary["chunk_time_ms"] == 15.0
+
+
+def test_ac_stream_canonical_chunk_time_uses_all_recorded_d8_calls() -> None:
+    timing = GlobalTimingSummary()
+    timing.enable_ac_stream()
+    timing.add_chunk(communication_ms=0.0, inference_ms=100.0)
+    timing.add_chunk(communication_ms=0.0, inference_ms=200.0)
+    for inference_ms in (50.0, 70.0):
+        timing.add_ac_stream_overlap(
+            ACStreamOverlapRecord(
+                inference_wall_ms=inference_ms,
+                action_overlap_ms=0.0,
+                boundary_wait_ms=0.0,
+                ready_before_boundary=True,
+                episode_end_before_boundary=False,
+            )
+        )
+
+    summary = timing.as_dict(command_wall_ms=0.0)
+
+    assert summary["average_inference_ms_per_chunk"] == 150.0
+    assert summary["chunk_time_ms"] == 60.0
+
+
+def _worker_result(*, task_id: int, d8_values: list[float]) -> dict:
+    d8_mean = sum(d8_values) / len(d8_values) if d8_values else 0.0
+    episode = {"trial": 0, "success": True, "episode_wall_ms": 1000.0}
+    return {
+        "checkpoint": "checkpoint.pt",
+        "total_successes": 1,
+        "total_trials": 1,
+        "task_results": {
+            f"libero_goal/{task_id}": {
+                "task_suite_name": "libero_goal",
+                "task_id": task_id,
+                "successes": 1,
+                "trials": 1,
+                "success_rate": 1.0,
+                "episodes": [episode],
+            }
+        },
+        "timing_summary": {
+            "chunks_executed": 2,
+            "average_inference_ms_per_chunk": 200.0,
+            "average_communication_ms_per_chunk": 0.0,
+            "average_action_execution_ms_per_chunk": 100.0,
+            "average_total_ms_per_chunk": 300.0,
+            "evaluation_workload_wall_ms": 1000.0,
+            "ac_stream_overlap": {
+                "async_d8_inferences": len(d8_values),
+                "boundary_evaluated_inferences": 0,
+                "ready_before_boundary": 0,
+                "deadline_misses": 0,
+                "average_inference_wall_ms": d8_mean,
+                "average_action_overlap_ms": 0.0,
+                "average_boundary_wait_ms": 0.0,
+                "average_hidden_inference_ratio": 0.0,
+                "inference_hidden_ms_per_chunk": 0.0,
+                "first_background_d8_inference_count": int(bool(d8_values)),
+                "first_background_d8_inference_ms": (
+                    d8_values[0] if d8_values else 0.0
+                ),
+                "steady_state_d8_inference_ms_values": d8_values[1:],
+            },
+        },
+    }
+
+
+def test_multigpu_canonical_chunk_time_uses_all_d8_samples(tmp_path) -> None:
+    workers = [
+        _worker_result(task_id=0, d8_values=[30.0]),
+        _worker_result(task_id=1, d8_values=[40.0, 50.0, 80.0]),
+    ]
+    paths = []
+    for worker_id, worker in enumerate(workers):
+        path = tmp_path / f"worker_{worker_id}.json"
+        path.write_text(json.dumps(worker), encoding="utf-8")
+        paths.append(path)
+
+    merged = merge_worker_results(
+        paths,
+        command_wall_ms=2000.0,
+        expected_trials=[("libero_goal", 0, 0), ("libero_goal", 1, 0)],
+    )
+
+    summary = merged["timing_summary"]
+    assert summary["average_inference_ms_per_chunk"] == 200.0
+    assert summary["chunk_time_ms"] == pytest.approx(50.0)
+    assert summary["readme_aligned"]["chunk_time_ms_mean"] == pytest.approx(50.0)
+
+
+def test_multigpu_ac_stream_without_d8_has_no_chunk_time(tmp_path) -> None:
+    worker = _worker_result(task_id=0, d8_values=[])
+    path = tmp_path / "worker.json"
+    path.write_text(json.dumps(worker), encoding="utf-8")
+
+    merged = merge_worker_results(
+        [path],
+        command_wall_ms=1000.0,
+        expected_trials=[("libero_goal", 0, 0)],
+    )
+
+    summary = merged["timing_summary"]
+    assert summary["chunk_time_ms"] is None
+    assert summary["readme_aligned"]["chunk_time_ms_mean"] is None
+
+
+class _FakeClock:
+    def __init__(self) -> None:
+        self.nanoseconds = 0
+
+    def now(self) -> int:
+        return self.nanoseconds
+
+    def advance_ms(self, milliseconds: float) -> None:
+        self.nanoseconds += int(milliseconds * 1e6)
+
+
+class _BookkeepingTiming(GlobalTimingSummary):
+    def __init__(self, clock: _FakeClock) -> None:
+        super().__init__()
+        self.clock = clock
+
+    def add_chunk(self, *, communication_ms: float, inference_ms: float):
+        chunk = super().add_chunk(
+            communication_ms=communication_ms,
+            inference_ms=inference_ms,
+        )
+        record_action_execution = chunk.add_action_execution
+
+        def record_with_bookkeeping(elapsed_ms: float) -> None:
+            record_action_execution(elapsed_ms)
+            self.clock.advance_ms(25.0)
+
+        chunk.add_action_execution = record_with_bookkeeping
+        return chunk
+
+
+class _ClockedEnv:
+    def __init__(self, clock: _FakeClock, *, stabilization_steps: int) -> None:
+        self.clock = clock
+        self.stabilization_steps = stabilization_steps
+        self.step_count = 0
+
+    def reset(self) -> None:
+        return None
+
+    def set_init_state(self, initial_state):
+        return {"state": initial_state}
+
+    def step(self, action):
+        del action
+        self.step_count += 1
+        stabilizing = self.step_count <= self.stabilization_steps
+        self.clock.advance_ms(10.0 if stabilizing else 100.0)
+        return {"state": self.step_count}, 0.0, not stabilizing, {}
+
+
+def _rollout_test_args(*, stabilization_steps: int) -> SimpleNamespace:
+    return SimpleNamespace(
+        seed=42,
+        fixed_seed=True,
+        num_inference_steps=1,
+        action_num_inference_steps=1,
+        sampling_method="consistency",
+        checkpoint_format="streamingwam",
+        max_steps=1,
+        replan_steps=1,
+        num_steps_wait=stabilization_steps,
+        ac_stream_accelerated=False,
+    )
+
+
+def _fake_chunk_prediction(clock: _FakeClock):
+    def predict(**kwargs):
+        del kwargs
+        model_actions = torch.zeros((32, 7), dtype=torch.float32)
+        return (
+            model_actions.numpy(),
+            model_actions,
+            {},
+            0.0,
+            0.0,
+            clock.now(),
+            clock.now(),
+        )
+
+    return predict
+
+
+def _rollout_kwargs(
+    env: _ClockedEnv,
+    args: SimpleNamespace,
+    timing: GlobalTimingSummary,
+) -> dict:
+    return {
+        "env": env,
+        "initial_state": "initial",
+        "task_description": "pick the object",
+        "model": None,
+        "config": SimpleNamespace(inference=SimpleNamespace()),
+        "task_cache": {},
+        "context_memory_cache": None,
+        "prewarmed_tasks": set(),
+        "action_stats": None,
+        "state_stats": None,
+        "device": torch.device("cpu"),
+        "dtype": torch.float32,
+        "args": args,
+        "episode_idx": 0,
+        "timing": timing,
+        "task_suite_name": "libero_goal",
+    }
+
+
+def test_sync_total_time_excludes_stabilization_and_terminal_bookkeeping(
+    monkeypatch,
+) -> None:
+    clock = _FakeClock()
+    env = _ClockedEnv(clock, stabilization_steps=3)
+    timing = _BookkeepingTiming(clock)
+    args = _rollout_test_args(stabilization_steps=3)
+    monkeypatch.setattr("examples.libero.rollout.time.perf_counter_ns", clock.now)
+    monkeypatch.setattr(
+        "examples.libero.rollout._predict_action_chunk",
+        _fake_chunk_prediction(clock),
+    )
+    monkeypatch.setattr(
+        "examples.libero.rollout._obs_to_images",
+        lambda *args, **kwargs: {"concat": np.zeros((1, 1, 3), dtype=np.uint8)},
+    )
+
+    success, _ = _rollout_episode(**_rollout_kwargs(env, args, timing))
+
+    assert success is True
+    assert env.step_count == 4
+    assert timing.episode_wall_ms == [100.0]
+
+
+def test_ac_stream_total_time_excludes_stabilization_and_terminal_bookkeeping(
+    monkeypatch,
+) -> None:
+    class FakeController:
+        def __init__(self, predict, *, block_on_miss):
+            del block_on_miss
+            self.predict = predict
+            self.installed = []
+
+        def start_episode(self, observation) -> None:
+            self.installed.append(self.predict(observation, None, 0))
+
+        def next_action(self, observation):
+            del observation
+            return torch.zeros(7, dtype=torch.float32)
+
+        def pop_overlap_records(self):
+            return []
+
+        def pop_installed_predictions(self):
+            installed, self.installed = self.installed, []
+            return installed
+
+        def mark_action_executed(self, *, started_ns, completed_ns) -> None:
+            del started_ns, completed_ns
+
+        def close(self):
+            return None
+
+    clock = _FakeClock()
+    env = _ClockedEnv(clock, stabilization_steps=3)
+    timing = _BookkeepingTiming(clock)
+    timing.enable_ac_stream()
+    args = _rollout_test_args(stabilization_steps=3)
+    monkeypatch.setattr("examples.libero.rollout.time.perf_counter_ns", clock.now)
+    monkeypatch.setattr(
+        "examples.libero.rollout._predict_action_chunk",
+        _fake_chunk_prediction(clock),
+    )
+    monkeypatch.setattr("examples.libero.rollout.ACStreamController", FakeController)
+    monkeypatch.setattr(
+        "examples.libero.rollout._obs_to_images",
+        lambda *args, **kwargs: {"concat": np.zeros((1, 1, 3), dtype=np.uint8)},
+    )
+
+    success, _ = _rollout_ac_stream_episode(
+        **_rollout_kwargs(env, args, timing)
+    )
+
+    assert success is True
+    assert env.step_count == 4
+    assert timing.episode_wall_ms == [100.0]
 
 
 def test_global_timing_empty_averages_are_zero() -> None:
@@ -157,6 +465,7 @@ def test_empty_ac_stream_summary_is_safe() -> None:
     assert overlap["async_d8_inferences"] == 0
     assert overlap["average_hidden_inference_ratio"] == 0.0
     assert overlap["steady_state_d8_count"] == 0
+    assert timing.as_dict(command_wall_ms=0.0)["chunk_time_ms"] is None
 
 
 def test_save_video_defaults_to_30_fps(tmp_path, monkeypatch) -> None:

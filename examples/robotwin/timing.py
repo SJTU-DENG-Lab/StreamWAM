@@ -20,7 +20,9 @@ def _chunk_records(records: list[dict]) -> list[dict]:
         and "model_inference_ms" in record
     ]
     d8 = [record for record in inference if record.get("regime") == "d8"]
-    return d8 or inference
+    if d8 or any(record.get("regime") == "d0" for record in inference):
+        return d8
+    return inference
 
 
 def aggregate_evaluation(records: Iterable[dict]) -> dict:

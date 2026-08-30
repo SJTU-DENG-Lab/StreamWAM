@@ -389,6 +389,15 @@ def merge_worker_results(
     }
     for name in TIMING_AVERAGES:
         timing_summary[name] = weighted_timing[name] / total_chunks if total_chunks else 0.0
+    timing_summary["chunk_time_ms"] = timing_summary[
+        "average_inference_ms_per_chunk"
+    ]
+    if ac_stream_presence and all(ac_stream_presence):
+        timing_summary["chunk_time_ms"] = (
+            ac_stream_inference_wall_sum_ms / ac_stream_async_count
+            if ac_stream_async_count
+            else None
+        )
     timing_summary["average_episode_wall_ms"] = (
         evaluation_workload_wall_ms / total_trials if total_trials else 0.0
     )
@@ -411,7 +420,7 @@ def merge_worker_results(
         long_values = successful_episode_ms["libero_10"]
         short_values = successful_episode_ms["libero_goal"]
         timing_summary["readme_aligned"] = {
-            "chunk_time_ms_mean": timing_summary["average_inference_ms_per_chunk"],
+            "chunk_time_ms_mean": timing_summary["chunk_time_ms"],
             "long_successful_episode_s_mean": (
                 sum(long_values) / len(long_values) / 1000.0 if long_values else 0.0
             ),
@@ -504,6 +513,8 @@ def _format_summary(
     results_path: str | Path | None = None,
 ) -> str:
     timing = result["timing_summary"]
+    chunk_time_ms = timing["chunk_time_ms"]
+    chunk_time = "N/A" if chunk_time_ms is None else f"{chunk_time_ms:.2f} ms"
     lines = [
         "=== Multi-GPU LIBERO Evaluation Summary ===",
         f"GPUs: {','.join(gpus)}",
@@ -513,7 +524,7 @@ def _format_summary(
         f"{result['total_successes']}/{result['total_trials']} "
         f"({result['success_rate']:.4f})",
         f"Chunks: {timing['chunks_executed']}",
-        f"Chunk Time: {timing['average_inference_ms_per_chunk']:.2f} ms",
+        f"Chunk Time: {chunk_time}",
         f"Total Time / Episode: {timing['average_episode_wall_ms'] / 1000.0:.2f} s",
     ]
     if results_path is not None:

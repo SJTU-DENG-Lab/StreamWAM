@@ -689,9 +689,13 @@ schedule caching, and one D0 plus one D8 prewarm per worker. Compilation and
 prewarm are outside episode timing. A compilation or prewarm failure aborts
 the worker instead of silently falling back to eager execution. The merged
 `results.json` records the active acceleration backend and cache status.
-It also records Dynamo graph/recompile counts, Inductor CUDA Graph skips, the
-first background-thread D8 latency, and steady-state D8 mean/p50/p90 after
-excluding exactly one background-thread warmup sample per worker.
+Public AC-Stream Chunk Time is the sample-weighted mean of every recorded D8
+model call after prewarming; D0 is excluded. The results also record Dynamo
+graph/recompile counts, Inductor CUDA Graph skips, the first background-thread
+D8 latency, and steady-state D8 mean/p50/p90 after separating the first runtime
+D8 sample from each worker. For both synchronous and AC-Stream rollouts, Total
+Time begins after reset and dummy stabilization, immediately before the first
+policy observation, and ends when the terminal environment action returns.
 
 For latency validation, use the locked environment from Section 1:
 
@@ -706,11 +710,11 @@ STATS_PATH=/path/to/dataset_stats.json \
   --ac-stream-accelerated
 ```
 
-The validated H100 target is approximately 40–46 ms per steady-state D8 chunk.
-The recorded reference run reached 45.20 ms mean, 45.75 ms p50, and 46.50 ms
-p90, with one Dynamo graph, zero recompiles, zero CUDA Graph skips, and zero of
-four deadline misses. The raw average remains available and includes each
-worker's first background D8 call.
+The validated H100 steady-state target is approximately 40–46 ms per D8 chunk.
+The recorded steady-state reference reached 45.20 ms mean, 45.75 ms p50, and
+46.50 ms p90, with one Dynamo graph, zero recompiles, zero CUDA Graph skips,
+and zero of four deadline misses. These values remain diagnostics rather than
+the all-D8 public mean.
 
 To run 50 trials per task, change `--num-trials 1` to
 `--num-trials 50` in the launcher. That creates 2000 episode units: 500 per
