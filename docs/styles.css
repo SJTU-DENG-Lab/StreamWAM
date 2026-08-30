@@ -168,7 +168,7 @@ button { font: inherit; }
 .rollout-showcase { padding-block: clamp(52px,5vw,72px); border-top: 1px solid var(--line); background: var(--results-bg); }
 .rollout-showcase-heading { max-width: 820px; margin-bottom: 16px; }
 .rollout-showcase-heading h2 { margin: 0; color: var(--ink); font-family: var(--serif); font-size: clamp(1.2rem,1.7vw,1.45rem); font-weight: 600; line-height: 1.2; letter-spacing: -.018em; }
-.rollout-demo-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+.rollout-demo-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; }
 .rollout-demo-card { min-width: 0; overflow: hidden; border: 1px solid rgba(40,34,24,.13); border-radius: 16px; background: var(--paper); box-shadow: 0 12px 28px rgba(45,28,7,.06); }
 .rollout-demo-card-stream { border-color: rgba(8,125,112,.58); box-shadow: 0 14px 32px rgba(8,125,112,.15); }
 .rollout-demo-caption { min-height: 64px; display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 9px 12px 10px; border-top: 1px solid var(--line); }
@@ -243,7 +243,7 @@ table { width: 100%; min-width: 620px; border-collapse: collapse; font-variant-n
 #benchmark-libero table { min-width: 720px; }
 #benchmark-robocasa table { min-width: 420px; }
 #benchmark-robotwin table { min-width: 540px; }
-#benchmark-real-robot table { min-width: 620px; }
+#benchmark-real-robot table { min-width: 500px; }
 caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 th, td { padding: 13px 14px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
 thead th { color: var(--dim); background: var(--orange-soft); font-size: .64rem; letter-spacing: .045em; text-transform: uppercase; }
@@ -303,6 +303,7 @@ tbody tr:last-child > * { border-bottom: 0; }
   .hero-figure { width: 100%; max-width: 850px; display: block; align-self: auto; }
   .pipeline-visual { position: relative; inset: auto; }
   .method-figure { width: min(100% - 32px,1420px); }
+  .rollout-demo-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 
 @media (max-width: 760px) {

@@ -154,8 +154,8 @@
           <div class="rollout-demo-grid">
             <article class="rollout-demo-card">
               <div class="real-robot-player">
-                <video class="real-robot-video" controls preload="none" playsinline poster="assets/real-robot/joint-wam.jpg?v=vertical-20260827" width="640" height="720" aria-label="Joint WAM real robot rollout from two vertically stacked synchronized camera views">
-                  <source data-src="assets/real-robot/joint-wam.mp4?v=vertical-20260827" type="video/mp4">
+                <video class="real-robot-video" controls preload="none" playsinline poster="assets/real-robot/joint-wam.jpg?v=real-robot-20260830" width="640" height="720" aria-label="Joint WAM real robot rollout from two vertically stacked synchronized camera views">
+                  <source data-src="assets/real-robot/joint-wam.mp4?v=real-robot-20260830" type="video/mp4">
                 </video>
                 <button class="real-robot-load" type="button" aria-label="Play the Joint WAM real robot rollout"><span class="sr-only">Play the Joint WAM rollout</span></button>
                 <div class="real-robot-view-labels" aria-hidden="true"><span>Front view</span><span>Side view</span></div>
@@ -164,7 +164,7 @@
                 <h3>Joint WAM</h3>
                 <p class="rollout-demo-metrics"><span>Chunk Time <strong>667.1 ms</strong></span><span>Total Time <strong>68 s</strong></span></p>
               </div>
-              <noscript><a href="assets/real-robot/joint-wam.mp4?v=vertical-20260827">Open the Joint WAM rollout</a></noscript>
+              <noscript><a href="assets/real-robot/joint-wam.mp4?v=real-robot-20260830">Open the Joint WAM rollout</a></noscript>
             </article>
 
             <article class="rollout-demo-card">
@@ -182,10 +182,25 @@
               <noscript><a href="assets/real-robot/distilled-wam.mp4?v=vertical-20260827">Open the Distilled WAM rollout</a></noscript>
             </article>
 
+            <article class="rollout-demo-card">
+              <div class="real-robot-player">
+                <video class="real-robot-video" controls preload="none" playsinline poster="assets/real-robot/distilled-wam-1v2a.jpg?v=real-robot-20260830" width="640" height="720" aria-label="Distilled WAM 1V2A real robot rollout from two vertically stacked synchronized camera views">
+                  <source data-src="assets/real-robot/distilled-wam-1v2a.mp4?v=real-robot-20260830" type="video/mp4">
+                </video>
+                <button class="real-robot-load" type="button" aria-label="Play the Distilled WAM 1V2A real robot rollout"><span class="sr-only">Play the Distilled WAM 1V2A rollout</span></button>
+                <div class="real-robot-view-labels" aria-hidden="true"><span>Front view</span><span>Side view</span></div>
+              </div>
+              <div class="rollout-demo-caption">
+                <h3>Distilled WAM <small>1V2A</small></h3>
+                <p class="rollout-demo-metrics"><span>Chunk Time <strong>150.3 ms</strong></span><span>Total Time <strong>61 s</strong></span></p>
+              </div>
+              <noscript><a href="assets/real-robot/distilled-wam-1v2a.mp4?v=real-robot-20260830">Open the Distilled WAM 1V2A rollout</a></noscript>
+            </article>
+
             <article class="rollout-demo-card rollout-demo-card-stream">
               <div class="real-robot-player">
-                <video class="real-robot-video" controls preload="none" playsinline poster="assets/real-robot/streaming-wam.jpg?v=vertical-20260827" width="640" height="720" aria-label="Streaming-WAM real robot rollout from two vertically stacked synchronized camera views">
-                  <source data-src="assets/real-robot/streaming-wam.mp4?v=vertical-20260827" type="video/mp4">
+                <video class="real-robot-video" controls preload="none" playsinline poster="assets/real-robot/streaming-wam.jpg?v=real-robot-20260830" width="640" height="720" aria-label="Streaming-WAM real robot rollout from two vertically stacked synchronized camera views">
+                  <source data-src="assets/real-robot/streaming-wam.mp4?v=real-robot-20260830" type="video/mp4">
                 </video>
                 <button class="real-robot-load" type="button" aria-label="Play the Streaming-WAM real robot rollout"><span class="sr-only">Play the Streaming-WAM rollout</span></button>
                 <div class="real-robot-view-labels" aria-hidden="true"><span>Front view</span><span>Side view</span></div>
@@ -193,11 +208,11 @@
               <div class="rollout-demo-caption">
                 <h3>Streaming-WAM <small>Ours</small></h3>
                 <div class="rollout-demo-result">
-                  <p class="rollout-demo-metrics"><span>Chunk Time <strong>67.8 ms</strong></span><span>Total Time <strong>33 s</strong></span></p>
-                  <p class="rollout-demo-speedup" aria-label="9.8 times faster Chunk Time and 2.1 times faster Total Time than Joint WAM"><strong>9.8×</strong> Chunk <span>·</span> <strong>2.1×</strong> Total</p>
+                  <p class="rollout-demo-metrics"><span>Chunk Time <strong>122.62 ms</strong></span><span>Total Time <strong>38 s</strong></span></p>
+                  <p class="rollout-demo-speedup" aria-label="5.4 times faster Chunk Time and 1.8 times faster Total Time than Joint WAM"><strong>5.4×</strong> Chunk <span>·</span> <strong>1.8×</strong> Total</p>
                 </div>
               </div>
-              <noscript><a href="assets/real-robot/streaming-wam.mp4?v=vertical-20260827">Open the Streaming-WAM rollout</a></noscript>
+              <noscript><a href="assets/real-robot/streaming-wam.mp4?v=real-robot-20260830">Open the Streaming-WAM rollout</a></noscript>
             </article>
           </div>
         </div>
@@ -348,16 +363,17 @@
           <section class="benchmark breakout" id="benchmark-real-robot" aria-labelledby="real-robot-title">
             <div class="benchmark-intro">
               <h3 id="real-robot-title">Real robot evaluation</h3>
-              <p>We evaluate standard Joint WAM inference, its distilled 1V10A variant, and Streaming-WAM on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. Streaming-WAM reduces Chunk Time to 67.8 ms and completes the rollout in 33 s.</p>
+              <p>We evaluate standard Joint WAM inference, its distilled 1V10A and 1V2A variants, and Streaming-WAM on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. Streaming-WAM reduces Chunk Time to 122.62 ms and completes the rollout in 38 s.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable real robot evaluation table">
               <table>
                 <caption>Real robot inference and rollout time</caption>
-                <thead><tr><th scope="col">Method</th><th scope="col">Inference strategy</th><th scope="col">Chunk Time ↓</th><th scope="col">Episode Time ↓</th></tr></thead>
+                <thead><tr><th scope="col">Method</th><th scope="col">Chunk Time ↓</th><th scope="col">Total Time ↓</th></tr></thead>
                 <tbody>
-                  <tr><th scope="row">Joint WAM</th><td>Synchronous</td><td>667.1 ms</td><td>68 s</td></tr>
-                  <tr><th scope="row">Distilled WAM (1V10A)</th><td>One-step distilled</td><td>402.7 ms</td><td>60 s</td></tr>
-                  <tr><th scope="row">Streaming-WAM (Ours)</th><td>Action-conditioned streaming</td><td><strong>67.8 ms</strong></td><td><strong>33 s</strong></td></tr>
+                  <tr><th scope="row">Joint WAM</th><td>667.1 ms</td><td>68 s</td></tr>
+                  <tr><th scope="row">Distilled WAM (1V10A)</th><td>402.7 ms</td><td>60 s</td></tr>
+                  <tr><th scope="row">Distilled WAM (1V2A)</th><td>150.3 ms</td><td>61 s</td></tr>
+                  <tr><th scope="row">Streaming-WAM (Ours)</th><td><strong>122.62 ms</strong></td><td><strong>38 s</strong></td></tr>
                 </tbody>
               </table>
             </div>
