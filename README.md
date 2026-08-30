@@ -8,23 +8,18 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-6B5BFF" alt="Apache 2.0 License"></a>
 </div>
 
-World Action Models (WAMs) jointly generate future visual observations and robot
-actions, allowing policies to reason about how the scene may evolve under
-interaction. Their iterative generation, however, is often slower than the robot
-control cycle: synchronous execution leaves the robot idle during inference,
-while naive asynchronous switching can create inconsistency between successive
-predictions.
+**TL;DR. Streaming-WAM turns joint world-action prediction into continuous robot
+control.** Instead of waiting at every chunk boundary, the robot keeps executing
+its current action chunk while a Stream Update prepares the next visual and
+action chunk in the background.
 
-We introduce **Streaming-WAM**, an **action-conditioned streaming framework**
-that overlaps WAM inference with robot execution. Shared actions across adjacent
-chunks condition future video generation, aligning the predicted visual
-trajectory with the motion underway; this action-conditioned future then guides
-a consistent action continuation. Streaming-WAM therefore brings streaming into
-world prediction rather than treating continuity only as an action space
-constraint. We evaluate the method on LIBERO, RoboCasa, and RoboTwin 2.0. On
-LIBERO, Streaming-WAM achieves 98.20% success with 41.0 ms chunk latency and
-5.36/3.15 s total time on Long/Short tasks, yielding a 12.0× latency reduction
-and 3.0×/2.6× total-time speedups over FastWAM.
+Shared actions bridge adjacent chunks and directly condition the next visual
+future through action-conditioned attention and fixed condition slots. One-step
+consistency distillation helps each Stream Update finish within the temporal
+overlap without replacing the original joint video-and-action computation. On
+LIBERO, Streaming-WAM reaches 98.20% average success at 41.0 ms Chunk Time—a
+12.0× speedup over FastWAM—and the same streaming design transfers across
+FastWAM-Joint and X-WAM on LIBERO, RoboTwin 2.0, and RoboCasa.
 
 ## Release status
 
