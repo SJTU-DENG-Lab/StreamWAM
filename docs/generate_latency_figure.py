@@ -40,9 +40,9 @@ LIBERO_CHUNK = (493.0, 114.2, 142.3, 41.0, 35.1, 36.3)
 LIBERO_LONG = (16.31, 6.89, 6.23, 5.36, 5.20, 5.31)
 LIBERO_SHORT = (8.25, 3.74, 3.20, 3.15, 2.92, 3.01)
 
-ROBOTWIN_METHODS = ("StarWAM\nJoint", "StarWAM\nCD", "Streaming-\nWAM")
-ROBOTWIN_CHUNK = (190.17, 81.21, 47.09)
-ROBOTWIN_EPISODE = (110.22, 102.59, 77.48)
+ROBOTWIN_METHODS = ("FastWAM-Joint", "FastWAM-CD", "StreamingWAM")
+ROBOTWIN_CHUNK = (652.1, 165.2, 54.4)
+ROBOTWIN_EPISODE = (24.26, 20.63, 20.14)
 ROBOCASA_METHODS = ("X-WAM", "X-WAM\nCD", "Streaming-\nWAM")
 ROBOCASA_CHUNK = (374.07, 134.37, 115.98)
 ROBOCASA_EPISODE = (17.36, 13.04, 9.49)
@@ -171,6 +171,7 @@ def _draw_three_method_panel(
     methods: tuple[str, ...],
     values: tuple[float, ...],
     ceiling: float,
+    precision: int = 2,
 ) -> None:
     _style_axis(axis, ylabel=ylabel, title=title)
     positions = np.arange(3)
@@ -183,7 +184,7 @@ def _draw_three_method_panel(
         linewidth=1.15,
         zorder=3,
     )
-    _annotate(axis, bars, values, ceiling=ceiling, precision=2, stream_indices=(2,))
+    _annotate(axis, bars, values, ceiling=ceiling, precision=precision, stream_indices=(2,))
     axis.set_ylim(0, ceiling)
     axis.set_xticks(positions, methods)
 
@@ -224,7 +225,7 @@ def render_chunk_time(output_path: Path) -> None:
     _draw_libero_chunk(axes[0])
     _draw_three_method_panel(
         axes[1], title="RoboTwin 2.0", ylabel="Milliseconds", methods=ROBOTWIN_METHODS,
-        values=ROBOTWIN_CHUNK, ceiling=210,
+        values=ROBOTWIN_CHUNK, ceiling=700, precision=1,
     )
     _draw_three_method_panel(
         axes[2], title="RoboCasa", ylabel="Milliseconds", methods=ROBOCASA_METHODS,
@@ -240,7 +241,7 @@ def render_episode_time(output_path: Path) -> None:
     _draw_libero_episode(axes[0])
     _draw_three_method_panel(
         axes[1], title="RoboTwin 2.0", ylabel="Seconds", methods=ROBOTWIN_METHODS,
-        values=ROBOTWIN_EPISODE, ceiling=125,
+        values=ROBOTWIN_EPISODE, ceiling=28,
     )
     _draw_three_method_panel(
         axes[2], title="RoboCasa", ylabel="Seconds", methods=ROBOCASA_METHODS,
