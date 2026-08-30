@@ -27,6 +27,29 @@ def _csv(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def resolve_sampling_steps(
+    checkpoint_format: str,
+    inference_mode: str,
+    video_steps: int | None,
+    action_steps: int | None,
+) -> tuple[int, int]:
+    """Resolve the released RoboTwin recipes while preserving CLI overrides."""
+
+    if video_steps is None:
+        if checkpoint_format == "fastwam" and inference_mode == "baseline":
+            video_steps = 10
+        elif checkpoint_format == "starwam" and inference_mode == "baseline":
+            video_steps = 4
+        else:
+            video_steps = 1
+    if action_steps is None:
+        if checkpoint_format in {"fastwam", "streamingwam"} and inference_mode != "baseline":
+            action_steps = 2
+        else:
+            action_steps = video_steps
+    return int(video_steps), int(action_steps)
+
+
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Streaming-WAM RoboTwin multi-GPU evaluation")
     parser.add_argument("--config", required=True)
@@ -39,14 +62,31 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--inference-python", required=True)
     parser.add_argument("--simulator-python", required=True)
     parser.add_argument("--inference-mode", choices=("baseline", "cd", "ac-stream"), required=True)
+    parser.add_argument("--num-inference-steps", type=int, default=None)
+    parser.add_argument("--action-num-inference-steps", type=int, default=None)
     backend = parser.add_mutually_exclusive_group()
     backend.add_argument("--ac-stream-accelerated", action="store_true")
     backend.add_argument("--ac-stream-eager", action="store_true")
     parser.add_argument("--gpu-ids", default=os.environ.get("GPU_IDS", "0,1,2,3"))
+    parser.add_argument("--inference-gpu-ids", default=None)
+    parser.add_argument("--simulator-gpu-ids", default=None)
+    parser.add_argument("--require-gpu-isolation", action="store_true")
     parser.add_argument("--tasks", default=None)
     parser.add_argument("--configs", default="demo_clean,demo_randomized")
     parser.add_argument("--num-trials", type=int, default=1)
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--replan-steps", type=int, default=16)
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="model inference/noise seed; keep fixed across benchmark retries",
+    )
+    parser.add_argument(
+        "--episode-seed",
+        type=int,
+        default=None,
+        help="RoboTwin scene seed chain; defaults to --seed for compatibility",
+    )
     parser.add_argument("--port-base", type=int, default=18765)
     parser.add_argument("--job-timeout-seconds", type=float, default=1200.0)
     parser.add_argument("--output-dir", default=None)
@@ -63,13 +103,19 @@ def build_server_command(args: argparse.Namespace, *, port: int) -> list[str]:
         accelerated=accelerated,
         eager=args.ac_stream_eager,
     )
+    video_steps, action_steps = resolve_sampling_steps(
+        args.checkpoint_format,
+        args.inference_mode,
+        args.num_inference_steps,
+        args.action_num_inference_steps,
+    )
     command = [
         args.inference_python, "-m", "examples.robotwin.policy_server",
         "--config", args.config, "--checkpoint", args.checkpoint,
         "--checkpoint-format", args.checkpoint_format,
         "--inference-mode", args.inference_mode,
-        "--num-inference-steps", "4" if args.inference_mode == "baseline" else "1",
-        "--action-num-inference-steps", "4" if args.inference_mode == "baseline" else "1",
+        "--num-inference-steps", str(video_steps),
+        "--action-num-inference-steps", str(action_steps),
         "--seed", str(args.seed),
         "--device", "cuda:0", "--host", "127.0.0.1", "--port", str(port),
         "--override",
@@ -150,7 +196,7 @@ def _select_pending_jobs(jobs, output_dir: Path) -> tuple[list, list[dict]]:
         except (OSError, json.JSONDecodeError):
             pending.append(job)
             continue
-        if result.get("status") in {"completed", "skipped_timeout", "infrastructure_error"}:
+        if result.get("status") == "completed":
             existing.append(result)
         else:
             pending.append(job)
@@ -195,6 +241,19 @@ def _atomic_json(path: Path, payload: dict) -> None:
     temporary = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
     temporary.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     temporary.replace(path)
+
+
+def _ensure_run_config(path: Path, current: dict) -> None:
+    """Prevent a resumed output directory from mixing benchmark protocols."""
+
+    if path.is_file():
+        previous = json.loads(path.read_text(encoding="utf-8"))
+        if previous != current:
+            raise RuntimeError(
+                f"run configuration mismatch in {path}; use a new --output-dir"
+            )
+        return
+    _atomic_json(path, current)
 
 
 def _read_phase(path: Path) -> str:
@@ -298,18 +357,19 @@ def _run_job_queue(
         status_output.unlink(missing_ok=True)
         _atomic_json(job_file, job.__dict__)
         log = open(job_dir / "worker.log", "w", encoding="utf-8")
-        replan_steps = 16 if args.inference_mode == "ac-stream" else 32
         command = [
             args.simulator_python, "-m", "examples.robotwin.robotwin_worker",
             "--gpu-id", gpu, "--robotwin-home", args.robotwin_home,
             "--policy-dir", str(_ROOT / "examples" / "robotwin"),
             "--server-port", str(item["port"]),
             "--inference-mode", args.inference_mode,
-            "--replan-steps", str(replan_steps),
+            "--replan-steps", str(args.replan_steps),
             "--job-file", str(job_file),
             "--output", str(worker_output),
             "--status-output", str(status_output),
-            "--seed", str(args.seed),
+            "--seed", str(
+                args.seed if args.episode_seed is None else args.episode_seed
+            ),
             "--prewarm" if not warmed[gpu] else "--no-prewarm",
         ]
         try:
@@ -454,7 +514,8 @@ def _terminate_processes(processes: list) -> None:
 
 def _start_server_group(
     args: argparse.Namespace,
-    gpu_ids: list[str],
+    inference_gpu_ids: list[str],
+    simulator_gpu_ids: list[str],
     output_dir: Path,
     *,
     popen=subprocess.Popen,
@@ -464,21 +525,31 @@ def _start_server_group(
 
     group: list[dict] = []
     try:
-        for worker_index, gpu in enumerate(gpu_ids):
-            worker_dir = output_dir / f"worker_gpu{gpu}"
+        for worker_index, (inference_gpu, simulator_gpu) in enumerate(
+            zip(inference_gpu_ids, simulator_gpu_ids)
+        ):
+            worker_dir = output_dir / (
+                f"pair_{worker_index}_inference_gpu{inference_gpu}_"
+                f"simulator_gpu{simulator_gpu}"
+            )
             worker_dir.mkdir(parents=True, exist_ok=True)
             port = args.port_base + worker_index
-            environment = os.environ.copy()
-            environment["CUDA_VISIBLE_DEVICES"] = gpu
-            environment["PYTHONPATH"] = (
-                str(_ROOT) + os.pathsep + environment.get("PYTHONPATH", "")
+            server_environment = os.environ.copy()
+            server_environment["CUDA_VISIBLE_DEVICES"] = inference_gpu
+            server_environment["PYTHONPATH"] = (
+                str(_ROOT) + os.pathsep + server_environment.get("PYTHONPATH", "")
+            )
+            simulator_environment = os.environ.copy()
+            simulator_environment["CUDA_VISIBLE_DEVICES"] = simulator_gpu
+            simulator_environment["PYTHONPATH"] = (
+                str(_ROOT) + os.pathsep + simulator_environment.get("PYTHONPATH", "")
             )
             log = open(worker_dir / "server.log", "w", encoding="utf-8")
             try:
                 process = popen(
                     build_server_command(args, port=port),
                     cwd=_ROOT,
-                    env=environment,
+                    env=server_environment,
                     stdout=log,
                     stderr=subprocess.STDOUT,
                     start_new_session=True,
@@ -487,10 +558,11 @@ def _start_server_group(
                 log.close()
                 raise
             group.append({
-                "gpu": gpu,
+                "gpu": simulator_gpu,
+                "inference_gpu": inference_gpu,
                 "port": port,
                 "worker_dir": worker_dir,
-                "environment": environment,
+                "environment": simulator_environment,
                 "process": process,
                 "log": log,
             })
@@ -506,7 +578,25 @@ def _start_server_group(
 
 def main() -> None:
     args = _build_arg_parser().parse_args()
-    gpu_ids = _csv(args.gpu_ids)
+    inference_gpu_ids = _csv(args.inference_gpu_ids or args.gpu_ids)
+    simulator_gpu_ids = _csv(args.simulator_gpu_ids or args.gpu_ids)
+    if len(inference_gpu_ids) != len(simulator_gpu_ids):
+        raise ValueError(
+            "--inference-gpu-ids and --simulator-gpu-ids must contain the same "
+            "number of GPUs"
+        )
+    if not inference_gpu_ids:
+        raise ValueError("At least one inference/simulator GPU pair is required")
+    overlap = sorted(set(inference_gpu_ids) & set(simulator_gpu_ids))
+    if args.require_gpu_isolation and overlap:
+        raise ValueError(
+            "canonical timing requires disjoint inference and simulator GPUs; "
+            f"overlap={overlap}"
+        )
+    if args.inference_mode == "ac-stream" and args.replan_steps != 16:
+        raise ValueError("AC-Stream has fixed H=32, s=16, d=8 geometry")
+    if not 1 <= args.replan_steps <= 32:
+        raise ValueError("--replan-steps must be in [1, 32]")
     jobs = build_workload(
         num_trials=args.num_trials,
         tasks=_csv(args.tasks) if args.tasks else None,
@@ -515,16 +605,48 @@ def main() -> None:
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     output_dir = Path(args.output_dir or (_ROOT / "outputs" / f"robotwin_multigpu_{stamp}")).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
+    _ensure_run_config(
+        output_dir / "run_config.json",
+        {
+            "config": str(Path(args.config).resolve()),
+            "checkpoint": str(Path(args.checkpoint).resolve()),
+            "checkpoint_format": args.checkpoint_format,
+            "stats_path": str(Path(args.stats_path).resolve()),
+            "backbone_path": str(Path(args.backbone_path).resolve()),
+            "inference_mode": args.inference_mode,
+            "num_inference_steps": args.num_inference_steps,
+            "action_num_inference_steps": args.action_num_inference_steps,
+            "replan_steps": args.replan_steps,
+            "num_trials": args.num_trials,
+            "seed": args.seed,
+            **(
+                {"episode_seed": args.episode_seed}
+                if args.episode_seed is not None
+                and args.episode_seed != args.seed
+                else {}
+            ),
+            "tasks": list(dict.fromkeys(job.task for job in jobs)),
+            "configs": list(dict.fromkeys(job.config for job in jobs)),
+            "ac_stream_accelerated": bool(args.ac_stream_accelerated),
+            "ac_stream_eager": bool(args.ac_stream_eager),
+        },
+    )
     server_group: list[dict] = []
     try:
         pending, existing = _select_pending_jobs(jobs, output_dir)
         if pending:
             print(
-                f"Starting {len(gpu_ids)} inference servers on GPUs "
-                f"{','.join(gpu_ids)} ...",
+                f"Starting {len(inference_gpu_ids)} inference servers on GPUs "
+                f"{','.join(inference_gpu_ids)}; simulator GPUs "
+                f"{','.join(simulator_gpu_ids)} ...",
                 flush=True,
             )
-            server_group = _start_server_group(args, gpu_ids, output_dir)
+            server_group = _start_server_group(
+                args,
+                inference_gpu_ids,
+                simulator_gpu_ids,
+                output_dir,
+            )
             print(
                 f"All {len(server_group)} inference servers are ready; "
                 f"dynamically scheduling {len(pending)} RoboTwin jobs ...",
@@ -576,13 +698,27 @@ def main() -> None:
         })
         results_path = output_dir / "results.json"
         _atomic_json(results_path, {
-            "mode": mode_label, "gpu_ids": gpu_ids,
+            "mode": mode_label,
+            "inference_gpu_ids": inference_gpu_ids,
+            "simulator_gpu_ids": simulator_gpu_ids,
+            "replan_steps": args.replan_steps,
+            "num_inference_steps": args.num_inference_steps,
+            "action_num_inference_steps": args.action_num_inference_steps,
             "backend": backend_values,
             "runtime": runtime_values[0] if runtime_values else {},
             "summary": summary, "jobs": task_results, "timing": records,
         })
+        _atomic_json(output_dir / "per_task_summary.json", summary["by_task"])
+        _atomic_json(output_dir / "per_setting_summary.json", summary["by_setting"])
         print(format_summary(
-            mode=mode_label, gpu_ids=gpu_ids, jobs=len(jobs),
+            mode=mode_label,
+            gpu_ids=[
+                f"{inference}->{simulator}"
+                for inference, simulator in zip(
+                    inference_gpu_ids, simulator_gpu_ids
+                )
+            ],
+            jobs=len(jobs),
             summary=summary, results_path=results_path,
             completed=completed,
             skipped=skipped + infrastructure_errors,

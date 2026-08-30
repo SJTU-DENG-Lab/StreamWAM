@@ -538,6 +538,22 @@ class ACStreamController:
     def cursor(self) -> int:
         return self._cursor
 
+    @property
+    def observation_required(self) -> bool:
+        """Whether the next action request launches an observation-conditioned chunk."""
+
+        if self._current is None:
+            return True
+        return (
+            self._future is None
+            and self._cursor >= self._next_launch_cursor
+            and self._cursor < self._window_end_cursor
+        )
+
+    @property
+    def inference_in_flight(self) -> bool:
+        return self._future is not None
+
     def start_episode(self, observation: Any) -> ACStreamPrediction:
         if self._closed:
             raise RuntimeError("AC-Stream controller is closed")

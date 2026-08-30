@@ -5,7 +5,10 @@ import pytest
 import torch
 
 from streamingwam.eval.policy import StreamingWAMPolicy
+from streamingwam.inference.ac_stream import ACStreamController, ACStreamPrediction
 from examples.robotwin.runtime import resolve_inference_runtime
+from examples.robotwin.multigpu_rollout import resolve_sampling_steps
+from examples.robotwin.timing import aggregate_evaluation
 
 
 class _RecordingModel:
@@ -109,3 +112,73 @@ def test_robotwin_runtime_rejects_ac_stream_backend_for_sync_modes(mode: str) ->
 def test_robotwin_runtime_rejects_conflicting_ac_stream_backends() -> None:
     with pytest.raises(ValueError, match="mutually exclusive"):
         resolve_inference_runtime("ac-stream", accelerated=True, eager=True)
+
+
+@pytest.mark.parametrize(
+    ("checkpoint_format", "mode", "expected"),
+    [
+        ("starwam", "baseline", (4, 4)),
+        ("starwam", "cd", (1, 1)),
+        ("starwam", "ac-stream", (1, 1)),
+        ("fastwam", "baseline", (10, 10)),
+        ("fastwam", "cd", (1, 2)),
+        ("streamingwam", "ac-stream", (1, 2)),
+    ],
+)
+def test_robotwin_sampling_steps_follow_checkpoint_family(
+    checkpoint_format: str,
+    mode: str,
+    expected: tuple[int, int],
+) -> None:
+    assert resolve_sampling_steps(checkpoint_format, mode, None, None) == expected
+
+
+def test_robotwin_sampling_step_overrides_are_preserved() -> None:
+    assert resolve_sampling_steps("fastwam", "baseline", 3, 5) == (3, 5)
+
+
+def test_ac_stream_requests_observation_only_at_d0_and_d8_launch() -> None:
+    calls = []
+
+    def predict(observation, previous, delay):
+        calls.append((observation, previous, delay))
+        actions = torch.zeros((32, 7), dtype=torch.float32)
+        return ACStreamPrediction(
+            env_actions=actions.numpy(),
+            model_actions=actions,
+            communication_ms=0.0,
+            inference_ms=1.0,
+        )
+
+    controller = ACStreamController(predict)
+    controller.start_episode("d0")
+    assert controller.observation_required is False
+    for _ in range(8):
+        controller.next_action(None)
+        controller.mark_action_executed()
+    assert controller.observation_required is True
+    controller.next_action("d8")
+    controller.mark_action_executed()
+    assert controller.observation_required is False
+    controller.close()
+    assert [call[2] for call in calls] == [0, 8]
+
+
+def test_robotwin_summary_uses_success_only_macro_total_and_d8_chunk() -> None:
+    records = [
+        {"record_type": "inference", "regime": "d0", "model_inference_ms": 100.0},
+        {"record_type": "inference", "regime": "d8", "model_inference_ms": 40.0},
+        {"record_type": "inference", "regime": "d8", "model_inference_ms": 50.0},
+        {"record_type": "episode", "task": "task", "config": "clean", "success": True, "total_time_s": 10.0},
+        {"record_type": "episode", "task": "task", "config": "clean", "success": True, "total_time_s": 30.0},
+        {"record_type": "episode", "task": "task", "config": "clean", "success": False, "total_time_s": 999.0},
+        {"record_type": "episode", "task": "task", "config": "random", "success": True, "total_time_s": 100.0},
+    ]
+
+    summary = aggregate_evaluation(records)
+
+    assert summary["chunk_time_ms"] == pytest.approx(45.0)
+    assert summary["total_time_per_episode_s"] == pytest.approx(60.0)
+    assert summary["successes"] == 3
+    assert summary["episodes"] == 4
+    assert summary["by_setting"]["clean/task"]["total_time_success_s"] == pytest.approx(20.0)

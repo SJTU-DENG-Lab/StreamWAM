@@ -68,7 +68,31 @@ def _load_adapter(mode: str):
 
 def get_model(usr_args: Dict[str, Any]):
     mode = _infer_mode(usr_args)
-    return _load_adapter(mode).get_model(usr_args)
+    adapter = _load_adapter(mode)
+    model = adapter.get_model(usr_args)
+    # Keep the selected adapter on the model so every public deploy-policy
+    # hook is forwarded through the same implementation.  RoboTwin imports
+    # this module as the stable entry point; evaluators must not depend on a
+    # concrete client/local adapter module.
+    model._streamingwam_robotwin_adapter = adapter
+    return model
+
+
+def _adapter(model: Any):
+    adapter = getattr(model, "_streamingwam_robotwin_adapter", None)
+    if adapter is None:
+        raise RuntimeError("model was not created by deploy_policy.get_model")
+    return adapter
+
+
+def _required_hook(model: Any, name: str, *args: Any) -> Any:
+    hook = getattr(_adapter(model), name, None)
+    if not callable(hook):
+        raise AttributeError(
+            f"RoboTwin policy adapter {_adapter(model).__name__!r} "
+            f"does not implement required hook {name!r}"
+        )
+    return hook(*args)
 
 
 def eval(TASK_ENV: Any, model: Any, observation: Optional[Dict[str, Any]]) -> None:
@@ -77,6 +101,30 @@ def eval(TASK_ENV: Any, model: Any, observation: Optional[Dict[str, Any]]) -> No
 
 def reset_model(model: Any) -> None:
     model.reset()
+
+
+def prepare_instruction(task_env: Any, model: Any) -> None:
+    _required_hook(model, "prepare_instruction", task_env, model)
+
+
+def prewarm_model(
+    task_env: Any,
+    model: Any,
+    observation: Dict[str, Any],
+) -> None:
+    _required_hook(model, "prewarm_model", task_env, model, observation)
+
+
+def begin_timing_trajectory(model: Any, metadata: Dict[str, Any]) -> None:
+    _required_hook(model, "begin_timing_trajectory", model, metadata)
+
+
+def end_timing_trajectory(
+    model: Any,
+    success: bool,
+    metadata: Dict[str, Any],
+) -> None:
+    _required_hook(model, "end_timing_trajectory", model, success, metadata)
 
 
 def _finish_episode(model: Any) -> None:
