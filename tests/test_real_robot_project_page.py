@@ -78,12 +78,14 @@ def test_real_robot_table_combines_timing_and_30_trial_success_results() -> None
     assert "25 Hz control frequency" not in readme
     assert "<th scope=\"col\">Successes</th>" in section
     assert "<th scope=\"col\">Success Rate ↑</th>" in section
-    assert "<th scope=\"row\">Joint WAM</th><td>682.1 ms</td><td>90 s</td><td>23 / 30</td><td>76.67%</td>" in section
-    assert "<th scope=\"row\">Distilled WAM (1V10A)</th><td>402.7 ms</td><td>60 s</td><td>11 / 30</td><td>36.67%</td>" in section
-    assert "<th scope=\"row\">Distilled WAM (1V2A)</th><td>150.3 ms</td><td>61 s</td><td>16 / 30</td><td>53.33%</td>" in section
+    assert "<th scope=\"row\">Joint WAM</th><td>682.1 ms</td><td>90 s</td><td>26 / 30</td><td>86.67%</td>" in section
+    assert "<th scope=\"row\">Distilled WAM (1V10A)</th><td>402.7 ms</td><td>60 s</td><td>19 / 30</td><td>63.33%</td>" in section
+    assert "<th scope=\"row\">Distilled WAM (1V2A)</th><td>150.3 ms</td><td>61 s</td><td>17 / 30</td><td>56.67%</td>" in section
     assert "<strong>27 / 30</strong>" in section
     assert "<strong>90.00%</strong>" in section
-    assert "| Distilled WAM (1V10A) | 402.7 ms | 60 s | 11 / 30 | 36.67% |" in readme
+    assert "| Joint WAM | 682.1 ms | 90 s | 26 / 30 | 86.67% |" in readme
+    assert "| Distilled WAM (1V10A) | 402.7 ms | 60 s | 19 / 30 | 63.33% |" in readme
+    assert "| Distilled WAM (1V2A) | 150.3 ms | 61 s | 17 / 30 | 56.67% |" in readme
     assert "| Streaming-WAM (Ours) | **122.62 ms** | **38 s** | **27 / 30** | **90.00%** |" in readme
 
 

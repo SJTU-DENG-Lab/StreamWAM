@@ -153,9 +153,9 @@ We evaluate standard Joint WAM inference, its distilled 1V10A and 1V2A variants,
 
 | Method | Chunk Time | Total Time | Successes | Success Rate ↑ |
 |---|---:|---:|---:|---:|
-| Joint WAM | 682.1 ms | 90 s | 23 / 30 | 76.67% |
-| Distilled WAM (1V10A) | 402.7 ms | 60 s | 11 / 30 | 36.67% |
-| Distilled WAM (1V2A) | 150.3 ms | 61 s | 16 / 30 | 53.33% |
+| Joint WAM | 682.1 ms | 90 s | 26 / 30 | 86.67% |
+| Distilled WAM (1V10A) | 402.7 ms | 60 s | 19 / 30 | 63.33% |
+| Distilled WAM (1V2A) | 150.3 ms | 61 s | 17 / 30 | 56.67% |
 | Streaming-WAM (Ours) | **122.62 ms** | **38 s** | **27 / 30** | **90.00%** |
 
 ### Inference efficiency
