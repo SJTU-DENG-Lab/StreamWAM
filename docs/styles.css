@@ -387,11 +387,11 @@ tbody tr:last-child > * { border-bottom: 0; }
 @media (max-width: 360px) {
   .pipeline-visual { padding: 14px; }
   .runtime-comparison, .attention-diagram { padding: 9px; }
-  .attention-panel-heading strong { font-size: .64rem; }
-  .attention-path-badge { padding-inline: 6px; font-size: .58rem; }
+  .attention-panel-heading strong { font-size: .72rem; }
+  .attention-path-badge { padding-inline: 6px; font-size: .7rem; }
   .mask-matrix-body { grid-template-columns: 20px minmax(0,1fr); gap: 2px; }
   .mask-column-labels { margin-left: 22px; }
-  .mask-column-labels span, .mask-row-labels span { font-size: .42rem; }
+  .mask-column-labels span, .mask-row-labels span { font-size: .7rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
