@@ -224,7 +224,7 @@
           <p class="tldr-lead"><strong>Streaming-WAM enables streaming world-action prediction for continuous robot control.</strong> Instead of waiting at each chunk boundary, the robot continues executing its current action chunk while a Stream Update prepares the next video and action chunks in the background.</p>
           <div class="tldr-points">
             <p><strong>An action-conditioned World-Action Model keeps prediction aligned with execution.</strong> Shared actions directly condition the next visual prediction, allowing the model to anticipate the visual consequences of the motion already underway and produce smoother transitions between consecutive chunks.</p>
-            <p><strong>Streaming-WAM delivers strong task performance with shorter end-to-end rollouts.</strong> Compared with FastWAM on LIBERO, it achieves 98.20% average success with 3.0× and 2.6× Total Time speedups on Long and Short tasks, respectively, together with a 12.0× Chunk Time speedup. On RoboTwin 2.0, it improves total success from 87.0 to 90.6 over FastWAM-Joint while delivering a 1.4× Total Time speedup and a 12.0× Chunk Time speedup. On the real robot, it reduces Total Time from 90 s to 38 s (2.4× faster) and achieves a 5.6× Chunk Time speedup.</p>
+            <p><strong>Streaming-WAM delivers strong task performance with shorter end-to-end rollouts.</strong> Compared with FastWAM on LIBERO, it achieves 98.20% average success with 3.0× and 2.6× Total Time speedups on Long and Short tasks, respectively, together with a 12.0× Chunk Time speedup. On RoboTwin 2.0, it improves total success by 4.74 percentage points, from 87.0 to 91.74 over FastWAM-Joint, while delivering a 1.4× Total Time speedup and a 12.0× Chunk Time speedup. On the real robot, it reduces Total Time from 90 s to 38 s (2.4× faster) and achieves a 5.6× Chunk Time speedup.</p>
           </div>
           <p class="tldr-summary">Below, we share several practical findings and design details behind efficient streaming world-action prediction.</p>
         </div>
@@ -345,7 +345,7 @@
                   <tr><th scope="row">Motus from WAN2.2</th><td>77.56</td><td>77.00</td><td>77.30</td></tr>
                   <tr><th scope="row">FastWAM-Joint</th><td>86.40</td><td><u>87.60</u></td><td>87.00</td></tr>
                   <tr><th scope="row">FastWAM-CD</th><td>86.20</td><td>85.80</td><td>86.00</td></tr>
-                  <tr><th scope="row">Streaming-WAM (Ours)</th><td><strong>90.40</strong></td><td><strong>90.80</strong></td><td><strong>90.60</strong></td></tr>
+                  <tr><th scope="row">Streaming-WAM (Ours)</th><td><strong>91.68</strong></td><td><strong>91.8</strong></td><td><strong>91.74</strong></td></tr>
                 </tbody>
               </table>
             </div>
@@ -394,7 +394,7 @@
 
           <div class="efficiency-intro reading-column">
             <p><strong>Inference efficiency.</strong> Task success alone does not characterize runtime efficiency. We therefore report Chunk Time, the latency required to prepare the next action chunk, and Episode Time, the duration of a complete rollout, including inference, execution, and replanning.</p>
-            <p>Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining comparable task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to FastWAM-Joint, Streaming-WAM reduces Chunk Time from 652.1 ms to 54.4 ms and Episode Time from 32.97 s to 23.89 s, while increasing overall success from 87.0 to 90.6. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).</p>
+            <p>Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining or improving task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to FastWAM-Joint, Streaming-WAM reduces Chunk Time from 652.1 ms to 54.4 ms and Episode Time from 32.97 s to 23.89 s, while increasing overall success by 4.74 percentage points, from 87.0 to 91.74. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).</p>
           </div>
           <figure class="latency-figure breakout" aria-labelledby="chunk-time-caption">
             <div class="latency-viewport">
@@ -520,7 +520,7 @@
         <section class="article-section reading-column" id="discussion" aria-label="Discussion">
           <p class="lead">Streaming-WAM enables a World Action Model to prepare its next prediction while the robot continues executing the current action chunk.</p>
           <p>At its core, the shared actions between adjacent chunks are not treated only as an action continuity constraint. They condition future video generation, allowing the predicted visual trajectory to account for the motion already underway before guiding the next action continuation. One-step consistency distillation and the accelerated runtime further reduce generation latency so that prediction can remain within the available execution window.</p>
-          <p>Results on LIBERO, RoboCasa, RoboTwin 2.0, and the real robot experiment show that this design reduces Chunk Time and Episode Time while preserving competitive task success. Taken together, the results support a simple conclusion: real-time WAM deployment requires both fast inference and alignment between ongoing execution and predicted world evolution; latency and task success should therefore be evaluated together.</p>
+          <p>Results on LIBERO, RoboCasa, RoboTwin 2.0, and the real robot experiment show that this design reduces Chunk Time and Episode Time while preserving or improving task success. Taken together, the results support a simple conclusion: real-time WAM deployment requires both fast inference and alignment between ongoing execution and predicted world evolution; latency and task success should therefore be evaluated together.</p>
         </section>
 
         <section class="reference-rail breakout" id="references" aria-labelledby="references-title">

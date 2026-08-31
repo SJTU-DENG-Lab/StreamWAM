@@ -20,7 +20,7 @@ already underway and producing smoother transitions between consecutive chunks.
 Compared with FastWAM on LIBERO, Streaming-WAM achieves 98.20% average success
 with 3.0× and 2.6× Total Time speedups on Long and Short tasks, respectively,
 together with a 12.0× Chunk Time speedup. On RoboTwin 2.0, it improves total
-success from 87.0 to 90.6 over FastWAM-Joint while delivering a 1.4× Total Time
+success by 4.74 percentage points, from 87.0 to 91.74 over FastWAM-Joint, while delivering a 1.4× Total Time
 speedup and a 12.0× Chunk Time speedup. On the real robot, it reduces Total Time
 from 90 s to 38 s (2.4× faster) and achieves a 5.6× Chunk Time speedup.
 
@@ -131,7 +131,7 @@ setting.
 | Motus from WAN2.2 | 77.56 | 77.00 | 77.30 |
 | FastWAM-Joint | 86.40 | <u>87.60</u> | 87.00 |
 | FastWAM-CD | 86.20 | 85.80 | 86.00 |
-| Streaming-WAM (Ours) | **90.40** | **90.80** | **90.60** |
+| Streaming-WAM (Ours) | **91.68** | **91.8** | **91.74** |
 
 #### RoboCasa
 
@@ -177,7 +177,7 @@ Task success alone does not characterize runtime efficiency. We therefore report
 | RoboCasa | X-WAM-CD | 134.37 ms | 13.04 s |
 | RoboCasa | Streaming-WAM | 115.98 ms | 9.49 s |
 
-Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining comparable task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to FastWAM-Joint, Streaming-WAM reduces Chunk Time from 652.1 ms to 54.4 ms and Episode Time from 32.97 s to 23.89 s, while increasing overall success from 87.0 to 90.6. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).
+Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining or improving task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to FastWAM-Joint, Streaming-WAM reduces Chunk Time from 652.1 ms to 54.4 ms and Episode Time from 32.97 s to 23.89 s, while increasing overall success by 4.74 percentage points, from 87.0 to 91.74. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).
 
 ## Runtime layout
 

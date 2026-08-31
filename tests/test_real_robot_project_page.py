@@ -103,6 +103,22 @@ def test_libero_optimization_chart_shows_cumulative_effective_cycle_speedups() -
     assert "capturing inference–execution overlap" in section
 
 
+def test_robotwin_streaming_success_results_are_consistent() -> None:
+    page = PAGE.read_text(encoding="utf-8")
+    readme = README.read_text(encoding="utf-8")
+    expected_row_html = '<tr><th scope="row">Streaming-WAM (Ours)</th><td><strong>91.68</strong></td><td><strong>91.8</strong></td><td><strong>91.74</strong></td></tr>'
+
+    assert expected_row_html in page
+    assert "| Streaming-WAM (Ours) | **91.68** | **91.8** | **91.74** |" in readme
+    assert page.count("by 4.74 percentage points, from 87.0 to 91.74") == 2
+    assert readme.count("by 4.74 percentage points, from 87.0 to 91.74") == 2
+    assert "maintaining or improving task success" in page
+    assert "maintaining or improving task success" in readme
+    for stale_value in ("90.40", "90.80", "90.60", "from 87.0 to 90.6"):
+        assert stale_value not in page
+        assert stale_value not in readme
+
+
 def test_joint_rollout_asset_is_the_full_90_second_two_view_video() -> None:
     result = subprocess.run(
         [
