@@ -1,0 +1,20 @@
+{
+  "layout": "vertical",
+  "duration_seconds": 90.0,
+  "views": [
+    {
+      "position": "top",
+      "source": "demo1.rar/joint-1.mp4",
+      "source_sha256": "d559ecac36dd18084445d03515a906aacbbaeecaf3bac8ff4b82102228281ff8",
+      "start_seconds": 0.0
+    },
+    {
+      "position": "bottom",
+      "source": "demo1.rar/joint-2.mp4",
+      "source_sha256": "dacd691ae7c72f3ea63d7edf9345df593ce02a90272000d4f93e217f24abb2ce",
+      "start_seconds": 0.0
+    }
+  ],
+  "output_sha256": "8f601d1819fcfac8c58c88a29846214299bf9ca813e65c57213ffe8ac270c0ad",
+  "poster_sha256": "7e232896f79808d036fdefde0a7c2ccb4d8a2b05e2f2b4b592c0a4d397f3be2b"
+}

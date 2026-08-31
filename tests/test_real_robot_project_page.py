@@ -1,4 +1,5 @@
 import json
+import hashlib
 import subprocess
 from pathlib import Path
 
@@ -7,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PAGE = ROOT / "docs" / "index.html"
 README = ROOT / "README.md"
 JOINT_VIDEO = ROOT / "docs" / "assets" / "real-robot" / "joint-wam.mp4"
+JOINT_POSTER = ROOT / "docs" / "assets" / "real-robot" / "joint-wam.jpg"
+JOINT_MANIFEST = ROOT / "docs" / "assets" / "real-robot" / "joint-wam.json"
 PROMO_BUILDER = ROOT / "docs" / "video" / "build_streamingwam_promo.py"
 
 
@@ -68,3 +71,26 @@ def test_joint_rollout_asset_is_the_full_90_second_two_view_video() -> None:
     assert (video["width"], video["height"]) == (640, 720)
     assert video["r_frame_rate"] == "24/1"
     assert abs(float(media["format"]["duration"]) - 90.0) < 0.05
+
+
+def test_joint_rollout_manifest_locks_the_reviewed_sources_layout_and_sync() -> None:
+    manifest = json.loads(JOINT_MANIFEST.read_text(encoding="utf-8"))
+
+    assert manifest["layout"] == "vertical"
+    assert manifest["duration_seconds"] == 90.0
+    assert manifest["views"] == [
+        {
+            "position": "top",
+            "source": "demo1.rar/joint-1.mp4",
+            "source_sha256": "d559ecac36dd18084445d03515a906aacbbaeecaf3bac8ff4b82102228281ff8",
+            "start_seconds": 0.0,
+        },
+        {
+            "position": "bottom",
+            "source": "demo1.rar/joint-2.mp4",
+            "source_sha256": "dacd691ae7c72f3ea63d7edf9345df593ce02a90272000d4f93e217f24abb2ce",
+            "start_seconds": 0.0,
+        },
+    ]
+    assert hashlib.sha256(JOINT_VIDEO.read_bytes()).hexdigest() == manifest["output_sha256"]
+    assert hashlib.sha256(JOINT_POSTER.read_bytes()).hexdigest() == manifest["poster_sha256"]
