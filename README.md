@@ -22,7 +22,7 @@ with 3.0× and 2.6× Total Time speedups on Long and Short tasks, respectively,
 together with a 12.0× Chunk Time speedup. On RoboTwin 2.0, it improves total
 success from 87.0 to 90.6 over FastWAM-Joint while delivering a 1.4× Total Time
 speedup and a 12.0× Chunk Time speedup. On the real robot, it reduces Total Time
-from 68 s to 38 s (1.8× faster) and achieves a 5.4× Chunk Time speedup.
+from 90 s to 38 s (2.4× faster) and achieves a 5.6× Chunk Time speedup.
 
 Below, we share several practical findings and design details behind efficient
 streaming world-action prediction.
@@ -153,7 +153,7 @@ We evaluate standard Joint WAM inference, its distilled 1V10A and 1V2A variants,
 
 | Method | Chunk Time | Total Time |
 |---|---:|---:|
-| Joint WAM | 667.1 ms | 68 s |
+| Joint WAM | 682.1 ms | 90 s |
 | Distilled WAM (1V10A) | 402.7 ms | 60 s |
 | Distilled WAM (1V2A) | 150.3 ms | 61 s |
 | Streaming-WAM (Ours) | **122.62 ms** | **38 s** |
