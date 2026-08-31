@@ -60,6 +60,49 @@ def test_streaming_rollout_uses_the_new_side_view_and_remains_click_to_load() ->
     assert f'<source src="{video_token}"' not in page
 
 
+def test_real_robot_success_chart_matches_the_30_trial_results() -> None:
+    page = PAGE.read_text(encoding="utf-8")
+    section = page[page.index('id="real-robot-success"') : page.index('id="discussion"')]
+
+    assert page.index("Inference efficiency.") < page.index('id="real-robot-success"')
+    assert page.index('id="real-robot-success"') < page.index('id="discussion"')
+    assert 'href="#real-robot-success"' in page
+    assert "23 / 30 successful cases" in section
+    assert "16 / 30 successful cases" in section
+    assert "27 / 30 successful cases" in section
+    assert "76.67%" in section
+    assert "53.33%" in section
+    assert "90.00%" in section
+    assert section.count('class="success-rate-card ') == 3
+    assert 'class="success-rate-card success-rate-card-streaming"' in section
+
+
+def test_libero_optimization_chart_shows_cumulative_effective_cycle_speedups() -> None:
+    page = PAGE.read_text(encoding="utf-8")
+    section = page[page.index('id="optimization-stack"') : page.index('id="real-robot-success"')]
+
+    assert page.index("Inference efficiency.") < page.index('id="optimization-stack"')
+    assert page.index('id="optimization-stack"') < page.index('id="real-robot-success"')
+    assert 'href="#optimization-stack"' in page
+    assert "FastWAM-Joint" in section
+    assert "FastWAM-Joint-40K" not in section
+    assert section.index("Model level") < section.index("One-step consistency distillation")
+    assert section.index("System level") < section.index("Asynchronous overlap")
+    assert section.index("Implementation level") < section.index("KV cache + computation reuse")
+    assert section.count('class="optimization-level-row ') == 3
+    assert "One-step consistency distillation" in section
+    assert "Asynchronous overlap" in section
+    assert "KV cache + computation reuse" in section
+    assert "torch.compile + CUDA Graphs" in section
+    assert section.count('class="optimization-row ') == 5
+    for speedup in ("1.00×", "1.25×", "2.31×", "2.82×", "2.66×", "2.95×", "3.48×", "3.12×", "3.79×"):
+        assert speedup in section
+    assert "Each row includes all optimizations above it." in section
+    assert "the interval between consecutive inference returns" in section
+    assert "the interval between consecutive action-chunk installations" in section
+    assert "capturing inference–execution overlap" in section
+
+
 def test_joint_rollout_asset_is_the_full_90_second_two_view_video() -> None:
     result = subprocess.run(
         [
