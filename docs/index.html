@@ -221,12 +221,12 @@
       <section class="tldr-showcase" id="tldr" aria-labelledby="tldr-title">
         <div class="reading-column tldr-inner">
           <h2 id="tldr-title">TL;DR</h2>
-          <p class="tldr-lead"><strong>Streaming-WAM turns joint world-action prediction into continuous robot control.</strong> Instead of waiting at every chunk boundary, the robot keeps executing its current action chunk while a Stream Update prepares the next visual and action chunk in the background.</p>
+          <p class="tldr-lead"><strong>Streaming-WAM enables streaming world-action prediction for continuous robot control.</strong> Instead of waiting at each chunk boundary, the robot continues executing its current action chunk while a Stream Update prepares the next video and action chunks in the background.</p>
           <div class="tldr-points">
-            <p><strong>Prediction stays aligned with motion.</strong> Shared actions bridge adjacent chunks, so each incoming prediction begins from the action already underway rather than from the latest observation alone.</p>
-            <p><strong>Actions directly condition the visual future.</strong> Action-conditioned attention and fixed condition slots route shared actions into the next visual prediction while preserving the original joint video-and-action computation.</p>
+            <p><strong>An action-conditioned World-Action Model keeps prediction aligned with execution.</strong> Shared actions directly condition the next visual prediction, allowing the model to anticipate the visual consequences of the motion already underway and produce smoother transitions between consecutive chunks.</p>
+            <p><strong>Streaming-WAM delivers strong task performance with shorter end-to-end rollouts.</strong> Compared with FastWAM on LIBERO, it achieves 98.20% average success with 3.0× and 2.6× Total Time speedups on Long and Short tasks, respectively, together with a 12.0× Chunk Time speedup. On RoboTwin 2.0, it improves total success from 87.0 to 90.6 over FastWAM-Joint while delivering a 1.4× Total Time speedup and a 12.0× Chunk Time speedup. On the real robot, it reduces Total Time from 68 s to 38 s (1.8× faster) and achieves a 5.4× Chunk Time speedup.</p>
           </div>
-          <p class="tldr-summary">In simulation, Streaming-WAM achieves 98.20% average success on LIBERO with a 41.0 ms Chunk Time, a 12.0× speedup over FastWAM. On the real robot, it reduces Chunk Time from 667.1 ms to 122.62 ms and Total Time from 68 s to 38 s.</p>
+          <p class="tldr-summary">Below, we share several practical findings and design details behind efficient streaming world-action prediction.</p>
         </div>
       </section>
 

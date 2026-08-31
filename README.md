@@ -8,16 +8,24 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-6B5BFF" alt="Apache 2.0 License"></a>
 </div>
 
-**TL;DR. Streaming-WAM turns joint world-action prediction into continuous robot
-control.** Instead of waiting at every chunk boundary, the robot keeps executing
-its current action chunk while a Stream Update prepares the next visual and
-action chunk in the background.
+**TL;DR. Streaming-WAM enables streaming world-action prediction for continuous
+robot control.** Instead of waiting at each chunk boundary, the robot continues
+executing its current action chunk while a Stream Update prepares the next video
+and action chunks in the background.
 
-Shared actions bridge adjacent chunks and directly condition the next visual
-future through action-conditioned attention and fixed condition slots. In
-simulation, Streaming-WAM reaches 98.20% average success on LIBERO at 41.0 ms
-Chunk Time, a 12.0× speedup over FastWAM. On the real robot, it reduces Chunk
-Time from 667.1 ms to 122.62 ms and Total Time from 68 s to 38 s.
+An action-conditioned World-Action Model uses shared actions to condition the
+next visual prediction, keeping the predicted future aligned with the motion
+already underway and producing smoother transitions between consecutive chunks.
+
+Compared with FastWAM on LIBERO, Streaming-WAM achieves 98.20% average success
+with 3.0× and 2.6× Total Time speedups on Long and Short tasks, respectively,
+together with a 12.0× Chunk Time speedup. On RoboTwin 2.0, it improves total
+success from 87.0 to 90.6 over FastWAM-Joint while delivering a 1.4× Total Time
+speedup and a 12.0× Chunk Time speedup. On the real robot, it reduces Total Time
+from 68 s to 38 s (1.8× faster) and achieves a 5.4× Chunk Time speedup.
+
+Below, we share several practical findings and design details behind efficient
+streaming world-action prediction.
 
 ## Release status
 
