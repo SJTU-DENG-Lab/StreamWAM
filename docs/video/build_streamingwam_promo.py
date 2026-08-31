@@ -176,7 +176,7 @@ drawtext=fontfile='{font}':text='%{{pts\\:hms}}':fontcolor=0xd9e0e3:fontsize=22:
 drawtext=fontfile='{font}':text='%{{pts\\:hms}}':fontcolor=0x9af1df:fontsize=22:x=1750:y=20,
 drawbox=x=1080:y=446:w=720:h=188:color=0x07141e@0.84:t=fill:enable='gte(t,36.5)',
 drawbox=x=1080:y=446:w=720:h=188:color=0x42d9ba@0.95:t=7:enable='gte(t,36.5)',
-drawtext=fontfile='{font}':text='Completed · 1.8× Faster':fontcolor=0x66f0d3:fontsize=42:x=960+(960-text_w)/2:y=520:enable='gte(t,36.5)',
+drawtext=fontfile='{font}':text='Completed · 2.4× Faster':fontcolor=0x66f0d3:fontsize=42:x=960+(960-text_w)/2:y=520:enable='gte(t,36.5)',
 fade=t=in:st=0:d=0.45,fade=t=out:st=37.55:d=0.45[comparison];
 [5:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=0xf5f3ed,setsar=1,fps=30,trim=duration={timeline.method},setpts=PTS-STARTPTS,fade=t=in:st=0:d=0.45,fade=t=out:st=4.05:d=0.45[method];
 [6:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=0xf5f3ed,setsar=1,fps=30,trim=duration={timeline.results},setpts=PTS-STARTPTS,fade=t=in:st=0:d=0.45,fade=t=out:st=4.35:d=0.65[results];
@@ -266,7 +266,9 @@ def render(source_root: Path, raw_dir: Path, output_dir: Path) -> Path:
         "-t", str(timeline.total),
         "-r", "30",
         "-c:v", "libx264",
-        "-preset", "slow",
+        "-preset", "medium",
+        "-threads", "4",
+        "-x264-params", "threads=4:lookahead_threads=1",
         "-crf", "17",
         "-pix_fmt", "yuv420p",
         "-profile:v", "high",

@@ -55,6 +55,12 @@ class PromoVideoBuilderTests(unittest.TestCase):
         self.assertIn("pad=1920:1080", intro_filter)
         self.assertNotIn("crop=1920:1080", intro_filter)
 
+    def test_completion_cue_uses_the_updated_joint_wam_total_time(self):
+        result = self.run_builder("--print-filter-graph")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Completed · 2.4× Faster", result.stdout)
+        self.assertNotIn("Completed · 1.8× Faster", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
