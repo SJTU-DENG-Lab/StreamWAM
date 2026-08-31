@@ -149,14 +149,14 @@ RoboCasa follows the standard 24-task protocol, with 50 trials per kitchen manip
 
 #### Real robot evaluation
 
-We evaluate standard Joint WAM inference, its distilled 1V10A and 1V2A variants, and Streaming-WAM on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. Streaming-WAM reduces Chunk Time to 122.62 ms and completes the rollout in 38 s.
+We evaluate standard Joint WAM inference, its distilled 1V10A and 1V2A variants, and Streaming-WAM over 30 trials per method on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. Streaming-WAM succeeds in 27 of 30 trials (90.00%), reduces Chunk Time to 122.62 ms, and completes the rollout in 38 s.
 
-| Method | Chunk Time | Total Time |
-|---|---:|---:|
-| Joint WAM | 682.1 ms | 90 s |
-| Distilled WAM (1V10A) | 402.7 ms | 60 s |
-| Distilled WAM (1V2A) | 150.3 ms | 61 s |
-| Streaming-WAM (Ours) | **122.62 ms** | **38 s** |
+| Method | Chunk Time | Total Time | Successes | Success Rate ↑ |
+|---|---:|---:|---:|---:|
+| Joint WAM | 682.1 ms | 90 s | 23 / 30 | 76.67% |
+| Distilled WAM (1V10A) | 402.7 ms | 60 s | 11 / 30 | 36.67% |
+| Distilled WAM (1V2A) | 150.3 ms | 61 s | 16 / 30 | 53.33% |
+| Streaming-WAM (Ours) | **122.62 ms** | **38 s** | **27 / 30** | **90.00%** |
 
 ### Inference efficiency
 

@@ -14,7 +14,7 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <title>Streaming-WAM — Streaming World-Action Models</title>
-    <link rel="stylesheet" href="styles.css?v=20260831-47">
+    <link rel="stylesheet" href="styles.css?v=20260831-50">
     <script src="script.js?v=20260827-20" defer></script>
   </head>
   <body>
@@ -234,7 +234,7 @@
         <details class="mobile-toc reading-column">
           <summary>Contents</summary>
           <nav aria-label="Article contents">
-            <a href="#insights">Insights</a><a href="#act-wam">Real-Time Gap</a><a href="#act-async">Asynchronous Execution</a><a href="#act-streamingwam">Streaming-WAM</a><a href="#experiments">Results</a><a href="#optimization-stack">Acceleration Stack</a><a href="#real-robot-success">Real-Robot Success</a><a href="#discussion">Discussion</a><a href="#references">References</a><a href="#resources">Citation</a>
+            <a href="#insights">Insights</a><a href="#act-wam">Real-Time Gap</a><a href="#act-async">Asynchronous Execution</a><a href="#act-streamingwam">Streaming-WAM</a><a href="#experiments">Results</a><a href="#benchmark-real-robot">Real Robot</a><a href="#optimization-stack">Acceleration Stack</a><a href="#discussion">Discussion</a><a href="#references">References</a><a href="#resources">Citation</a>
           </nav>
         </details>
         <aside class="article-toc">
@@ -246,8 +246,8 @@
               <li><a href="#act-async">Asynchronous Execution</a></li>
               <li><a href="#act-streamingwam">Streaming-WAM</a></li>
               <li><a href="#experiments">Results</a></li>
+              <li><a href="#benchmark-real-robot">Real Robot</a></li>
               <li><a href="#optimization-stack">Acceleration Stack</a></li>
-              <li><a href="#real-robot-success">Real-Robot Success</a></li>
               <li><a href="#discussion">Discussion</a></li>
               <li><a href="#references">References</a></li>
               <li><a href="#resources">Citation</a></li>
@@ -376,17 +376,17 @@
           <section class="benchmark breakout" id="benchmark-real-robot" aria-labelledby="real-robot-title">
             <div class="benchmark-intro">
               <h3 id="real-robot-title">Real robot evaluation</h3>
-              <p>We evaluate standard Joint WAM inference, its distilled 1V10A and 1V2A variants, and Streaming-WAM on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. Streaming-WAM reduces Chunk Time to 122.62 ms and completes the rollout in 38 s.</p>
+              <p>We evaluate standard Joint WAM inference, its distilled 1V10A and 1V2A variants, and Streaming-WAM over 30 trials per method on the same real robot manipulation task using a single NVIDIA GeForce RTX 5090 at a 25 Hz control frequency. Streaming-WAM succeeds in 27 of 30 trials (90.00%), reduces Chunk Time to 122.62 ms, and completes the rollout in 38 s.</p>
             </div>
             <div class="table-scroll" tabindex="0" aria-label="Scrollable real robot evaluation table">
               <table>
-                <caption>Real robot inference and rollout time</caption>
-                <thead><tr><th scope="col">Method</th><th scope="col">Chunk Time ↓</th><th scope="col">Total Time ↓</th></tr></thead>
+                <caption>Real robot inference, rollout time, and task success</caption>
+                <thead><tr><th scope="col">Method</th><th scope="col">Chunk Time ↓</th><th scope="col">Total Time ↓</th><th scope="col">Successes</th><th scope="col">Success Rate ↑</th></tr></thead>
                 <tbody>
-                  <tr><th scope="row">Joint WAM</th><td>682.1 ms</td><td>90 s</td></tr>
-                  <tr><th scope="row">Distilled WAM (1V10A)</th><td>402.7 ms</td><td>60 s</td></tr>
-                  <tr><th scope="row">Distilled WAM (1V2A)</th><td>150.3 ms</td><td>61 s</td></tr>
-                  <tr><th scope="row">Streaming-WAM (Ours)</th><td><strong>122.62 ms</strong></td><td><strong>38 s</strong></td></tr>
+                  <tr><th scope="row">Joint WAM</th><td>682.1 ms</td><td>90 s</td><td>23 / 30</td><td>76.67%</td></tr>
+                  <tr><th scope="row">Distilled WAM (1V10A)</th><td>402.7 ms</td><td>60 s</td><td>11 / 30</td><td>36.67%</td></tr>
+                  <tr><th scope="row">Distilled WAM (1V2A)</th><td>150.3 ms</td><td>61 s</td><td>16 / 30</td><td>53.33%</td></tr>
+                  <tr><th scope="row">Streaming-WAM (Ours)</th><td><strong>122.62 ms</strong></td><td><strong>38 s</strong></td><td><strong>27 / 30</strong></td><td><strong>90.00%</strong></td></tr>
                 </tbody>
               </table>
             </div>
@@ -436,7 +436,7 @@
           <section class="optimization-stack benchmark breakout" id="optimization-stack" aria-labelledby="optimization-stack-title">
             <div class="benchmark-intro">
               <h3 id="optimization-stack-title">Cumulative acceleration on LIBERO</h3>
-              <p>We progressively stack model-, system-, and implementation-level optimizations. Relative to the unoptimized FastWAM-Joint baseline on RTX 4090 (1.00×), the complete stack delivers a 3.12× effective-cycle speedup on RTX 4090 and 3.79× on H100.</p>
+              <p>We progressively stack optimizations across the model, system, and implementation levels. Relative to the unoptimized FastWAM-Joint baseline on RTX 4090 (1.00×), the complete stack delivers a 3.12× effective-cycle speedup on RTX 4090 and 3.79× on H100.</p>
             </div>
             <figure class="optimization-figure" aria-describedby="optimization-caption">
               <div class="optimization-chart">
@@ -474,47 +474,10 @@
                   </li>
                 </ol>
               </div>
-              <figcaption id="optimization-caption">Cumulative single-GPU end-to-end effective-cycle speedups on LIBERO. Each row includes all optimizations above it. Effective-cycle latency measures the steady-state wall-clock critical path for delivering a new action chunk: in synchronous mode, the interval between consecutive inference returns; in asynchronous mode, the interval between consecutive action-chunk installations, thereby capturing inference–execution overlap.</figcaption>
+              <figcaption id="optimization-caption"><strong>Cumulative single-GPU end-to-end effective-cycle speedups on LIBERO.</strong> Each row includes all optimizations above it. Effective-cycle latency measures the steady-state wall-clock critical path for delivering a new action chunk: in synchronous mode, the interval between consecutive inference returns; in asynchronous mode, the interval between consecutive action-chunk installations.</figcaption>
             </figure>
           </section>
 
-          <section class="real-robot-success benchmark breakout" id="real-robot-success" aria-labelledby="real-robot-success-title">
-            <div class="benchmark-intro">
-              <h3 id="real-robot-success-title">Real-robot success rate</h3>
-              <p>Across 30 real-robot trials per method, Streaming-WAM completes 27 successful cases and reaches a 90.00% success rate, compared with 76.67% for Joint WAM and 53.33% for Distilled WAM.</p>
-            </div>
-            <figure class="real-robot-success-figure" aria-describedby="real-robot-success-caption">
-              <div class="real-robot-success-chart">
-                <article class="success-rate-card success-rate-card-joint">
-                  <h4>Joint WAM</h4>
-                  <p class="success-rate-value"><strong>76.67%</strong><span>23 / 30 successful cases</span></p>
-                  <div class="success-rate-meter" aria-hidden="true"><span style="--success-rate: 76.67%;"></span></div>
-                </article>
-                <article class="success-rate-card success-rate-card-distilled">
-                  <h4>Distilled WAM <small>1V2A</small></h4>
-                  <p class="success-rate-value"><strong>53.33%</strong><span>16 / 30 successful cases</span></p>
-                  <div class="success-rate-meter" aria-hidden="true"><span style="--success-rate: 53.33%;"></span></div>
-                </article>
-                <article class="success-rate-card success-rate-card-streaming">
-                  <h4>Streaming-WAM <small>Ours</small></h4>
-                  <p class="success-rate-value"><strong>90.00%</strong><span>27 / 30 successful cases</span></p>
-                  <div class="success-rate-meter" aria-hidden="true"><span style="--success-rate: 90%;"></span></div>
-                </article>
-              </div>
-              <figcaption id="real-robot-success-caption">Task success across 30 real-robot trials for each method. Streaming-WAM achieves the highest success rate, with 27 successful cases.</figcaption>
-              <div class="sr-only">
-                <table>
-                  <caption>Exact real-robot success-rate results</caption>
-                  <thead><tr><th scope="col">Method</th><th scope="col">Successful Cases</th><th scope="col">Total Cases</th><th scope="col">Success Rate</th></tr></thead>
-                  <tbody>
-                    <tr><th scope="row">Joint WAM</th><td>23</td><td>30</td><td>76.67%</td></tr>
-                    <tr><th scope="row">Distilled WAM</th><td>16</td><td>30</td><td>53.33%</td></tr>
-                    <tr><th scope="row">Streaming-WAM</th><td>27</td><td>30</td><td>90.00%</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </figure>
-          </section>
         </section>
 
         <section class="article-section reading-column" id="discussion" aria-label="Discussion">

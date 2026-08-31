@@ -60,29 +60,35 @@ def test_streaming_rollout_uses_the_new_side_view_and_remains_click_to_load() ->
     assert f'<source src="{video_token}"' not in page
 
 
-def test_real_robot_success_chart_matches_the_30_trial_results() -> None:
+def test_real_robot_table_combines_timing_and_30_trial_success_results() -> None:
     page = PAGE.read_text(encoding="utf-8")
-    section = page[page.index('id="real-robot-success"') : page.index('id="discussion"')]
+    readme = README.read_text(encoding="utf-8")
+    section = page[page.index('id="benchmark-real-robot"') : page.index('class="efficiency-intro')]
 
-    assert page.index("Inference efficiency.") < page.index('id="real-robot-success"')
-    assert page.index('id="real-robot-success"') < page.index('id="discussion"')
-    assert 'href="#real-robot-success"' in page
-    assert "23 / 30 successful cases" in section
-    assert "16 / 30 successful cases" in section
-    assert "27 / 30 successful cases" in section
-    assert "76.67%" in section
-    assert "53.33%" in section
-    assert "90.00%" in section
-    assert section.count('class="success-rate-card ') == 3
-    assert 'class="success-rate-card success-rate-card-streaming"' in section
+    assert 'href="#benchmark-real-robot"' in page
+    assert 'id="real-robot-success"' not in page
+    assert "success-rate-card" not in page
+    assert "Real-robot success rate" not in page
+    assert "Real robot inference, rollout time, and task success" in section
+    assert "over 30 trials per method" in section
+    assert "over 30 trials per method" in readme
+    assert "<th scope=\"col\">Successes</th>" in section
+    assert "<th scope=\"col\">Success Rate ↑</th>" in section
+    assert "<th scope=\"row\">Joint WAM</th><td>682.1 ms</td><td>90 s</td><td>23 / 30</td><td>76.67%</td>" in section
+    assert "<th scope=\"row\">Distilled WAM (1V10A)</th><td>402.7 ms</td><td>60 s</td><td>11 / 30</td><td>36.67%</td>" in section
+    assert "<th scope=\"row\">Distilled WAM (1V2A)</th><td>150.3 ms</td><td>61 s</td><td>16 / 30</td><td>53.33%</td>" in section
+    assert "<strong>27 / 30</strong>" in section
+    assert "<strong>90.00%</strong>" in section
+    assert "| Distilled WAM (1V10A) | 402.7 ms | 60 s | 11 / 30 | 36.67% |" in readme
+    assert "| Streaming-WAM (Ours) | **122.62 ms** | **38 s** | **27 / 30** | **90.00%** |" in readme
 
 
 def test_libero_optimization_chart_shows_cumulative_effective_cycle_speedups() -> None:
     page = PAGE.read_text(encoding="utf-8")
-    section = page[page.index('id="optimization-stack"') : page.index('id="real-robot-success"')]
+    section = page[page.index('id="optimization-stack"') : page.index('id="discussion"')]
 
     assert page.index("Inference efficiency.") < page.index('id="optimization-stack"')
-    assert page.index('id="optimization-stack"') < page.index('id="real-robot-success"')
+    assert page.index('id="optimization-stack"') < page.index('id="discussion"')
     assert 'href="#optimization-stack"' in page
     assert "FastWAM-Joint" in section
     assert "FastWAM-Joint-40K" not in section
@@ -98,9 +104,12 @@ def test_libero_optimization_chart_shows_cumulative_effective_cycle_speedups() -
     for speedup in ("1.00×", "1.25×", "2.31×", "2.82×", "2.66×", "2.95×", "3.48×", "3.12×", "3.79×"):
         assert speedup in section
     assert "Each row includes all optimizations above it." in section
+    assert "<strong>Cumulative single-GPU end-to-end effective-cycle speedups on LIBERO.</strong>" in section
     assert "the interval between consecutive inference returns" in section
     assert "the interval between consecutive action-chunk installations" in section
-    assert "capturing inference–execution overlap" in section
+    assert "capturing inference–execution overlap" not in section
+    assert "We progressively stack optimizations across the model, system, and implementation levels." in section
+    assert "model-, system-, and implementation-level" not in section
 
 
 def test_robotwin_streaming_success_results_are_consistent() -> None:
