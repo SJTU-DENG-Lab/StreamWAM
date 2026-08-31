@@ -106,10 +106,10 @@ def test_libero_optimization_chart_shows_cumulative_effective_cycle_speedups() -
 def test_robotwin_streaming_success_results_are_consistent() -> None:
     page = PAGE.read_text(encoding="utf-8")
     readme = README.read_text(encoding="utf-8")
-    expected_row_html = '<tr><th scope="row">Streaming-WAM (Ours)</th><td><strong>91.68</strong></td><td><strong>91.8</strong></td><td><strong>91.74</strong></td></tr>'
+    expected_row_html = '<tr><th scope="row">Streaming-WAM (Ours)</th><td><strong>91.68</strong></td><td><strong>91.80</strong></td><td><strong>91.74</strong></td></tr>'
 
     assert expected_row_html in page
-    assert "| Streaming-WAM (Ours) | **91.68** | **91.8** | **91.74** |" in readme
+    assert "| Streaming-WAM (Ours) | **91.68** | **91.80** | **91.74** |" in readme
     assert page.count("by 4.74 percentage points, from 87.0 to 91.74") == 2
     assert readme.count("by 4.74 percentage points, from 87.0 to 91.74") == 2
     assert "maintaining or improving task success" in page
