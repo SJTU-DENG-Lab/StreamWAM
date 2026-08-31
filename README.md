@@ -14,12 +14,10 @@ its current action chunk while a Stream Update prepares the next visual and
 action chunk in the background.
 
 Shared actions bridge adjacent chunks and directly condition the next visual
-future through action-conditioned attention and fixed condition slots. One-step
-consistency distillation helps each Stream Update finish within the temporal
-overlap without replacing the original joint video-and-action computation. On
-LIBERO, Streaming-WAM reaches 98.20% average success at 41.0 ms Chunk Time—a
-12.0× speedup over FastWAM—and the same streaming design transfers across
-FastWAM-Joint and X-WAM on LIBERO, RoboTwin 2.0, and RoboCasa.
+future through action-conditioned attention and fixed condition slots. In
+simulation, Streaming-WAM reaches 98.20% average success on LIBERO at 41.0 ms
+Chunk Time, a 12.0× speedup over FastWAM. On the real robot, it reduces Chunk
+Time from 667.1 ms to 122.62 ms and Total Time from 68 s to 38 s.
 
 ## Release status
 

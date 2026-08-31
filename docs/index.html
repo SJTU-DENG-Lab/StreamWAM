@@ -153,14 +153,8 @@
           <div class="tldr-points">
             <p><strong>Prediction stays aligned with motion.</strong> Shared actions bridge adjacent chunks, so each incoming prediction begins from the action already underway rather than from the latest observation alone.</p>
             <p><strong>Actions directly condition the visual future.</strong> Action-conditioned attention and fixed condition slots route shared actions into the next visual prediction while preserving the original joint video-and-action computation.</p>
-            <p><strong>Low latency does not come at the expense of task performance.</strong> One-step consistency distillation helps each Stream Update finish within the temporal overlap, and the same streaming design transfers across FastWAM-Joint and X-WAM on LIBERO, RoboTwin 2.0, and RoboCasa.</p>
           </div>
-          <div class="tldr-results" aria-label="Streaming-WAM headline results">
-            <p><strong>98.20%</strong><span>LIBERO average success</span></p>
-            <p><strong>41.0 ms</strong><span>LIBERO Chunk Time · 12.0× faster</span></p>
-            <p><strong>90.60%</strong><span>RoboTwin 2.0 total success</span></p>
-            <p><strong>122.62 ms</strong><span>Real-robot Chunk Time · 5.4× faster</span></p>
-          </div>
+          <p class="tldr-summary">In simulation, Streaming-WAM achieves 98.20% average success on LIBERO with a 41.0 ms Chunk Time, a 12.0× speedup over FastWAM. On the real robot, it reduces Chunk Time from 667.1 ms to 122.62 ms and Total Time from 68 s to 38 s.</p>
         </div>
       </section>
 
