@@ -136,6 +136,19 @@ python examples/libero/multigpu_rollout.py \
 
 For more evaluation options, see the [LIBERO guide](https://github.com/SJTU-DENG-Lab/Streaming-WAM/blob/main/examples/libero/LIBERO.md).
 
+## Citation
+
+```bibtex
+@misc{huang2026streamingwam,
+  title        = {Streaming-WAM: Streaming Your World-Action Model for Real-Time Robot Manipulation},
+  author       = {Xuyao Huang and Yixuan Wang and Zengyao Ye and Haoran Wen and Zhijie Deng},
+  year         = {2026},
+  howpublished = {Project page},
+  organization = {Shanghai Jiao Tong University and Li Auto Inc.},
+  url          = {https://sjtu-deng-lab.github.io/Streaming-WAM/}
+}
+```
+
 ## License
 
 Released under the [Apache License 2.0](https://github.com/SJTU-DENG-Lab/Streaming-WAM/blob/main/LICENSE).
