@@ -72,6 +72,10 @@ def test_real_robot_table_combines_timing_and_30_trial_success_results() -> None
     assert "Real robot inference, rollout time, and task success" in section
     assert "over 30 trials per method" in section
     assert "over 30 trials per method" in readme
+    assert "30 Hz control frequency" in section
+    assert "30 Hz control frequency" in readme
+    assert "25 Hz control frequency" not in page
+    assert "25 Hz control frequency" not in readme
     assert "<th scope=\"col\">Successes</th>" in section
     assert "<th scope=\"col\">Success Rate ↑</th>" in section
     assert "<th scope=\"row\">Joint WAM</th><td>682.1 ms</td><td>90 s</td><td>23 / 30</td><td>76.67%</td>" in section
