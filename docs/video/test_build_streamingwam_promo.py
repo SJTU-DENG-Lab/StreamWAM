@@ -61,6 +61,11 @@ class PromoVideoBuilderTests(unittest.TestCase):
         self.assertIn("Completed · 2.4× Faster", result.stdout)
         self.assertNotIn("Completed · 1.8× Faster", result.stdout)
 
+    def test_builder_accepts_a_replacement_streaming_side_view(self):
+        replacement = "/tmp/replacement-side-view.mp4"
+        result = self.run_builder("--describe", "--streaming-side-video", replacement)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

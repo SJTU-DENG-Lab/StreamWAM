@@ -1,0 +1,20 @@
+{
+  "layout": "vertical",
+  "duration_seconds": 38.0,
+  "views": [
+    {
+      "position": "top",
+      "source": "demo1.rar/1v2a-rtc-1.mp4",
+      "source_sha256": "74872b10a1f5f7dea8bc4330026f597586e1a56184d505f9c772ab8fc60c6bf9",
+      "start_seconds": 0.0
+    },
+    {
+      "position": "bottom",
+      "source": "飞书20260831-114524.mp4",
+      "source_sha256": "fb707837b357411654d384469a9df6a0bc23ad56ebde27c66e952d210706ed0a",
+      "start_seconds": 0.0
+    }
+  ],
+  "output_sha256": "1bd192ac5ee3d638a5ac12d94b70aa405c5605a0ee6d6589e41fa94b54977640",
+  "poster_sha256": "afe9639157861033d1dd0e3ff228a7a9dbdf2918f73615d694050742207b646c"
+}

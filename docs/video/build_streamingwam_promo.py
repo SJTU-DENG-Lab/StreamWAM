@@ -222,7 +222,12 @@ def probe(output: Path) -> dict[str, object]:
     return report
 
 
-def render(source_root: Path, raw_dir: Path, output_dir: Path) -> Path:
+def render(
+    source_root: Path,
+    raw_dir: Path,
+    output_dir: Path,
+    streaming_side_video: Path | None = None,
+) -> Path:
     timeline = Timeline()
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
@@ -239,6 +244,9 @@ def render(source_root: Path, raw_dir: Path, output_dir: Path) -> Path:
         if not path.is_file():
             raise FileNotFoundError(f"Missing {label} image: {path}")
     media = ensure_raw_media(source_root, raw_dir)
+    side_video = streaming_side_video.resolve() if streaming_side_video else media["1v2a-rtc-2.mp4"]
+    if not side_video.is_file():
+        raise FileNotFoundError(f"Missing Streaming-WAM side-view rollout: {side_video}")
 
     output_dir.mkdir(parents=True, exist_ok=True)
     music = output_dir / "streamingwam-project-video-music.wav"
@@ -256,7 +264,7 @@ def render(source_root: Path, raw_dir: Path, output_dir: Path) -> Path:
         "-i", str(media["joint-1.mp4"]),
         "-i", str(media["joint-2.mp4"]),
         "-i", str(media["1v2a-rtc-1.mp4"]),
-        "-i", str(media["1v2a-rtc-2.mp4"]),
+        "-i", str(side_video),
         "-loop", "1", "-framerate", "30", "-t", str(timeline.method), "-i", str(images["method"]),
         "-loop", "1", "-framerate", "30", "-t", str(timeline.results), "-i", str(images["results"]),
         "-i", str(music),
@@ -293,6 +301,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--source-root", type=Path, default=DEFAULT_SOURCE_ROOT)
     parser.add_argument("--raw-dir", type=Path, default=DEFAULT_WORK_DIR / "raw")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--streaming-side-video",
+        type=Path,
+        help="replace the default Streaming-WAM side-view rollout",
+    )
     return parser.parse_args()
 
 
@@ -308,7 +321,12 @@ def main() -> None:
     if args.synthesize_music:
         synthesize_music(args.synthesize_music, timeline)
         return
-    output = render(args.source_root.resolve(), args.raw_dir.resolve(), args.output_dir.resolve())
+    output = render(
+        args.source_root.resolve(),
+        args.raw_dir.resolve(),
+        args.output_dir.resolve(),
+        args.streaming_side_video,
+    )
     print(output)
 
 

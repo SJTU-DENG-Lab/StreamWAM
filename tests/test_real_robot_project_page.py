@@ -10,6 +10,9 @@ README = ROOT / "README.md"
 JOINT_VIDEO = ROOT / "docs" / "assets" / "real-robot" / "joint-wam.mp4"
 JOINT_POSTER = ROOT / "docs" / "assets" / "real-robot" / "joint-wam.jpg"
 JOINT_MANIFEST = ROOT / "docs" / "assets" / "real-robot" / "joint-wam.json"
+STREAMING_VIDEO = ROOT / "docs" / "assets" / "real-robot" / "streaming-wam.mp4"
+STREAMING_POSTER = ROOT / "docs" / "assets" / "real-robot" / "streaming-wam.jpg"
+STREAMING_MANIFEST = ROOT / "docs" / "assets" / "real-robot" / "streaming-wam.json"
 PROMO_BUILDER = ROOT / "docs" / "video" / "build_streamingwam_promo.py"
 
 
@@ -44,6 +47,17 @@ def test_joint_rollout_remains_click_to_load_with_a_fresh_cache_token() -> None:
     assert f'<source data-src="{token}" type="video/mp4">' in page
     assert f'<source src="{token}"' not in page
     assert 'preload="none"' in page
+
+
+def test_streaming_rollout_uses_the_new_side_view_and_remains_click_to_load() -> None:
+    page = PAGE.read_text(encoding="utf-8")
+    video_token = "assets/real-robot/streaming-wam.mp4?v=streaming-side-20260831"
+    poster_token = "assets/real-robot/streaming-wam.jpg?v=streaming-side-20260831"
+
+    assert page.count(video_token) == 2
+    assert page.count(poster_token) == 1
+    assert f'<source data-src="{video_token}" type="video/mp4">' in page
+    assert f'<source src="{video_token}"' not in page
 
 
 def test_joint_rollout_asset_is_the_full_90_second_two_view_video() -> None:
@@ -94,3 +108,26 @@ def test_joint_rollout_manifest_locks_the_reviewed_sources_layout_and_sync() -> 
     ]
     assert hashlib.sha256(JOINT_VIDEO.read_bytes()).hexdigest() == manifest["output_sha256"]
     assert hashlib.sha256(JOINT_POSTER.read_bytes()).hexdigest() == manifest["poster_sha256"]
+
+
+def test_streaming_rollout_manifest_locks_the_new_side_view_and_sync() -> None:
+    manifest = json.loads(STREAMING_MANIFEST.read_text(encoding="utf-8"))
+
+    assert manifest["layout"] == "vertical"
+    assert manifest["duration_seconds"] == 38.0
+    assert manifest["views"] == [
+        {
+            "position": "top",
+            "source": "demo1.rar/1v2a-rtc-1.mp4",
+            "source_sha256": "74872b10a1f5f7dea8bc4330026f597586e1a56184d505f9c772ab8fc60c6bf9",
+            "start_seconds": 0.0,
+        },
+        {
+            "position": "bottom",
+            "source": "飞书20260831-114524.mp4",
+            "source_sha256": "fb707837b357411654d384469a9df6a0bc23ad56ebde27c66e952d210706ed0a",
+            "start_seconds": 0.0,
+        },
+    ]
+    assert hashlib.sha256(STREAMING_VIDEO.read_bytes()).hexdigest() == manifest["output_sha256"]
+    assert hashlib.sha256(STREAMING_POSTER.read_bytes()).hexdigest() == manifest["poster_sha256"]
