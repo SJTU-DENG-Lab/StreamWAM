@@ -166,8 +166,8 @@ button { font: inherit; }
 .headline-results small b { margin-right: 3px; padding: 2px 4px; border-radius: 4px; color: var(--violet); background: var(--violet-soft); font-weight: 840; }
 
 .tldr-showcase { padding-block: clamp(70px,8vw,108px); border-top: 1px solid var(--line); background: var(--paper); }
-.tldr-showcase h2 { margin: 0; color: var(--teal-deep); font-family: inherit; font-size: 1.15rem; font-weight: 780; line-height: 1.3; letter-spacing: .07em; text-transform: uppercase; }
-.tldr-lead { margin: 18px 0 0; color: var(--ink); font-family: inherit; font-size: 1.12rem; line-height: 1.78; letter-spacing: 0; }
+.tldr-showcase h2 { margin: 0; color: var(--teal-deep); font-family: inherit; font-size: 1.08rem; font-weight: 760; line-height: 1.3; letter-spacing: .06em; text-transform: uppercase; }
+.tldr-lead { margin: 18px 0 0; color: var(--ink); font-family: inherit; font-size: 1rem; line-height: 1.75; letter-spacing: 0; }
 .tldr-lead strong { font-weight: 760; }
 .tldr-points { margin-top: 34px; border-block: 1px solid var(--line-strong); }
 .tldr-points p { margin: 0; padding: 17px 0; color: var(--muted); font-size: 1.04rem; line-height: 1.75; }

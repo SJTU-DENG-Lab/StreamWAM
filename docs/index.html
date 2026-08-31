@@ -14,7 +14,7 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <title>Streaming-WAM — Streaming World-Action Models</title>
-    <link rel="stylesheet" href="styles.css?v=20260827-41">
+    <link rel="stylesheet" href="styles.css?v=20260830-42">
     <script src="script.js?v=20260827-20" defer></script>
   </head>
   <body>
@@ -146,18 +146,6 @@
         </figure>
       </section>
 
-      <section class="tldr-showcase" id="tldr" aria-labelledby="tldr-title">
-        <div class="reading-column tldr-inner">
-          <h2 id="tldr-title">TL;DR</h2>
-          <p class="tldr-lead"><strong>Streaming-WAM turns joint world-action prediction into continuous robot control.</strong> Instead of waiting at every chunk boundary, the robot keeps executing its current action chunk while a Stream Update prepares the next visual and action chunk in the background.</p>
-          <div class="tldr-points">
-            <p><strong>Prediction stays aligned with motion.</strong> Shared actions bridge adjacent chunks, so each incoming prediction begins from the action already underway rather than from the latest observation alone.</p>
-            <p><strong>Actions directly condition the visual future.</strong> Action-conditioned attention and fixed condition slots route shared actions into the next visual prediction while preserving the original joint video-and-action computation.</p>
-          </div>
-          <p class="tldr-summary">In simulation, Streaming-WAM achieves 98.20% average success on LIBERO with a 41.0 ms Chunk Time, a 12.0× speedup over FastWAM. On the real robot, it reduces Chunk Time from 667.1 ms to 122.62 ms and Total Time from 68 s to 38 s.</p>
-        </div>
-      </section>
-
       <section class="rollout-showcase" id="real-robot-demo" aria-labelledby="real-robot-demo-title">
         <div class="shell">
           <div class="rollout-showcase-heading">
@@ -227,6 +215,18 @@
               <noscript><a href="assets/real-robot/streaming-wam.mp4?v=real-robot-20260830">Open the Streaming-WAM rollout</a></noscript>
             </article>
           </div>
+        </div>
+      </section>
+
+      <section class="tldr-showcase" id="tldr" aria-labelledby="tldr-title">
+        <div class="reading-column tldr-inner">
+          <h2 id="tldr-title">TL;DR</h2>
+          <p class="tldr-lead"><strong>Streaming-WAM turns joint world-action prediction into continuous robot control.</strong> Instead of waiting at every chunk boundary, the robot keeps executing its current action chunk while a Stream Update prepares the next visual and action chunk in the background.</p>
+          <div class="tldr-points">
+            <p><strong>Prediction stays aligned with motion.</strong> Shared actions bridge adjacent chunks, so each incoming prediction begins from the action already underway rather than from the latest observation alone.</p>
+            <p><strong>Actions directly condition the visual future.</strong> Action-conditioned attention and fixed condition slots route shared actions into the next visual prediction while preserving the original joint video-and-action computation.</p>
+          </div>
+          <p class="tldr-summary">In simulation, Streaming-WAM achieves 98.20% average success on LIBERO with a 41.0 ms Chunk Time, a 12.0× speedup over FastWAM. On the real robot, it reduces Chunk Time from 667.1 ms to 122.62 ms and Total Time from 68 s to 38 s.</p>
         </div>
       </section>
 
