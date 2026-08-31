@@ -10,6 +10,13 @@ __pycache__/
 # Env / local
 .env
 .env.*
+.netrc
+.pypirc
+*.pem
+*.key
+*.p12
+credentials*.json
+secrets*.json
 .venv/
 venv/
 

@@ -131,7 +131,7 @@ setting.
 | Motus from WAN2.2 | 77.56 | 77.00 | 77.30 |
 | FastWAM-Joint | 86.40 | <u>87.60</u> | 87.00 |
 | FastWAM-CD | 86.20 | 85.80 | 86.00 |
-| StreamingWAM (Ours) | **90.40** | **90.80** | **90.60** |
+| Streaming-WAM (Ours) | **90.40** | **90.80** | **90.60** |
 
 #### RoboCasa
 
@@ -172,12 +172,12 @@ Task success alone does not characterize runtime efficiency. We therefore report
 | LIBERO | Streaming-WAM w/o Slot Encoder | 36.3 ms | 5.31 s Long / 3.01 s Short |
 | RoboTwin 2.0 | FastWAM-Joint | 652.1 ms | 32.97 s |
 | RoboTwin 2.0 | FastWAM-CD | 165.2 ms | 25.21 s |
-| RoboTwin 2.0 | StreamingWAM | 54.4 ms | 23.89 s |
+| RoboTwin 2.0 | Streaming-WAM | 54.4 ms | 23.89 s |
 | RoboCasa | X-WAM | 374.07 ms | 17.36 s |
 | RoboCasa | X-WAM-CD | 134.37 ms | 13.04 s |
 | RoboCasa | Streaming-WAM | 115.98 ms | 9.49 s |
 
-Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining comparable task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to FastWAM-Joint, StreamingWAM reduces Chunk Time from 652.1 ms to 54.4 ms and Episode Time from 32.97 s to 23.89 s, while increasing overall success from 87.0 to 90.6. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).
+Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining comparable task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to FastWAM-Joint, Streaming-WAM reduces Chunk Time from 652.1 ms to 54.4 ms and Episode Time from 32.97 s to 23.89 s, while increasing overall success from 87.0 to 90.6. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).
 
 ## Runtime layout
 

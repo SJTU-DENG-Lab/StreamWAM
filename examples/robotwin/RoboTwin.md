@@ -164,7 +164,7 @@ export CONDA_ENV=streamingwam
 export RECIPE=examples/robotwin/configs/recipes/streamingwam_robotwin_shared_dit_wan22_5b.yaml
 export ACCELERATE_CONFIG=configs/accelerate/deepspeed_zero2_multinode.yaml
 export NUM_MACHINES=2 NUM_PROCESSES=16 MACHINE_RANK=0  # use 1 on rank 1
-export MAIN_PROCESS_IP=10.0.0.1 MAIN_PROCESS_PORT=29617
+export MAIN_PROCESS_IP="<rank0-private-ip>" MAIN_PROCESS_PORT=29617
 export TRAIN_OVERRIDES='data.dataset_dirs=["/path/to/robotwin2.0"] backbone.pretrained_model_id=/path/to/Wan2.2-TI2V-5B training.output_dir=/path/to/output/streamingwam_robotwin_shared_dit_wan22_5b data.text_embedding_cache_dir=/path/to/output/streamingwam_robotwin_shared_dit_wan22_5b/text_embedding_cache data.action_stats_path=/path/to/output/streamingwam_robotwin_shared_dit_wan22_5b/action_stats.json data.state_stats_path=/path/to/output/streamingwam_robotwin_shared_dit_wan22_5b/action_stats.json training.batch_size=16 training.gradient_accumulation_steps=4 training.num_workers=12'
 
 bash examples/robotwin/scripts/launch_streamingwam_robotwin_train.sh
@@ -232,7 +232,7 @@ ln -s /path/to/Streaming-WAM/examples/robotwin RoboTwin/policy/streamingwam_clie
 cd RoboTwin
 
 export VK_ICD_FILENAMES=/path/to/nvidia_icd.json   # if SAPIEN needs it
-SERVER_HOST=10.0.0.1 SERVER_PORT_BASE=8765 NSERVERS=8 \
+SERVER_HOST="<policy-server-ip>" SERVER_PORT_BASE=8765 NSERVERS=8 \
 CLIENT_GPUS="0" NWORKER=8 CKPT_TAG=sharedit45000 \
 bash /path/to/Streaming-WAM/examples/robotwin/scripts/launch_streamingwam_robotwin_rollout.sh
 ```

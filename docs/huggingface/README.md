@@ -12,7 +12,7 @@ tags:
 
 <div align="center">
   <h1>Streaming-WAM</h1>
-  <h3>Streaming World-Action Models for Robotic Manipulation</h3>
+  <h3>Streaming Your World-Action Model for Real-Time Robot Manipulation.</h3>
 
   <a href="https://github.com/SJTU-DENG-Lab/Streaming-WAM"><img src="https://img.shields.io/badge/GitHub-Code-111827?logo=github" alt="GitHub Code"></a>
   <a href="https://github.com/SJTU-DENG-Lab/Streaming-WAM/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-6B5BFF" alt="Apache 2.0 License"></a>
@@ -46,7 +46,7 @@ We evaluate all methods on LIBERO-10, LIBERO-Spatial, LIBERO-Goal, and LIBERO-Ob
 
 | Method | LIBERO-10 | Spatial | Goal | Object | Average (%) ↑ | Chunk Time (ms) ↓ | Episode Time (s) ↓ Long / Short |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| FastWAM | 96.20 | 96.20 | 94.20 | 96.20 | 95.70 | 493.0 | 16.31 / 8.25 |
+| Fast-WAM | 95.20 | 98.20 | 97.00 | 100.00 | 97.60 | 493.0 | 16.31 / 8.25 |
 | FastWAM-Joint-CD | 97.20 | 99.60 | 98.60 | 100.00 | 98.85 | 114.2 | 6.89 / 3.74 |
 | **Streaming-WAM** | **96.60** | **98.80** | **97.40** | **100.00** | **98.20** | **41.0** | **5.36 / 3.15** |
 

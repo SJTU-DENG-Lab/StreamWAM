@@ -57,7 +57,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--checkpoint-format", default="starwam", choices=("streamingwam", "fastwam", "starwam"))
     parser.add_argument("--stats-path", required=True)
     parser.add_argument("--backbone-path", required=True)
-    parser.add_argument("--text-cache-path", default="/inspire/qb-ilm/project/qproject-fundationmodel/yangyi-253108120173/yzy/starwam/cache/text_embeds_cache")
+    parser.add_argument("--text-cache-path", required=True)
     parser.add_argument("--robotwin-home", required=True)
     parser.add_argument("--inference-python", required=True)
     parser.add_argument("--simulator-python", required=True)

@@ -23,7 +23,7 @@ NUM_TRIALS=${NUM_TRIALS:-100}
 REPLAN_STEPS=${REPLAN_STEPS:-16}
 MODEL_SEED=${MODEL_SEED:-${SEED:-42}}
 EPISODE_SEED=${EPISODE_SEED:-$MODEL_SEED}
-TEXT_CACHE_PATH=${TEXT_CACHE_PATH:-/inspire/qb-ilm/project/qproject-fundationmodel/yangyi-253108120173/yzy/starwam/cache/text_embeds_cache}
+TEXT_CACHE_PATH=${TEXT_CACHE_PATH:?set TEXT_CACHE_PATH}
 OUTPUT_DIR=${OUTPUT_DIR:-$ROOT/outputs/robotwin_${MODE}_${CHECKPOINT_FORMAT}_r${REPLAN_STEPS}_${NUM_TRIALS}trials_$(date +%Y%m%d_%H%M%S)}
 
 command=(
