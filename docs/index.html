@@ -51,7 +51,7 @@
             <span class="button button-pending" aria-disabled="true">Paper · Coming Soon</span>
           </div>
           <div class="headline-results" aria-label="Selected LIBERO results">
-            <p><strong>98.20%</strong><span>LIBERO average success</span></p>
+            <p><strong>98.35%</strong><span>LIBERO average success</span></p>
             <p><strong>41.0 ms</strong><span>LIBERO chunk time</span><small><b>12.0× faster</b> vs FastWAM</small></p>
             <p><strong>5.36 / 3.15 s</strong><span>LIBERO Long / Short total time</span><small><b>3.0× / 2.6× faster</b> vs FastWAM</small></p>
           </div>
@@ -224,7 +224,7 @@
           <p class="tldr-lead"><strong>Streaming-WAM enables streaming world-action prediction for continuous robot control.</strong> Instead of waiting at each chunk boundary, the robot continues executing its current action chunk while a Stream Update prepares the next video and action chunks in the background.</p>
           <div class="tldr-points">
             <p><strong>An action-conditioned World-Action Model keeps prediction aligned with execution.</strong> Shared actions directly condition the next visual prediction, allowing the model to anticipate the visual consequences of the motion already underway and produce smoother transitions between consecutive chunks.</p>
-            <p><strong>Streaming-WAM delivers strong task performance with shorter end-to-end rollouts.</strong> Compared with FastWAM on LIBERO, it achieves 98.20% average success with 3.0× and 2.6× Total Time speedups on Long and Short tasks, respectively, together with a 12.0× Chunk Time speedup. On RoboTwin 2.0, it improves total success by 4.74 percentage points, from 87.0 to 91.74 over FastWAM-Joint, while delivering a 1.4× Total Time speedup and a 12.0× Chunk Time speedup. On the real robot, it reduces Total Time from 90 s to 38 s (2.4× faster) and achieves a 5.6× Chunk Time speedup.</p>
+            <p><strong>Streaming-WAM delivers strong task performance with shorter end-to-end rollouts.</strong> Compared with FastWAM on LIBERO, it achieves 98.35% average success with 3.0× and 2.6× Total Time speedups on Long and Short tasks, respectively, together with a 12.0× Chunk Time speedup. On RoboTwin 2.0, it improves total success by 4.74 percentage points, from 87.0 to 91.74 over FastWAM-Joint, while delivering a 1.4× Total Time speedup and a 12.0× Chunk Time speedup. On the real robot, it reduces Total Time from 90 s to 38 s (2.4× faster) and achieves a 5.6× Chunk Time speedup.</p>
           </div>
           <p class="tldr-summary">Below, we share several practical findings and design details behind efficient streaming world-action prediction.</p>
         </div>
@@ -316,14 +316,15 @@
                 <tbody>
                   <tr><th scope="row">OpenVLA</th><td>53.7</td><td>84.7</td><td>79.2</td><td>88.4</td><td>76.5</td></tr>
                   <tr><th scope="row">π₀</th><td>85.2</td><td>96.8</td><td>95.8</td><td>98.8</td><td>94.1</td></tr>
-                  <tr><th scope="row">π₀.₅</th><td>92.4</td><td><u>98.8</u></td><td><u>98.0</u></td><td>98.2</td><td>96.9</td></tr>
+                  <tr><th scope="row">π₀.₅</th><td>92.4</td><td>98.8</td><td>98.0</td><td>98.2</td><td>96.9</td></tr>
                   <tr><th scope="row">Motus</th><td><strong>97.6</strong></td><td>96.8</td><td>96.6</td><td><u>99.8</u></td><td>97.7</td></tr>
-                  <tr><th scope="row">Fast-WAM</th><td>95.2</td><td>98.2</td><td>97.0</td><td><strong>100.0</strong></td><td>97.6</td></tr>
+                  <tr><th scope="row">FastWAM</th><td>95.2</td><td>98.2</td><td>97.0</td><td><strong>100.0</strong></td><td>97.6</td></tr>
+                  <tr><th scope="row">FastWAM-RTC</th><td>79.20</td><td>92.80</td><td>91.40</td><td>93.20</td><td>89.15</td></tr>
+                  <tr><th scope="row">FastWAM-Joint</th><td><strong>97.60</strong></td><td><u>99.20</u></td><td><u>98.40</u></td><td>99.20</td><td><u>98.60</u></td></tr>
                   <tr><th scope="row">FastWAM-Joint-CD</th><td><u>97.20</u></td><td><strong>99.60</strong></td><td><strong>98.60</strong></td><td><strong>100.00</strong></td><td><strong>98.85</strong></td></tr>
-                  <tr><th scope="row">FastWAM-RTC</th><td>58.40</td><td>76.20</td><td>77.00</td><td>83.40</td><td>73.75</td></tr>
-                  <tr><th scope="row">Streaming-WAM (Ours)</th><td>96.60</td><td><u>98.80</u></td><td>97.40</td><td><strong>100.00</strong></td><td><u>98.20</u></td></tr>
-                  <tr><th scope="row">Streaming-WAM w/o Action Conditioning</th><td>94.40</td><td>96.40</td><td>96.60</td><td>97.60</td><td>96.25</td></tr>
-                  <tr><th scope="row">Streaming-WAM w/o Slot Encoder</th><td>95.60</td><td>98.40</td><td>96.80</td><td><u>99.80</u></td><td>97.65</td></tr>
+                  <tr><th scope="row">Streaming-WAM (Ours)</th><td>96.80</td><td>98.80</td><td>97.80</td><td><strong>100.00</strong></td><td>98.35</td></tr>
+                  <tr><th scope="row">Streaming-WAM w/o Action Conditioning</th><td>90.20</td><td>97.20</td><td>95.40</td><td>99.20</td><td>95.50</td></tr>
+                  <tr><th scope="row">Streaming-WAM w/o Slot Encoder</th><td>92.60</td><td>98.40</td><td>96.40</td><td>98.00</td><td>96.35</td></tr>
                 </tbody>
               </table>
             </div>
@@ -344,7 +345,7 @@
                   <tr><th scope="row">Motus</th><td><u>88.66</u></td><td>87.02</td><td><u>87.80</u></td></tr>
                   <tr><th scope="row">Motus from WAN2.2</th><td>77.56</td><td>77.00</td><td>77.30</td></tr>
                   <tr><th scope="row">FastWAM-Joint</th><td>86.40</td><td><u>87.60</u></td><td>87.00</td></tr>
-                  <tr><th scope="row">FastWAM-CD</th><td>86.20</td><td>85.80</td><td>86.00</td></tr>
+                  <tr><th scope="row">FastWAM-Joint-CD</th><td>86.20</td><td>85.80</td><td>86.00</td></tr>
                   <tr><th scope="row">Streaming-WAM (Ours)</th><td><strong>91.68</strong></td><td><strong>91.80</strong></td><td><strong>91.74</strong></td></tr>
                 </tbody>
               </table>
@@ -394,20 +395,20 @@
 
           <div class="efficiency-intro reading-column">
             <p><strong>Inference efficiency.</strong> Task success alone does not characterize runtime efficiency. We therefore report Chunk Time, the latency required to prepare the next action chunk, and Episode Time, the duration of a complete rollout, including inference, execution, and replanning.</p>
-            <p>Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining or improving task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.20% average success. On RoboTwin 2.0, relative to FastWAM-Joint, Streaming-WAM reduces Chunk Time from 652.1 ms to 54.4 ms and Episode Time from 32.97 s to 23.89 s, while increasing overall success by 4.74 percentage points, from 87.0 to 91.74. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).</p>
+            <p>Across all three benchmarks, Streaming-WAM reduces both runtime measures while maintaining or improving task success. On LIBERO, it achieves a 12.0× Chunk Time speedup over FastWAM and Episode Time speedups of 3.0× and 2.6× on Long and Short tasks, respectively, with 98.35% average success. On RoboTwin 2.0, relative to FastWAM-Joint, Streaming-WAM reduces Chunk Time from 652.1 ms to 54.4 ms and Episode Time from 32.97 s to 23.89 s, while increasing overall success by 4.74 percentage points, from 87.0 to 91.74. On RoboCasa, relative to X-WAM, Streaming-WAM achieves a 3.2× Chunk Time speedup and a 1.8× Episode Time speedup, with comparable average success (75.35% versus 75.42%).</p>
           </div>
           <figure class="latency-figure breakout" aria-labelledby="chunk-time-caption">
             <div class="latency-viewport">
-              <a class="latency-image-link" href="assets/streaming-wam-chunk-time.png?v=robotwin-fastwam-20260830" target="_blank" rel="noopener noreferrer" aria-label="Open the full-resolution Streaming-WAM Chunk Time figure">
-                <img class="latency-plot" src="assets/streaming-wam-chunk-time.png?v=robotwin-fastwam-20260830" alt="Chunk-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="chunk-time-caption latency-data-caption">
+              <a class="latency-image-link" href="assets/streaming-wam-chunk-time.png?v=robotwin-joint-cd-20260905" target="_blank" rel="noopener noreferrer" aria-label="Open the full-resolution Streaming-WAM Chunk Time figure">
+                <img class="latency-plot" src="assets/streaming-wam-chunk-time.png?v=robotwin-joint-cd-20260905" alt="Chunk-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="chunk-time-caption latency-data-caption">
               </a>
             </div>
             <figcaption id="chunk-time-caption">Chunk Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa. Each benchmark uses its own continuous scale.</figcaption>
           </figure>
           <figure class="latency-figure breakout" aria-labelledby="episode-time-caption">
             <div class="latency-viewport">
-              <a class="latency-image-link" href="assets/streaming-wam-episode-time.png?v=robotwin-all-episodes-20260830" target="_blank" rel="noopener noreferrer" aria-label="Open the full-resolution Streaming-WAM Episode Time figure">
-                <img class="latency-plot" src="assets/streaming-wam-episode-time.png?v=robotwin-all-episodes-20260830" alt="Episode-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="episode-time-caption latency-data-caption">
+              <a class="latency-image-link" href="assets/streaming-wam-episode-time.png?v=robotwin-joint-cd-20260905" target="_blank" rel="noopener noreferrer" aria-label="Open the full-resolution Streaming-WAM Episode Time figure">
+                <img class="latency-plot" src="assets/streaming-wam-episode-time.png?v=robotwin-joint-cd-20260905" alt="Episode-time comparison for LIBERO, RoboTwin 2.0, and RoboCasa." width="2400" height="900" aria-describedby="episode-time-caption latency-data-caption">
               </a>
             </div>
             <figcaption id="episode-time-caption">Episode Time comparison for LIBERO, RoboTwin 2.0, and RoboCasa. LIBERO reports Long and Short tasks separately.</figcaption>
@@ -417,13 +418,13 @@
               <thead><tr><th scope="col">Benchmark</th><th scope="col">Method</th><th scope="col">Chunk Time</th><th scope="col">Episode Time</th></tr></thead>
               <tbody>
                 <tr><th scope="row">LIBERO</th><td>FastWAM</td><td>493.0 ms</td><td>16.31 s Long / 8.25 s Short</td></tr>
-                <tr><th scope="row">LIBERO</th><td>FastWAM-Joint-CD</td><td>114.2 ms</td><td>6.89 s Long / 3.74 s Short</td></tr>
                 <tr><th scope="row">LIBERO</th><td>FastWAM-RTC</td><td>142.3 ms</td><td>6.23 s Long / 3.20 s Short</td></tr>
+                <tr><th scope="row">LIBERO</th><td>FastWAM-Joint-CD</td><td>114.2 ms</td><td>6.89 s Long / 3.74 s Short</td></tr>
                 <tr><th scope="row">LIBERO</th><td>Streaming-WAM</td><td>41.0 ms</td><td>5.36 s Long / 3.15 s Short</td></tr>
                 <tr><th scope="row">LIBERO</th><td>Streaming-WAM w/o Action Conditioning</td><td>35.1 ms</td><td>5.20 s Long / 2.92 s Short</td></tr>
                 <tr><th scope="row">LIBERO</th><td>Streaming-WAM w/o Slot Encoder</td><td>36.3 ms</td><td>5.31 s Long / 3.01 s Short</td></tr>
                 <tr><th scope="row">RoboTwin 2.0</th><td>FastWAM-Joint</td><td>652.1 ms</td><td>32.97 s</td></tr>
-                <tr><th scope="row">RoboTwin 2.0</th><td>FastWAM-CD</td><td>165.2 ms</td><td>25.21 s</td></tr>
+                <tr><th scope="row">RoboTwin 2.0</th><td>FastWAM-Joint-CD</td><td>165.2 ms</td><td>25.21 s</td></tr>
                 <tr><th scope="row">RoboTwin 2.0</th><td>Streaming-WAM</td><td>54.4 ms</td><td>23.89 s</td></tr>
                 <tr><th scope="row">RoboCasa</th><td>X-WAM</td><td>374.07 ms</td><td>17.36 s</td></tr>
                 <tr><th scope="row">RoboCasa</th><td>X-WAM-CD</td><td>134.37 ms</td><td>13.04 s</td></tr>

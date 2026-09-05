@@ -46,9 +46,13 @@ We evaluate all methods on LIBERO-10, LIBERO-Spatial, LIBERO-Goal, and LIBERO-Ob
 
 | Method | LIBERO-10 | Spatial | Goal | Object | Average (%) ↑ | Chunk Time (ms) ↓ | Episode Time (s) ↓ Long / Short |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Fast-WAM | 95.20 | 98.20 | 97.00 | 100.00 | 97.60 | 493.0 | 16.31 / 8.25 |
+| FastWAM | 95.20 | 98.20 | 97.00 | 100.00 | 97.60 | 493.0 | 16.31 / 8.25 |
+| FastWAM-RTC | 79.20 | 92.80 | 91.40 | 93.20 | 89.15 | 142.3 | 6.23 / 3.20 |
+| FastWAM-Joint | 97.60 | 99.20 | 98.40 | 99.20 | 98.60 | — | — |
 | FastWAM-Joint-CD | 97.20 | 99.60 | 98.60 | 100.00 | 98.85 | 114.2 | 6.89 / 3.74 |
-| **Streaming-WAM** | **96.60** | **98.80** | **97.40** | **100.00** | **98.20** | **41.0** | **5.36 / 3.15** |
+| **Streaming-WAM** | **96.80** | **98.80** | **97.80** | **100.00** | **98.35** | **41.0** | **5.36 / 3.15** |
+
+— indicates timing results that have not been reported.
 
 ## Installation
 
